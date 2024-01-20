@@ -71,6 +71,8 @@ class WPLoupe {
 		\add_filter( 'posts_pre_query', [ $this ,'posts_pre_query' ], 10, 2 );
 
 		\add_action( 'admin_init', [ $this, 'handle_reindex' ] );
+
+		\add_filter( 'after_t')
 	}
 
 	/**
