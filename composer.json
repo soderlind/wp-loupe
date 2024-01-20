@@ -1,6 +1,10 @@
 {
     "name": "soderlind/wp-loupe",
+	"type": "wordpress-plugin",
     "description": "",
     "homepage": "https://github.com/soderlind/wp-loupe",
-    "require": {}
+    "require": {
+		"ext-PDO": "*",
+        "loupe/loupe": "^0.5.6"
+    }
 }
