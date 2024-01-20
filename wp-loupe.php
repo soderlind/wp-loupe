@@ -1,0 +1,264 @@
+<?php
+/**
+ * WP Loupe
+ *
+ * @package     soderlind\plugin\WPLoupe
+ * @author      Per Soderlind
+ * @copyright   2021 Per Soderlind
+ * @license     GPL-2.0+
+ *
+ * @wordpress-plugin
+ * Plugin Name: WP Loupe
+ * Plugin URI: https://github.com/soderlind/wp-loupe
+ * GitHub Plugin URI: https://github.com/soderlind/wp-loupe
+ * Description: Search engine for WordPress. It uses the Loupe library to create a search index for your posts and pages
+ * Version:     0.0.1
+ * Author:      Per Soderlind
+ * Author URI:  https://soderlind.no
+ * Text Domain: wp-loupe
+ * License:     GPL-2.0+
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ */
+
+declare( strict_types = 1 );
+namespace soderlind\plugin\WPLoupe;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	wp_die();
+}
+require_once 'vendor/autoload.php';
+
+use Loupe\Loupe\Config\TypoTolerance;
+use Loupe\Loupe\Configuration;
+use Loupe\Loupe\LoupeFactory;
+use Loupe\Loupe\SearchParameters;
+
+/**
+ * Class WPLoupe
+ *
+ * @package soderlind\plugin\WPLoupe
+ */
+class WPLoupe {
+	/**
+	 * Loupe
+	 *
+	 * @var array
+	 */
+	private $loupe = [];
+
+	/**
+	 * Post types
+	 *
+	 * @var array
+	 */
+	private $post_types;
+
+	/**
+	 * WPLoupe constructor.
+	 */
+	public function __construct() {
+
+		\add_action( 'plugin_loaded', [ $this, 'init' ] );
+
+		$this->post_types = \apply_filters( 'wp_loupe_post_types', [ 'post', 'page' ] );
+		foreach ( $this->post_types as $post_type ) {
+			\add_action( "save_post_{$post_type}", [ $this, 'add' ], 10, 3 );
+		}
+
+		\add_filter( 'posts_pre_query', [ $this ,'posts_pre_query' ], 10, 2 );
+	}
+
+	/**
+	 * Create a new WP_Post object for each search result.
+	 * The WP_Query will then use these objects instead of querying the database.
+	 *
+	 * @param array     $posts Array of post objects.
+	 * @param \WP_Query $query The WP_Query instance (passed by reference).
+	 * @return array    Array of post objects. If empty, the WP_Query will continue, and use the database query.
+	 */
+	public function posts_pre_query( $posts, \WP_Query $query ) {
+		// Check if the query is the main query and a search query.
+		if ( $query->is_main_query() && $query->is_search() ) {
+
+			// Get the search terms from the query variables.
+			// The search terms are prefiltered by WordPress and stopwords are removed.
+			$raw_search_terms = $query->query_vars['search_terms'];
+
+			// Initialize an array to hold the processed search terms.
+			$search_terms = [];
+			// Loop through each raw search term.
+			foreach ( $raw_search_terms as $term ) {
+				// If the term contains a space, wrap it in quotes.
+				if ( false !== strpos( $term, ' ' ) ) {
+					$search_terms[] = '"' . $term . '"';
+				} else {
+					// Otherwise, add the term as is.
+					$search_terms[] = $term;
+				}
+			}
+			// Combine the search terms into a single string.
+			$search_term = implode( ' ', $search_terms );
+
+			// Perform the search and get the results.
+			$results = $this->search( $search_term );
+			// Initialize an array to hold the IDs of the search results.
+			$ids = [];
+			// Loop through each result.
+			foreach ( $results as $result ) {
+				// Loop through each hit in the result.
+				foreach ( $result['hits'] as $hit ) {
+					// Add the ID of the hit to the IDs array.
+					$ids[] = $hit['id'];
+				}
+			}
+
+			// Initialize an array to hold the posts.
+			$posts = [];
+			// Loop through each ID.
+			foreach ( $ids as $id ) {
+				// Create a new WP_Post object and set its ID.
+				$post     = new \WP_Post( new \stdClass() );
+				$post->ID = $id;
+				// Add the post to the posts array.
+				$posts[] = $post;
+			}
+		}
+
+		// Return the posts.
+		return $posts;
+	}
+
+
+	/**
+	 * Create a new Loupe instance for each post type.
+	 *
+	 * @return void
+	 */
+	public function init(): void {
+				$iso6391_lang = ( '' === \get_locale() ) ? 'en' : strtolower( substr( \get_locale(), 0, 2 ) );
+		foreach ( $this->post_types as $post_type ) {
+
+			$filterable_attributes = \apply_filters( "wp_loupe_filterable_attribute_{$post_type}", [ 'title', 'content' ] );
+
+			$configuration = Configuration::create()
+				->withPrimaryKey( 'id' )
+				->withFilterableAttributes( $filterable_attributes )
+				->withSortableAttributes( [ 'date','title' ] )
+				->withLanguages( [ $iso6391_lang ] )
+				->withTypoTolerance( TypoTolerance::create()->withFirstCharTypoCountsDouble( false ) );
+
+			$db_path                   = apply_filters( 'wp_loupe_db_path', WP_CONTENT_DIR . '/wp-loupe-db' );
+			$db_path                   = "{$db_path}/{$post_type}";
+			$loupe_factory             = new LoupeFactory();
+			$this->loupe[ $post_type ] = $loupe_factory->create( $db_path, $configuration );
+		}
+	}
+
+	/**
+	 * Add post to the loupe index
+	 *
+	 * @param int      $post_id Post ID.
+	 * @param \WP_Post $post    Post object.
+	 * @param bool     $update  Whether this is an existing post being updated or not.
+	 * @return void
+	 */
+	public function add( int $post_id, \WP_Post $post, bool $update ): void { // phpcs:ignore.
+		// Check if the post should be indexed.
+		if ( ! $this->is_indexable( $post_id, $post ) ) {
+			return;
+		}
+
+		$document = [
+			'id'      => $post_id,
+			'title'   => \get_the_title( $post ),
+			'content' => \apply_filters( 'wp_loupe_schema_content', preg_replace( '~<!--(.*?)-->~s', '', $post->post_content ) ),
+			'url'     => \get_permalink( $post ),
+			'date'    => \get_post_timestamp( $post ),
+		];
+
+		$loupe = $this->loupe[ $post->post_type ];
+		$loupe->deleteDocument( $post_id );
+		$loupe->addDocument( $document );
+	}
+
+
+	/**
+	 * Search the loupe indexes
+	 *
+	 * @param string $query Search query.
+	 * @return array
+	 */
+	public function search( string $query ): array {
+		$results = [];
+		foreach ( $this->post_types as $post_type ) {
+			$this->write_log( $post_type );
+			$loupe = $this->loupe[ $post_type ];
+
+			$search_parameters = SearchParameters::create()
+				->withQuery( $query )
+				->withAttributesToRetrieve( [ 'id', 'title', 'date' ] )
+				->withSort( [ 'date:desc' ] );
+
+			$result = $loupe->search( $search_parameters );
+
+			$results[] = $result->toArray();
+		}
+		return $results;
+	}
+
+	/**
+	 * Check if the post should be indexed.
+	 *
+	 * @param int      $post_id Post ID.
+	 * @param \WP_Post $post    Post object.
+	 * @return bool
+	 */
+	private function is_indexable( int $post_id, \WP_Post $post ): bool {
+		// Check if the post is a revision.
+		if ( wp_is_post_revision( $post_id ) ) {
+			return false;
+		}
+
+		// Check if the post is an autosave.
+		if ( \wp_is_post_autosave( $post_id ) ) {
+			return false;
+		}
+
+		// Check if the post type is in the list of post types to be indexed.
+		if ( ! \in_array( $post->post_type, $this->post_types, true ) ) {
+			return false;
+		}
+
+		// Check if the post status is 'publish'.
+		if ( 'publish' !== $post->post_status ) {
+			return false;
+		}
+
+		// Check if the post is password protected.
+		if ( ! \apply_filters( 'wp_loupe_index_protected', empty( $post->post_password ) ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	// phpcs:disable
+	/**
+	 * Write log
+	 *
+	 * @param mixed $log Log.
+	 * @return void
+	 */
+	public function write_log( $log ) {
+		if ( true === WP_DEBUG ) {
+			if ( is_scalar( $log ) ) {
+				error_log( $log );
+			} else {
+				error_log( print_r( $log, true ) );
+			}
+		}
+	}
+	// phpcs:enable
+}
+
+new WPLoupe();
