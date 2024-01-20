@@ -15,7 +15,7 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 - [x] Uses stop words from the WordPress translation, eg [Norwegian bokmål](https://translate.wordpress.org/projects/wp/dev/nb/default/?filters%5Bstatus%5D=either&filters%5Boriginal_id%5D=70980&filters%5Btranslation_id%5D=2917948). 
 - [x] Auto-detects languages
 - [x] Reindex all posts and pages from the admin interface (Settings > WP Loupe).
-- [x] Uses the theme's search.php template.
+- [x] Uses the theme's search.php template. Tested with [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/).
 - [ ] Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
 
 
