@@ -4,7 +4,7 @@
 
 WP Loupe is a WordPress plugin that enhances the search functionality of your WordPress site. It uses a custom search index to provide fast and accurate search results.
 
-WP Loupe uses the [Loupe library](https://github.com/loupe-php/loupe/blob/main/README.md) to create a search index for your posts and pages.
+WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/main/README.md) to create a search index for your posts and pages.
 
 ## Features
 
