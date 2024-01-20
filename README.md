@@ -21,6 +21,8 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 
 ## Installation
 
+> For now you must install the plugin manually, from the command line, using `git` and `composer`.
+
 To install WP Loupe, you need to clone the repository into your plugins folder and run composer install. Here are the steps:
 
 ```bash
@@ -36,7 +38,7 @@ cd wp-loupe
 # Install the necessary dependencies
 composer install
 
-# Activate the plugin
+# Activate the plugin from the command line, or from the WordPress admin
 wp plugin activate wp-loupe
 ```
 
