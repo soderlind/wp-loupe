@@ -1,5 +1,14 @@
 <?php
 /**
+ * Settings page.
+ *
+ * @package  soderlind\plugin\WPLoupe
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	wp_die();
+}
+/**
  * Admin class.
  *
  * @package  soderlind\plugin\WPLoupe
@@ -23,7 +32,6 @@ class WPLoupe_Settings_Page {
 		$slug       = 'wp_loupe';
 		$callback   = [ $this, 'plugin_settings_page_content' ];
 		$position   = 100;
-
 
 		\add_options_page( $page_title, $menu_title, $capability, $slug, $callback, $position );
 	}

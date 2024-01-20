@@ -12,7 +12,7 @@
  * Plugin URI: https://github.com/soderlind/wp-loupe
  * GitHub Plugin URI: https://github.com/soderlind/wp-loupe
  * Description: Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.
- * Version:     0.0.2
+ * Version:     0.0.3
  * Author:      Per Soderlind
  * Author URI:  https://soderlind.no
  * Text Domain: wp-loupe
@@ -71,71 +71,7 @@ class WPLoupe {
 		\add_filter( 'posts_pre_query', [ $this ,'posts_pre_query' ], 10, 2 );
 
 		\add_action( 'admin_init', [ $this, 'handle_reindex' ] );
-
 	}
-
-	/**
-	 * Create a new WP_Post object for each search result.
-	 * The WP_Query will then use these objects instead of querying the database.
-	 *
-	 * @param array     $posts Array of post objects.
-	 * @param \WP_Query $query The WP_Query instance (passed by reference).
-	 * @return array    Array of post objects. If empty, the WP_Query will continue, and use the database query.
-	 */
-	public function posts_pre_query( $posts, \WP_Query $query ) {
-		// Check if the query is the main query and a search query.
-		if ( $query->is_main_query() && $query->is_search() ) {
-
-			// Get the search terms from the query variables.
-			// The search terms are prefiltered by WordPress and stopwords are removed.
-			$raw_search_terms = $query->query_vars['search_terms'];
-
-			// Initialize an array to hold the processed search terms.
-			$search_terms = [];
-			// Loop through each raw search term.
-			foreach ( $raw_search_terms as $term ) {
-				// If the term contains a space, wrap it in quotes.
-				if ( false !== strpos( $term, ' ' ) ) {
-					$search_terms[] = '"' . $term . '"';
-				} else {
-					// Otherwise, add the term as is.
-					$search_terms[] = $term;
-				}
-			}
-			// Combine the search terms into a single string.
-			$search_term = implode( ' ', $search_terms );
-
-			// Perform the search and get the results.
-			$results = $this->search( $search_term );
-
-			// $this->write_log( $results );
-			// Initialize an array to hold the IDs of the search results.
-			$ids = [];
-			// Loop through each result.
-			foreach ( $results as $result ) {
-				// Loop through each hit in the result.
-				foreach ( $result['hits'] as $hit ) {
-					// Add the ID of the hit to the IDs array.
-					$ids[] = $hit['id'];
-				}
-			}
-
-			// Initialize an array to hold the posts.
-			$posts = [];
-			// Loop through each ID.
-			foreach ( $ids as $id ) {
-				// Create a new WP_Post object and set its ID.
-				$post     = new \WP_Post( new \stdClass() );
-				$post->ID = $id;
-				// Add the post to the posts array.
-				$posts[] = $post;
-			}
-		}
-
-		// Return the posts.
-		return $posts;
-	}
-
 
 	/**
 	 * Create a new Loupe instance for each post type.
@@ -189,6 +125,66 @@ class WPLoupe {
 		$loupe->addDocument( $document );
 	}
 
+	/**
+	 * Create a new WP_Post object for each search result.
+	 * The WP_Query will then use these objects instead of querying the database.
+	 *
+	 * @param array     $posts Array of post objects.
+	 * @param \WP_Query $query The WP_Query instance (passed by reference).
+	 * @return array    Array of post objects. If empty, the WP_Query will continue, and use the database query.
+	 */
+	public function posts_pre_query( $posts, \WP_Query $query ) {
+		// Check if the query is the main query and a search query.
+		if ( $query->is_main_query() && $query->is_search() ) {
+
+			// Get the search terms from the query variables.
+			// The search terms are prefiltered by WordPress and stopwords are removed.
+			$raw_search_terms = $query->query_vars['search_terms'];
+
+			// Initialize an array to hold the processed search terms.
+			$search_terms = [];
+			// Loop through each raw search term.
+			foreach ( $raw_search_terms as $term ) {
+				// If the term contains a space, wrap it in quotes.
+				if ( false !== strpos( $term, ' ' ) ) {
+					$search_terms[] = '"' . $term . '"';
+				} else {
+					// Otherwise, add the term as is.
+					$search_terms[] = $term;
+				}
+			}
+			// Combine the search terms into a single string.
+			$search_term = implode( ' ', $search_terms );
+
+			// Perform the search and get the results.
+			$results = $this->search( $search_term );
+
+			// Initialize an array to h old the IDs of the search results.
+			$ids = [];
+			// Loop through each result.
+			foreach ( $results as $result ) {
+				// Loop through each hit in the result.
+				foreach ( $result['hits'] as $hit ) {
+					// Add the ID of the hit to the IDs array.
+					$ids[] = $hit['id'];
+				}
+			}
+
+			// Initialize an array to hold the posts.
+			$posts = [];
+			// Loop through each ID.
+			foreach ( $ids as $id ) {
+				// Create a new WP_Post object and set its ID.
+				$post     = new \WP_Post( new \stdClass() );
+				$post->ID = $id;
+				// Add the post to the posts array.
+				$posts[] = $post;
+			}
+		}
+
+		// Return the posts.
+		return $posts;
+	}
 
 	/**
 	 * Search the loupe indexes
@@ -219,7 +215,11 @@ class WPLoupe {
 	 * @return void
 	 */
 	public function handle_reindex() {
-		if ( isset( $_POST['action'], $_POST['wp_loupe_reindex_nonce'] ) && $_POST['action'] === 'reindex' && wp_verify_nonce( $_POST['wp_loupe_reindex_nonce'], 'wp_loupe_reindex' ) ) {
+		if (
+			isset( $_POST['action'], $_POST['wp_loupe_reindex_nonce'] ) &&
+			'reindex' === $_POST['action'] &&
+			wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wp_loupe_reindex_nonce'] ) ), 'wp_loupe_reindex' )
+		) {
 			$this->reindex_all();
 		}
 	}
@@ -255,8 +255,7 @@ class WPLoupe {
 					$documents[] = $document;
 			}
 			$loupe = $this->loupe[ $post_type ];
-			// $loupe->deleteDocuments();
-			$result = $loupe->addDocuments( $documents );
+			$loupe->addDocuments( $documents );
 		}
 	}
 
