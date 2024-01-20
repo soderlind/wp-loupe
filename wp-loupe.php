@@ -199,7 +199,6 @@ class WPLoupe {
 	public function search( string $query ): array {
 		$results = [];
 		foreach ( $this->post_types as $post_type ) {
-			$this->write_log( $post_type );
 			$loupe = $this->loupe[ $post_type ];
 
 			$search_parameters = SearchParameters::create()
@@ -258,7 +257,6 @@ class WPLoupe {
 			$loupe = $this->loupe[ $post_type ];
 			// $loupe->deleteDocuments();
 			$result = $loupe->addDocuments( $documents );
-			$this->write_log( $result );
 		}
 	}
 
