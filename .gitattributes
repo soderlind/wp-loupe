@@ -1,0 +1,21 @@
+# Directories
+/.wordpress-org export-ignore
+/.github export-ignore
+/.git export-ignore
+/vendor export-ignore
+/node_modules export-ignore
+/cypress export-ignore
+/tests export-ignore
+
+# Files
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/.wp-env.json export-ignore
+/composer.json export-ignore
+/composer.lock export-ignore
+/cypress.json.example export-ignore
+/cypress.json export-ignore
+/package-lock.json export-ignore
+/package.json export-ignore
+/Makefile export-ignore
+/phpunit.xml export-ignore
