@@ -26,6 +26,9 @@ namespace soderlind\plugin\WPLoupe;
 if ( ! defined( 'ABSPATH' ) ) {
 	wp_die();
 }
+
+require_once 'includes/class-wploupe-settings-page.php';
+
 require_once 'vendor/autoload.php';
 
 use Loupe\Loupe\Config\TypoTolerance;
@@ -66,6 +69,8 @@ class WPLoupe {
 		}
 
 		\add_filter( 'posts_pre_query', [ $this ,'posts_pre_query' ], 10, 2 );
+
+		\add_action( 'admin_init', [ $this, 'handle_reindex' ] );
 	}
 
 	/**
@@ -101,6 +106,8 @@ class WPLoupe {
 
 			// Perform the search and get the results.
 			$results = $this->search( $search_term );
+
+			// $this->write_log( $results );
 			// Initialize an array to hold the IDs of the search results.
 			$ids = [];
 			// Loop through each result.
@@ -135,7 +142,7 @@ class WPLoupe {
 	 * @return void
 	 */
 	public function init(): void {
-				$iso6391_lang = ( '' === \get_locale() ) ? 'en' : strtolower( substr( \get_locale(), 0, 2 ) );
+		$iso6391_lang = ( '' === \get_locale() ) ? 'en' : strtolower( substr( \get_locale(), 0, 2 ) );
 		foreach ( $this->post_types as $post_type ) {
 
 			$filterable_attributes = \apply_filters( "wp_loupe_filterable_attribute_{$post_type}", [ 'title', 'content' ] );
@@ -207,6 +214,78 @@ class WPLoupe {
 	}
 
 	/**
+	 * Handle reindexing
+	 *
+	 * @return void
+	 */
+	public function handle_reindex() {
+		if ( isset( $_POST['action'], $_POST['wp_loupe_reindex_nonce'] ) && $_POST['action'] === 'reindex' && wp_verify_nonce( $_POST['wp_loupe_reindex_nonce'], 'wp_loupe_reindex' ) ) {
+			$this->reindex_all();
+		}
+	}
+
+
+	/**
+	 * Reindex all posts
+	 *
+	 * @return void
+	 */
+	public function reindex_all() {
+
+		$this->delete_index();
+		$this->init();
+
+		foreach ( $this->post_types as $post_type ) {
+			$posts     = \get_posts(
+				[
+					'post_type'      => $post_type,
+					'posts_per_page' => -1,
+					'post_status'    => 'publish',
+				]
+			);
+			$documents = [];
+			foreach ( $posts as $post ) {
+					$document    = [
+						'id'      => $post->ID,
+						'title'   => \get_the_title( $post ),
+						'content' => \apply_filters( 'wp_loupe_schema_content', preg_replace( '~<!--(.*?)-->~s', '', $post->post_content ) ),
+						'url'     => \get_permalink( $post ),
+						'date'    => \get_post_timestamp( $post ),
+					];
+					$documents[] = $document;
+			}
+			$loupe = $this->loupe[ $post_type ];
+			// $loupe->deleteDocuments();
+			$result = $loupe->addDocuments( $documents );
+			$this->write_log( $result );
+		}
+	}
+
+	/**
+	 * Delete the index.
+	 *
+	 * @return void
+	 */
+	private function delete_index() {
+		// Include the base filesystem class from WordPress core.
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+
+		// Include the direct filesystem class from WordPress core.
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+
+		// Create a new instance of the direct filesystem class.
+		$file_system_direct = new \WP_Filesystem_Direct( false );
+
+		// Apply filter to get cache path, default is 'WP_CONTENT_DIR/cache/a-faster-load-textdomain'.
+		$cache_path = apply_filters( 'wp_loupe_db_path', WP_CONTENT_DIR . '/wp-loupe-db' );
+
+		// If the cache directory exists, remove it and its contents.
+		if ( $file_system_direct->is_dir( $cache_path ) ) {
+			$file_system_direct->rmdir( $cache_path, true );
+		}
+	}
+
+	/**
 	 * Check if the post should be indexed.
 	 *
 	 * @param int      $post_id Post ID.
@@ -250,12 +329,12 @@ class WPLoupe {
 	 * @return void
 	 */
 	public function write_log( $log ) {
-		if ( true === WP_DEBUG ) {
+	if ( true === WP_DEBUG ) {
 			if ( is_scalar( $log ) ) {
 				error_log( $log );
-			} else {
-				error_log( print_r( $log, true ) );
-			}
+				} else {
+			error_log( print_r( $log, true ) );
+				}
 		}
 	}
 	// phpcs:enable

@@ -18,8 +18,6 @@ WP Loupe uses the [Loupe library](https://github.com/loupe-php/loupe/blob/main/R
 
 
 
-
-
 ## Installation
 
 To install WP Loupe, you need to clone the repository into your plugins folder and run composer install. Here are the steps:
@@ -36,4 +34,24 @@ cd wp-loupe
 
 # Install the necessary dependencies
 composer install
+
+# Activate the plugin
+wp plugin activate wp-loupe
+```
+
+## Usage
+
+Atm you must add or update a post or page to update the search index.
+
+## Credits
+
+WP Loupe is based on [Loupe](https://github.com/loupe-php/loupe/). Loupe has a MIT license.
+
+## Copyright and License
+
+This plugin is copyright © 2023 [Per Soderlind](http://github.com/soderlind).
+
+This plugin is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License, version 2, as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See [LICENSE](LICENSE) for more information.
 
