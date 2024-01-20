@@ -8,7 +8,7 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 
 ## Features
 
-- [x] Search index is updated automatically when a post or page is updated.
+- [x] Search index is updated automatically when a post or page is created or updated.
 - [x] Typo-tolerant (based on the State Set Index Algorithm and Levenshtein)
 - [x] Supports phrase search using `"` quotation marks
 - [x] Supports stemming
