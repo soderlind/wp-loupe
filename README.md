@@ -43,8 +43,8 @@ wp plugin activate wp-loupe
 ```
 
 ## Usage
-
-Atm you must add or update a post or page to update the search index.
+- The index is updated automatically when a post or page is updated or created.
+- If you need to add older pages to the search index, go to `Settings > WP Loupe` and click the "Reindex" button to index all posts and pages.
 
 ## Credits
 
