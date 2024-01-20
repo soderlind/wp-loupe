@@ -72,7 +72,6 @@ class WPLoupe {
 
 		\add_action( 'admin_init', [ $this, 'handle_reindex' ] );
 
-		\add_filter( 'after_t')
 	}
 
 	/**

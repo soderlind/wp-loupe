@@ -22,10 +22,10 @@ class WPLoupe_Settings_Page {
 		$capability = 'manage_options';
 		$slug       = 'wp_loupe';
 		$callback   = [ $this, 'plugin_settings_page_content' ];
-		$icon       = 'dashicons-admin-plugins';
 		$position   = 100;
 
-		\add_options_page( $page_title, $menu_title, $capability, $slug, $callback, $icon, $position );
+
+		\add_options_page( $page_title, $menu_title, $capability, $slug, $callback, $position );
 	}
 
 	/**
