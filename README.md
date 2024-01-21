@@ -62,13 +62,13 @@ wp plugin activate wp-loupe
 add_filter( 'wp_loupe_db_path', WP_CONTENT_DIR . '/my-path' );
 ```
 
-1. `wp_loupe_post_types`: This filter is used to modify the array of post types that the WP Loupe plugin works with. By default, it includes 'post' and 'page'.
+2. `wp_loupe_post_types`: This filter is used to modify the array of post types that the WP Loupe plugin works with. By default, it includes 'post' and 'page'.
 
 ```php
 add_filter( 'wp_loupe_post_types', [ 'post', 'page', 'book' ] );
 ```
 
-1. `wp_loupe_filterable_attribute_{$post_type}`: This dynamic filter is used to modify the array of filterable attributes for each post type. By default, it includes 'title' and 'content'.
+3. `wp_loupe_filterable_attribute_{$post_type}`: This dynamic filter is used to modify the array of filterable attributes for each post type. By default, it includes 'title' and 'content'.
 
 ```php
 add_filter( "wp_loupe_filterable_attribute_book", [ 'title', 'author', 'isbn' ] );
