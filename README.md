@@ -12,14 +12,12 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 - [x] Typo-tolerant (based on the State Set Index Algorithm and Levenshtein)
 - [x] Supports phrase search using `"` quotation marks
 - [x] Supports stemming
-- [x] Uses stop words from the WordPress translation, eg [Norwegian bokmål](https://translate.wordpress.org/projects/wp/dev/nb/default/?filters%5Bstatus%5D=either&filters%5Boriginal_id%5D=70980&filters%5Btranslation_id%5D=2917948). 
+- [x] Uses stop words from the WordPress translation, eg [Norwegian bokmål](https://translate.wordpress.org/projects/wp/dev/nb/default/?filters%5Bstatus%5D=either&filters%5Boriginal_id%5D=70980&filters%5Btranslation_id%5D=2917948).
 - [x] Auto-detects languages
 - [x] Reindex all posts and pages from the admin interface (Settings > WP Loupe).
 - [x] Uses the theme's search.php template. Tested with [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/).
-- [ ] Supports custom post types.
+- [x] Supports custom post types.
 - [ ] \(Not sure if I'll add this) Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
-
-
 
 ## Installation
 
@@ -51,8 +49,29 @@ wp plugin activate wp-loupe
 ```
 
 ## Usage
+
 - The index is updated automatically when a post or page is created or updated.
 - If you need to add older posts or pages to the search index, go to `Settings > WP Loupe` and click the "Reindex" button to index all posts and pages.
+
+## Filters
+
+1. `wp_loupe_db_path`: This filter is used to modify the path where the Loupe database files are stored. By default, it's in the 'wp-content/wp-loupe-db' directory.
+
+```php
+add_filter( 'wp_loupe_db_path', WP_CONTENT_DIR . '/my-path' );
+```
+
+1. `wp_loupe_post_types`: This filter is used to modify the array of post types that the WP Loupe plugin works with. By default, it includes 'post' and 'page'.
+
+```php
+add_filter( 'wp_loupe_post_types', [ 'post', 'page', 'book' ] );
+```
+
+1. `wp_loupe_filterable_attribute_{$post_type}`: This dynamic filter is used to modify the array of filterable attributes for each post type. By default, it includes 'title' and 'content'.
+
+```php
+add_filter( "wp_loupe_filterable_attribute_book", [ 'title', 'author', 'isbn' ] );
+```
 
 ## Credits
 
@@ -65,4 +84,3 @@ This plugin is copyright © 2023 [Per Soderlind](http://github.com/soderlind).
 This plugin is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License, version 2, as published by the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See [LICENSE](LICENSE) for more information.
-

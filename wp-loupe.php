@@ -12,7 +12,7 @@
  * Plugin URI: https://github.com/soderlind/wp-loupe
  * GitHub Plugin URI: https://github.com/soderlind/wp-loupe
  * Description: Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.
- * Version:     0.0.4
+ * Version:     0.0.5
  * Author:      Per Soderlind
  * Author URI:  https://soderlind.no
  * Text Domain: wp-loupe
@@ -62,7 +62,15 @@ class WPLoupe {
 	public function __construct() {
 
 		\add_action( 'plugin_loaded', [ $this, 'init' ] );
+		\add_filter(
+			'wp_loupe_post_types',
+			function ( $post_types ) {
+				$options           = get_option( 'wp_loupe_custom_post_types', [] );
+				$custom_post_types = ! empty( $options ) && isset( $options['wp_loupe_post_type_field'] ) && ! empty( $options['wp_loupe_post_type_field'] ) ? (array) $options['wp_loupe_post_type_field'] : [];
 
+				return array_merge( $post_types, $custom_post_types );
+			}
+		);
 		$this->post_types = \apply_filters( 'wp_loupe_post_types', [ 'post', 'page' ] );
 		foreach ( $this->post_types as $post_type ) {
 			\add_action( "save_post_{$post_type}", [ $this, 'add' ], 10, 3 );
@@ -217,11 +225,13 @@ class WPLoupe {
 	 * @return void
 	 */
 	public function handle_reindex() {
+
 		if (
-			isset( $_POST['action'], $_POST['wp_loupe_reindex_nonce'] ) &&
-			'reindex' === $_POST['action'] &&
-			wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wp_loupe_reindex_nonce'] ) ), 'wp_loupe_reindex' )
+			isset( $_POST['action'], $_POST['wp_loupe_nonce_field'], $_POST['wp_loupe_reindex'] ) &&
+			'update' === $_POST['action'] && 'on' === $_POST['wp_loupe_reindex'] &&
+			wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wp_loupe_nonce_field'] ) ), 'wp_loupe_nonce_action' )
 		) {
+			add_settings_error( 'wp-loupe', 'wp-loupe-reindex', __( 'Reindexing in progress', 'wp-loupe' ), 'updated' );
 			$this->reindex_all();
 		}
 	}
