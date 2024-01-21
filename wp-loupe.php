@@ -12,7 +12,7 @@
  * Plugin URI: https://github.com/soderlind/wp-loupe
  * GitHub Plugin URI: https://github.com/soderlind/wp-loupe
  * Description: Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.
- * Version:     0.0.5
+ * Version:     0.0.6
  * Author:      Per Soderlind
  * Author URI:  https://soderlind.no
  * Text Domain: wp-loupe
@@ -57,6 +57,12 @@ class WPLoupe {
 	private $post_types;
 
 	/**
+	 * Log
+	 *
+	 * @var string
+	 */
+	private $log;
+	/**
 	 * WPLoupe constructor.
 	 */
 	public function __construct() {
@@ -79,6 +85,17 @@ class WPLoupe {
 		\add_filter( 'posts_pre_query', [ $this ,'posts_pre_query' ], 10, 2 );
 
 		\add_action( 'admin_init', [ $this, 'handle_reindex' ] );
+
+		\add_action( 'wp_footer', [ $this, 'action_wp_footer' ] );
+	}
+
+	/**
+	 * Prints scripts or data before the closing body tag on the front end.
+	 */
+	function action_wp_footer(): void {
+		if ( ! is_admin() ) {
+			echo "\n" . '<!--' . $this->log . ' -->' . "\n";
+		}
 	}
 
 	/**
@@ -143,7 +160,7 @@ class WPLoupe {
 	 */
 	public function posts_pre_query( $posts, \WP_Query $query ) {
 		// Check if the query is the main query and a search query.
-		if ( $query->is_main_query() && $query->is_search() ) {
+		if ( ! \is_admin() && $query->is_main_query() && $query->is_search() ) {
 
 			// Get the search terms from the query variables.
 			// The search terms are prefiltered by WordPress and stopwords are removed.
@@ -196,7 +213,8 @@ class WPLoupe {
 	 * @return array
 	 */
 	public function search( string $query ): array {
-		$hits = [];
+		$hits  = [];
+		$stats = [];
 		foreach ( $this->post_types as $post_type ) {
 			$loupe = $this->loupe[ $post_type ];
 
@@ -206,9 +224,11 @@ class WPLoupe {
 				->withSort( [ 'date:desc' ] );
 
 			$result = $loupe->search( $search_parameters );
-
-			$hits = array_merge_recursive( $hits, $result->toArray()['hits'] );
+			$stats  = array_merge_recursive( $stats, (array) $result->toArray()['processingTimeMs'] );
+			$hits   = array_merge_recursive( $hits, $result->toArray()['hits'] );
 		}
+		$this->log = sprintf( 'WP Loupe processing time: %s ms', (string) array_sum( $stats ) );
+
 		// Sort the results by date.
 		usort(
 			$hits,
