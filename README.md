@@ -80,8 +80,8 @@ WP Loupe is based on [Loupe](https://github.com/loupe-php/loupe/). Loupe has a M
 
 ## Copyright and License
 
-This plugin is copyright © 2023 [Per Soderlind](http://github.com/soderlind).
+WP Loupe is copyright © 2024 [Per Søderlind](http://github.com/soderlind).
 
-This plugin is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License, version 2, as published by the Free Software Foundation.
+WP Loupe is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License, version 2, as published by the Free Software Foundation.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See [LICENSE](LICENSE) for more information.
+WP Loupe is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See [LICENSE](LICENSE) for more information.
