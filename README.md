@@ -17,6 +17,7 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 - [x] Reindex all posts and pages from the admin interface (Settings > WP Loupe).
 - [x] Uses the theme's search.php template. Tested with [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/).
 - [x] Supports custom post types.
+- [x] Add prosessing time, as a comment, to the footer.
 - [ ] \(Not sure if I'll add this) Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
 
 ## Installation
