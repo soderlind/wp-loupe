@@ -16,11 +16,16 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 - [x] Auto-detects languages
 - [x] Reindex all posts and pages from the admin interface (Settings > WP Loupe).
 - [x] Uses the theme's search.php template. Tested with [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/).
-- [ ] Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
+- [ ] \(Not sure if I'll add this) Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
 
 
 
 ## Installation
+
+- [x] Install manually from the command line, using `git` and `composer`.
+- [x] Install using `composer require soderlind/wp-loupe`
+- [ ] Download the latest release zip file, unzip, and upload to your plugins folder.`
+- [ ] Install from the WordPress admin interface (Plugins > Add New > Upload Plugin).
 
 > It's a early beta so for now you must install the plugin manually, from the command line, using `git` and `composer`.
 
