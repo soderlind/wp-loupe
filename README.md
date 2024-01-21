@@ -52,6 +52,7 @@ wp plugin activate wp-loupe
 
 - The index is updated automatically when a post or page is created or updated.
 - If you need to add older posts or pages to the search index, go to `Settings > WP Loupe` and click the "Reindex" button to index all posts and pages.
+- Add custom post types to the search index by selecting the post type in the `Settings > WP Loupe` admin page, or by adding the post type to the `wp_loupe_post_types` filter (see below).
 
 ## Filters
 
