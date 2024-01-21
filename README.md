@@ -16,7 +16,7 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 - [x] Auto-detects languages
 - [x] Reindex all posts and pages from the admin interface (Settings > WP Loupe).
 - [x] Uses the theme's search.php template. Tested with [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/).
-- [] Supports custom post types.
+- [ ] Supports custom post types.
 - [ ] \(Not sure if I'll add this) Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
 
 
