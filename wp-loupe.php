@@ -12,7 +12,7 @@
  * Plugin URI: https://github.com/soderlind/wp-loupe
  * GitHub Plugin URI: https://github.com/soderlind/wp-loupe
  * Description: Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.
- * Version:     0.0.3
+ * Version:     0.0.4
  * Author:      Per Soderlind
  * Author URI:  https://soderlind.no
  * Text Domain: wp-loupe
@@ -157,17 +157,12 @@ class WPLoupe {
 			$search_term = implode( ' ', $search_terms );
 
 			// Perform the search and get the results.
-			$results = $this->search( $search_term );
+			$hits = $this->search( $search_term );
 
-			// Initialize an array to h old the IDs of the search results.
+			// Initialize an array to hold the IDs of the search results.
 			$ids = [];
-			// Loop through each result.
-			foreach ( $results as $result ) {
-				// Loop through each hit in the result.
-				foreach ( $result['hits'] as $hit ) {
-					// Add the ID of the hit to the IDs array.
-					$ids[] = $hit['id'];
-				}
+			foreach ( $hits as $hit ) {
+				$ids[] = $hit['id'];
 			}
 
 			// Initialize an array to hold the posts.
@@ -193,7 +188,7 @@ class WPLoupe {
 	 * @return array
 	 */
 	public function search( string $query ): array {
-		$results = [];
+		$hits = [];
 		foreach ( $this->post_types as $post_type ) {
 			$loupe = $this->loupe[ $post_type ];
 
@@ -204,9 +199,16 @@ class WPLoupe {
 
 			$result = $loupe->search( $search_parameters );
 
-			$results[] = $result->toArray();
+			$hits = array_merge_recursive( $hits, $result->toArray()['hits'] );
 		}
-		return $results;
+		// Sort the results by date.
+		usort(
+			$hits,
+			function ( $a, $b ) {
+				return $b['date'] <=> $a['date'];
+			}
+		);
+		return $hits;
 	}
 
 	/**
