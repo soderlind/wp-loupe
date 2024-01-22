@@ -49,7 +49,7 @@ class WPLoupe_Settings_Page {
 	public function wp_loupe_setup_fields() {
 		register_setting( 'wp-loupe', 'wp_loupe_custom_post_types' );
 
-		add_settings_field( 'wp_loupe_post_type_field', __( 'Select Custom 	Post Type', 'wp-loupe' ), [ $this, 'wp_loupe_post_type_field_callback' ], 'wp-loupe', 'wp_loupe_section' );
+		add_settings_field( 'wp_loupe_post_type_field', __( 'Select Custom Post Type', 'wp-loupe' ), [ $this, 'wp_loupe_post_type_field_callback' ], 'wp-loupe', 'wp_loupe_section' );
 		add_settings_field( 'wp_loupe_reindex_field', __( 'Reindex Search Index', 'wp-loupe' ), [ $this, 'wp_loupe_reindex_field_callback' ], 'wp-loupe', 'wp_loupe_section' );
 	}
 
