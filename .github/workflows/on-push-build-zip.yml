@@ -19,5 +19,9 @@ jobs:
       run: |
         composer install --no-dev
 
-    - name: Generate zip
-      uses: 10up/action-wordpress-plugin-build-zip@stable
+    - name: Archive Release
+      uses: thedoctor0/zip-release@0.7.5
+      with:
+        type: 'zip'
+        filename: 'wp-loupe.zip'
+        exclusions: '*.git* .editorconfig composer*'
