@@ -1,6 +1,11 @@
 name: On Release, Build release zip
 
-on: release
+on:
+  push:
+    tags:
+      - "*"
+    branches:
+      - main
 
 jobs:
   build:
