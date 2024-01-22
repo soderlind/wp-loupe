@@ -22,6 +22,7 @@ WP Loupe employs the [Loupe search engine](https://github.com/loupe-php/loupe/bl
 - [x] Adds processing time, as a comment, to the footer.
 - [x] Supports translation. .pot file is included in the `languages` folder.
 - [x] Delete posts and pages from the search index when they are deleted.
+- [ ] Muli-site support, including the option to index all sites in a network.
 - [ ] (Under consideration) Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
 
 ## Installation Methods
