@@ -45,7 +45,7 @@ Two ways to install WP Loupe:
 
 ## Filters
 
-1. `wp_loupe_db_path`: This filter is used to modify the path where the Loupe database files are stored. By default, it's in the 'wp-content/wp-loupe-db' directory.
+1. `wp_loupe_db_path`: This filter is used to modify the path where the Loupe database files are stored. By default, it's in the `WP_CONTENT_DIR .'/wp-loupe-db'` directory.
 
 ```php
 add_filter( 'wp_loupe_db_path', WP_CONTENT_DIR . '/my-path' );
