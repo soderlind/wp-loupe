@@ -9,7 +9,7 @@ WP Loupe is a plugin for WordPress that significantly improves the search capabi
 WP Loupe employs the [Loupe search engine](https://github.com/loupe-php/loupe/blob/main/README.md) to construct a search index for your posts and pages. The search index is stored in a SQLite database, which is automatically updated when a post or page is created or updated. 
 
 ## Key Features
-
+(This is my to-do list, not all features are implemented yet)
 - [x] Automatic update of search index upon creation or modification of a post or page.
 - [x] Tolerant to typos (based on the State Set Index Algorithm and Levenshtein)
 - [x] Supports phrase search using `"` quotation marks
@@ -21,6 +21,7 @@ WP Loupe employs the [Loupe search engine](https://github.com/loupe-php/loupe/bl
 - [x] Supports custom post types.
 - [x] Adds processing time, as a comment, to the footer.
 - [x] Supports translation. .pot file is included in the `languages` folder.
+- [x] Delete posts and pages from the search index when they are deleted.
 - [ ] (Under consideration) Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
 
 ## Installation Methods
