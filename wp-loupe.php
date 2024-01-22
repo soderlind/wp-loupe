@@ -90,15 +90,6 @@ class WPLoupe {
 	}
 
 	/**
-	 * Prints scripts or data before the closing body tag on the front end.
-	 */
-	function action_wp_footer(): void {
-		if ( ! is_admin() ) {
-			echo "\n" . '<!--' . $this->log . ' -->' . "\n";
-		}
-	}
-
-	/**
 	 * Create a new Loupe instance for each post type.
 	 *
 	 * @return void
@@ -349,6 +340,15 @@ class WPLoupe {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Add processing time to wp_footer
+	 */
+	public function action_wp_footer(): void {
+		if ( ! is_admin() ) {
+			echo "\n" . '<!--' . $this->log . ' -->' . "\n";
+		}
 	}
 
 	// phpcs:disable
