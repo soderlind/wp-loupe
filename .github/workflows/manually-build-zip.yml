@@ -1,4 +1,4 @@
-name: Build release zip
+name: Manually Build release zip
 
 on:
   workflow_dispatch
