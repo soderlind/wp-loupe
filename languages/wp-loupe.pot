@@ -1,0 +1,42 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Loupe\n"
+"POT-Creation-Date: 2024-01-22 12:28+0100\n"
+"PO-Revision-Date: 2024-01-22 12:25+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"X-Generator: Poedit 3.4.2\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-Flags-xgettext: --add-comments=translators:\n"
+"X-Poedit-WPHeader: wp-loupe.php\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.min.js\n"
+"X-Poedit-SearchPathExcluded-1: vendor\n"
+
+#: includes/class-wploupe-settings-page.php:52
+msgid "Select Custom Post Type"
+msgstr ""
+
+#: includes/class-wploupe-settings-page.php:53
+msgid "Reindex Search Index"
+msgstr ""
+
+#: wp-loupe.php:247
+msgid "Reindexing in progress"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"Search engine for WordPress. It uses the Loupe search engine to create a "
+"search index for your posts and pages and to search the index."
+msgstr ""
+
