@@ -29,7 +29,7 @@ jobs:
         exclusions: '*.git* .editorconfig composer*'
 
     - name: Upload to release
-      uses: Shopify/upload-to-release
+      uses: Shopify/upload-to-release@latest
       with:
         name: wp-loupe
         path: wp-loupe.zip
