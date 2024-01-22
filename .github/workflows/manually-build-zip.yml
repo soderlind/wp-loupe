@@ -1,7 +1,13 @@
 name: Manually Build release zip
 
 on:
-  workflow_dispatch
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Tag to deploy'
+        required: true
+        type: string
+        default: ''
 
 jobs:
   build:
