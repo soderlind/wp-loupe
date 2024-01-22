@@ -1,13 +1,6 @@
-name: On Push, Build release zip
+name: On Release, Build release zip
 
-on:
-  push:
-    tags:
-    - '*'
-    branches:
-    - main
-    paths-ignore: 
-    - '.github/**'
+on: release
 
 jobs:
   build:
@@ -28,8 +21,9 @@ jobs:
         filename: 'wp-loupe.zip'
         exclusions: '*.git* .editorconfig composer*'
 
-    - name: Upload Release
-      uses: ncipollo/release-action@v1.12.0
+    - name: Upload to release
+      uses: JasonEtco/upload-to-release@master
       with:
-        artifacts: "wp-loupe.zip"
-        token: ${{ secrets.GITHUB_TOKEN }}
+        args: wp-loupe.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
