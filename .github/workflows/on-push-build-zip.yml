@@ -1,11 +1,6 @@
-name: On Push, Build release zip
+name: On Release, Build release zip
 
-on:
-  push:
-    tags:
-      - "*"
-    branches:
-      - main
+on: release
 
 jobs:
   build:
