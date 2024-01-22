@@ -1,4 +1,4 @@
-name: On Release, Build release zip
+name: On Push, Build release zip
 
 on:
   push:
@@ -34,4 +34,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
       with:
         files: wp-loupe.zip
-        tag_name: ${{ github.event.inputs.tag }}
+        tag_name: ${{ github.event.release.tag_name }}
