@@ -22,8 +22,9 @@ jobs:
         exclusions: '*.git* .editorconfig composer*'
 
     - name: Upload to release
-      uses: JasonEtco/upload-to-release@master
+      uses: Shopify/upload-to-release@v1
       with:
-        args: wp-loupe.zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: wp-loupe
+        path: wp-loupe.zip
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        content-type: application/zip # Optional
