@@ -28,8 +28,8 @@ jobs:
         filename: 'wp-loupe.zip'
         exclusions: '*.git* .editorconfig composer*'
 
-      - name: Upload Release
-        uses: actions/upload-artifact@v4
-        with:
-          name: wp-loupe
-          path: wp-loupe.zip
+    - name: Upload Release
+      uses: actions/upload-artifact@v4
+      with:
+        name: wp-loupe
+        path: wp-loupe.zip
