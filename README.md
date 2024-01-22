@@ -1,5 +1,7 @@
 # WP Loupe
 
+[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Filters](#filters) | [Credits](#credits) | [License](#license)
+
 ## Description
 
 WP Loupe is a WordPress plugin that enhances the search functionality of your WordPress site. It uses a custom search index to provide fast and accurate search results.
