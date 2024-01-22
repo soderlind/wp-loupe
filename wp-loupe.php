@@ -12,7 +12,7 @@
  * Plugin URI: https://github.com/soderlind/wp-loupe
  * GitHub Plugin URI: https://github.com/soderlind/wp-loupe
  * Description: Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.
- * Version:     0.0.7
+ * Version:     0.0.8
  * Author:      Per Soderlind
  * Author URI:  https://soderlind.no
  * Text Domain: wp-loupe
@@ -82,6 +82,8 @@ class WPLoupe {
 			\add_action( "save_post_{$post_type}", [ $this, 'add' ], 10, 3 );
 		}
 
+		\add_action( 'wp_trash_post', [ $this, 'trash_post' ], 10, 2 );
+
 		\add_filter( 'posts_pre_query', [ $this ,'posts_pre_query' ], 10, 2 );
 
 		\add_action( 'admin_init', [ $this, 'handle_reindex' ] );
@@ -141,6 +143,50 @@ class WPLoupe {
 		$loupe = $this->loupe[ $post->post_type ];
 		$loupe->deleteDocument( $post_id );
 		$loupe->addDocument( $document );
+	}
+
+	/**
+	 * Fires before a post is sent to the Trash.
+	 *
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post about to be trashed.
+	 */
+	public function trash_post( int $post_id, string $previous_status ): void {
+		if ( ! 'publish' === $previous_status ) {
+			return;
+		}
+		// Verify if is trashing multiple posts.
+		if ( isset( $_GET['post'] ) && is_array( $_GET['post'] ) ) {
+			\check_admin_referer( 'bulk-posts' );
+			// Sanitize the array of post IDs.
+			$post_ids = \map_deep( $_GET['post'], 'intval' );
+			$this->delete_many( $post_ids );
+
+		} else {
+			$this->delete( $post_id );
+		}
+	}
+
+	/**
+	 * Delete post from loupe index
+	 *
+	 * @param int $post_id    Post ID.
+	 */
+	private function delete( int $post_id ): void {
+		$post_type = get_post_type( $post_id );
+		$loupe     = $this->loupe[ $post_type ];
+		$loupe->deleteDocument( $post_id );
+	}
+
+	/**
+	 * Delete many posts from loupe index
+	 *
+	 * @param array $post_ids    Array of post IDs.
+	 */
+	private function delete_many( array $post_ids ): void {
+		$post_type = get_post_type( $post_ids[0] );
+		$loupe     = $this->loupe[ $post_type ];
+		$loupe->deleteDocuments( $post_ids );
 	}
 
 	/**
