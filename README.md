@@ -24,30 +24,16 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 
 - [x] Install manually from the command line, using `git` and `composer`.
 - [x] Install using `composer require soderlind/wp-loupe`
-- [ ] Download the latest release zip file, unzip, and upload to your plugins folder.`
-- [ ] Download the latest release zip file and install from the WordPress admin interface (Plugins > Add New > Upload Plugin).
+- [x] Download the latest release zip file, unzip, and upload to your plugins folder.`
+- [x] Download the latest release zip file and install from the WordPress admin interface (Plugins > Add New > Upload Plugin).
 - [ ] Install from the WordPress admin interface (Plugins > Add New > Search for "WP Loupe").
 
-> **NOTE**: It's an early beta so installing the zip, manually or from the WordPress admin interface, is not supported.
 
-To install WP Loupe, you need to clone the repository into your plugins folder and run composer install. Here are the steps:
+The `wp-loupe.zip` file can be located in the "Assets" section of the [most recent release](https://github.com/soderlind/wp-loupe/releases/latest).
 
-```bash
-# Navigate to your plugins directory
-cd wp-content/plugins
-
-# Clone the WP Loupe repository
-git clone https://github.com/soderlind/wp-loupe
-
-# Navigate to the WP Loupe directory
-cd wp-loupe
-
-# Install the necessary dependencies
-composer install
-
-# Activate the plugin from the command line, or from the WordPress admin
-wp plugin activate wp-loupe
-```
+Two ways to install WP Loupe:
+1. Download the latest release zip file and install from the WordPress admin interface (Plugins > Add New > Upload Plugin).
+2. Download the latest release zip file, unzip, and upload to your plugins folder.
 
 ## Usage
 
