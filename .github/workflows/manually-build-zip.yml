@@ -1,11 +1,11 @@
 name: Manually Build release zip
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       tag:
         description: 'Tag to deploy'
-        required: false
+        required: true
         type: string
         default: ''
 
