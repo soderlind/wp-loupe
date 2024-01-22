@@ -1,6 +1,8 @@
 name: On Release, Build release zip
 
-on: release
+on:
+  release:
+    types: [published]
 
 jobs:
   build:
