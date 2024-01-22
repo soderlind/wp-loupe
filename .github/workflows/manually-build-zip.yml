@@ -28,7 +28,7 @@ jobs:
       with:
         type: 'zip'
         filename: 'wp-loupe.zip'
-        exclusions: '*.git* .editorconfig composer*'
+        exclusions: '*.git* .editorconfig composer* *.md'
 
     - name: Release
       uses: softprops/action-gh-release@v1

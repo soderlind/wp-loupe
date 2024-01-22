@@ -6,6 +6,8 @@ jobs:
   build:
     name: Build release zip
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -19,12 +21,12 @@ jobs:
       with:
         type: 'zip'
         filename: 'wp-loupe.zip'
-        exclusions: '*.git* .editorconfig composer*'
+        exclusions: '*.git* .editorconfig composer* *.md'
 
-    - name: Upload to release
-      uses: Shopify/upload-to-release@v2
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
       with:
-        name: wp-loupe
-        path: wp-loupe.zip
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        content-type: application/zip # Optional
+        files: wp-loupe.zip
+        tag_name: ${{ github.event.inputs.tag }}
