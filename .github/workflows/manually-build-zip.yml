@@ -28,10 +28,7 @@ jobs:
         filename: 'wp-loupe.zip'
         exclusions: '*.git* .editorconfig composer*'
 
-    - name: Upload to release
-      uses: Shopify/upload-to-release@latest
+    - name: Release
+      uses: softprops/action-gh-release@v1
       with:
-        name: wp-loupe
-        path: wp-loupe.zip
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        content-type: application/zip # Optional
+        files: wp-loupe.zip
