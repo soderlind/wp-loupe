@@ -38,6 +38,8 @@ Two ways to install WP Loupe:
 1. Download the latest release zip file and install from the WordPress admin interface (Plugins > Add New > Upload Plugin).
 2. Download the latest release zip file, unzip, and upload to your plugins folder.
 
+After installation, activate the plugin and go to `Settings > WP Loupe` to reindex all posts and pages.
+
 ## Usage
 
 - The search index is updated automatically when a post or page is created or updated.
