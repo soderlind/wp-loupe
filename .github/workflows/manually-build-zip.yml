@@ -32,4 +32,4 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: wp-loupe.zip
-        tag_name: ${{ github.ref }}
+        tag_name: ${{ github.event.inputs.tag }}
