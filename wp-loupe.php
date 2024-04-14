@@ -67,6 +67,7 @@ class WPLoupe {
 	 */
 	public function __construct() {
 
+		// Check if SQLite is installed and has the correct version.
 		if ( ! $this->has_sqlite() ) {
 			return;
 		}
