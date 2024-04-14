@@ -1,10 +1,17 @@
 {
-    "name": "soderlind/wp-loupe",
+	"name": "soderlind/wp-loupe",
 	"type": "wordpress-plugin",
-    "description": "",
-    "homepage": "https://github.com/soderlind/wp-loupe",
-    "require": {
+	"description": "Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.",
+	"homepage": "https://github.com/soderlind/wp-loupe",
+	"license": "GPL-2.0+",
+	"authors": [
+		{
+			"name": "Per Soderlind",
+			"email": "per@soderlind.no"
+		}
+	],
+	"require": {
 		"ext-PDO": "*",
-        "loupe/loupe": "^0.5.6"
-    }
+		"loupe/loupe": "~0.6.3"
+	}
 }

@@ -12,7 +12,7 @@
  * Plugin URI: https://github.com/soderlind/wp-loupe
  * GitHub Plugin URI: https://github.com/soderlind/wp-loupe
  * Description: Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.
- * Version:     0.0.8
+ * Version:     0.0.9
  * Author:      Per Soderlind
  * Author URI:  https://soderlind.no
  * Text Domain: wp-loupe
@@ -66,6 +66,11 @@ class WPLoupe {
 	 * WPLoupe constructor.
 	 */
 	public function __construct() {
+
+		// Check if SQLite is installed and has the correct version.
+		if ( ! $this->has_sqlite() ) {
+			return;
+		}
 
 		\add_action( 'plugin_loaded', [ $this, 'init' ] );
 		\add_filter(
@@ -399,23 +404,58 @@ class WPLoupe {
 		}
 	}
 
-	// phpcs:disable
-	/**
-	 * Write log
-	 *
-	 * @param mixed $log Log.
-	 * @return void
-	 */
-	public function write_log( $log ) {
-	if ( true === WP_DEBUG ) {
-			if ( is_scalar( $log ) ) {
-				error_log( $log );
-				} else {
-			error_log( print_r( $log, true ) );
-				}
+		/**
+		 * Check if SQLite is installed and has the correct version.
+		 *
+		 * @link https://wordpress.org/plugins/wp-force-login/
+		 * @return void
+		 */
+	public static function has_sqlite() {
+		if ( ! function_exists( 'is_plugin_active' ) ) {
+			include_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		if ( ! class_exists( 'SQLite3' ) ) {
+			self::display_error_and_deactivate_plugin(
+				__( 'SQLite3 not install', 'wp-loupe' ),
+				__( 'WP Loupe requires SQLite3 version 3.16.0 or newer to be installed.', 'wp-loupe' )
+			);
+		} else {
+			$version = \SQLite3::version();
+			if ( version_compare( $version['versionString'], '3.16.0', '<' ) ) {
+				self::display_error_and_deactivate_plugin(
+					__( 'SQLite3 version too old', 'wp-loupe' ),
+					__( 'WP Loupe requires SQLite3 version 3.16.0 or newer to be installed', 'wp-loupe' )
+				);
+			}
 		}
 	}
-	// phpcs:enable
+
+	/**
+	 * Display error message and deactivate plugin.
+	 *
+	 * @param string $error_title Error title.
+	 * @param string $error_message Error message.
+	 * @return void
+	 */
+	private static function display_error_and_deactivate_plugin( string $error_title, string $error_message ) {
+		add_action(
+			'all_admin_notices',
+			function () use ( $error_title, $error_message ) {
+				$msg   = [];
+				$msg[] = '<div class="notice notice-error is-dismissible ">';
+				$msg[] = '<p><strong>' . esc_html( $error_title ) . '</strong></p>';
+				$msg[] = '<p>' . esc_html( $error_message ) . '</p>';
+				$msg[] = '</div>';
+				echo implode( PHP_EOL, $msg ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
+				deactivate_plugins( WP_LOUPE_NAME );
+				if ( is_multisite() ) {
+					deactivate_plugins( WP_LOUPE_NAME, false, true );
+				}
+			}
+		);
+	}
 }
 
 new WPLoupe();
