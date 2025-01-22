@@ -20,7 +20,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
-declare( strict_types = 1 );
+declare(strict_types=1);
 namespace soderlind\plugin\WPLoupe;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -35,6 +35,20 @@ use Loupe\Loupe\Config\TypoTolerance;
 use Loupe\Loupe\Configuration;
 use Loupe\Loupe\LoupeFactory;
 use Loupe\Loupe\SearchParameters;
+
+define( 'WP_LOUPE_URL', \plugin_dir_url( __FILE__ ) );
+
+/**
+ * Dump to Ray
+ *
+ * @param mixed $var
+ * @return void
+ */
+function dump( $var ) {
+	if ( function_exists( '\ray' ) ) {
+		\ray( $var );
+	}
+}
 
 /**
  * Class WPLoupe
@@ -75,9 +89,9 @@ class WPLoupe {
 		\add_action( 'plugin_loaded', [ $this, 'init' ] );
 		\add_filter(
 			'wp_loupe_post_types',
-			function ( $post_types ) {
+			function ($post_types) {
 				$options           = get_option( 'wp_loupe_custom_post_types', [] );
-				$custom_post_types = ! empty( $options ) && isset( $options['wp_loupe_post_type_field'] ) && ! empty( $options['wp_loupe_post_type_field'] ) ? (array) $options['wp_loupe_post_type_field'] : [];
+				$custom_post_types = ! empty( $options ) && isset( $options[ 'wp_loupe_post_type_field' ] ) && ! empty( $options[ 'wp_loupe_post_type_field' ] ) ? (array) $options[ 'wp_loupe_post_type_field' ] : [];
 
 				return array_merge( $post_types, $custom_post_types );
 			}
@@ -89,7 +103,7 @@ class WPLoupe {
 
 		\add_action( 'wp_trash_post', [ $this, 'trash_post' ], 10, 2 );
 
-		\add_filter( 'posts_pre_query', [ $this ,'posts_pre_query' ], 10, 2 );
+		\add_filter( 'posts_pre_query', [ $this, 'posts_pre_query' ], 10, 2 );
 
 		\add_action( 'admin_init', [ $this, 'handle_reindex' ] );
 
@@ -112,7 +126,7 @@ class WPLoupe {
 			$configuration = Configuration::create()
 				->withPrimaryKey( 'id' )
 				->withFilterableAttributes( $filterable_attributes )
-				->withSortableAttributes( [ 'date','title' ] )
+				->withSortableAttributes( [ 'date', 'title' ] )
 				->withLanguages( [ $iso6391_lang ] )
 				->withTypoTolerance( TypoTolerance::create()->withFirstCharTypoCountsDouble( false ) );
 
@@ -137,7 +151,7 @@ class WPLoupe {
 			return;
 		}
 
-		$document = [
+		$document = [ 
 			'id'      => $post_id,
 			'title'   => \get_the_title( $post ),
 			'content' => \apply_filters( 'wp_loupe_schema_content', preg_replace( '~<!--(.*?)-->~s', '', $post->post_content ) ),
@@ -161,10 +175,10 @@ class WPLoupe {
 			return;
 		}
 		// Verify if is trashing multiple posts.
-		if ( isset( $_GET['post'] ) && is_array( $_GET['post'] ) ) {
+		if ( isset( $_GET[ 'post' ] ) && is_array( $_GET[ 'post' ] ) ) {
 			\check_admin_referer( 'bulk-posts' );
 			// Sanitize the array of post IDs.
-			$post_ids = \map_deep( $_GET['post'], 'intval' );
+			$post_ids = \map_deep( $_GET[ 'post' ], 'intval' );
 			$this->delete_many( $post_ids );
 
 		} else {
@@ -189,7 +203,7 @@ class WPLoupe {
 	 * @param array $post_ids    Array of post IDs.
 	 */
 	private function delete_many( array $post_ids ): void {
-		$post_type = get_post_type( $post_ids[0] );
+		$post_type = get_post_type( $post_ids[ 0 ] );
 		$loupe     = $this->loupe[ $post_type ];
 		$loupe->deleteDocuments( $post_ids );
 	}
@@ -204,11 +218,10 @@ class WPLoupe {
 	 */
 	public function posts_pre_query( $posts, \WP_Query $query ) {
 		// Check if the query is the main query and a search query.
-		if ( ! \is_admin() && $query->is_main_query() && $query->is_search() ) {
-
+		if ( /*! \is_admin() && */ $query->is_main_query() && $query->is_search() ) {
 			// Get the search terms from the query variables.
 			// The search terms are prefiltered by WordPress and stopwords are removed.
-			$raw_search_terms = $query->query_vars['search_terms'];
+			$raw_search_terms = $query->query_vars[ 'search_terms' ];
 
 			// Initialize an array to hold the processed search terms.
 			$search_terms = [];
@@ -222,16 +235,19 @@ class WPLoupe {
 					$search_terms[] = $term;
 				}
 			}
+			dump( $search_terms );
+
 			// Combine the search terms into a single string.
 			$search_term = implode( ' ', $search_terms );
+			dump( $search_term );
 
 			// Perform the search and get the results.
 			$hits = $this->search( $search_term );
-
+			dump( $hits );
 			// Initialize an array to hold the IDs of the search results.
 			$ids = [];
 			foreach ( $hits as $hit ) {
-				$ids[] = $hit['id'];
+				$ids[] = $hit[ 'id' ];
 			}
 
 			// Initialize an array to hold the posts.
@@ -260,24 +276,27 @@ class WPLoupe {
 		$hits  = [];
 		$stats = [];
 		foreach ( $this->post_types as $post_type ) {
+			dump( 'query: ' . $$query );
 			$loupe = $this->loupe[ $post_type ];
-
+			dump( $loupe );
 			$search_parameters = SearchParameters::create()
 				->withQuery( $query )
 				->withAttributesToRetrieve( [ 'id', 'title', 'date' ] )
 				->withSort( [ 'date:desc' ] );
 
+			dump( $search_parameters );
 			$result = $loupe->search( $search_parameters );
-			$stats  = array_merge_recursive( $stats, (array) $result->toArray()['processingTimeMs'] );
-			$hits   = array_merge_recursive( $hits, $result->toArray()['hits'] );
+			dump( $result );
+			$stats = array_merge_recursive( $stats, (array) $result->toArray()[ 'processingTimeMs' ] );
+			$hits  = array_merge_recursive( $hits, $result->toArray()[ 'hits' ] );
 		}
 		$this->log = sprintf( 'WP Loupe processing time: %s ms', (string) array_sum( $stats ) );
 
 		// Sort the results by date.
 		usort(
 			$hits,
-			function ( $a, $b ) {
-				return $b['date'] <=> $a['date'];
+			function ($a, $b) {
+				return $b[ 'date' ] <=> $a[ 'date' ];
 			}
 		);
 		return $hits;
@@ -291,9 +310,9 @@ class WPLoupe {
 	public function handle_reindex() {
 
 		if (
-			isset( $_POST['action'], $_POST['wp_loupe_nonce_field'], $_POST['wp_loupe_reindex'] ) &&
-			'update' === $_POST['action'] && 'on' === $_POST['wp_loupe_reindex'] &&
-			wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wp_loupe_nonce_field'] ) ), 'wp_loupe_nonce_action' )
+			isset( $_POST[ 'action' ], $_POST[ 'wp_loupe_nonce_field' ], $_POST[ 'wp_loupe_reindex' ] ) &&
+			'update' === $_POST[ 'action' ] && 'on' === $_POST[ 'wp_loupe_reindex' ] &&
+			wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ 'wp_loupe_nonce_field' ] ) ), 'wp_loupe_nonce_action' )
 		) {
 			add_settings_error( 'wp-loupe', 'wp-loupe-reindex', __( 'Reindexing in progress', 'wp-loupe' ), 'updated' );
 			$this->reindex_all();
@@ -313,7 +332,7 @@ class WPLoupe {
 
 		foreach ( $this->post_types as $post_type ) {
 			$posts     = \get_posts(
-				[
+				[ 
 					'post_type'      => $post_type,
 					'posts_per_page' => -1,
 					'post_status'    => 'publish',
@@ -321,14 +340,14 @@ class WPLoupe {
 			);
 			$documents = [];
 			foreach ( $posts as $post ) {
-					$document    = [
-						'id'      => $post->ID,
-						'title'   => \get_the_title( $post ),
-						'content' => \apply_filters( 'wp_loupe_schema_content', preg_replace( '~<!--(.*?)-->~s', '', $post->post_content ) ),
-						'url'     => \get_permalink( $post ),
-						'date'    => \get_post_timestamp( $post ),
-					];
-					$documents[] = $document;
+				$document    = [ 
+					'id'      => $post->ID,
+					'title'   => \get_the_title( $post ),
+					'content' => \apply_filters( 'wp_loupe_schema_content', preg_replace( '~<!--(.*?)-->~s', '', $post->post_content ) ),
+					'url'     => \get_permalink( $post ),
+					'date'    => \get_post_timestamp( $post ),
+				];
+				$documents[] = $document;
 			}
 			$loupe = $this->loupe[ $post_type ];
 			$loupe->addDocuments( $documents );
@@ -404,13 +423,13 @@ class WPLoupe {
 		}
 	}
 
-		/**
-		 * Check if SQLite is installed and has the correct version.
-		 *
-		 * @link https://wordpress.org/plugins/wp-force-login/
-		 * @return void
-		 */
-	public static function has_sqlite() {
+	/**
+	 * Check if SQLite is installed and has the correct version.
+	 *
+	 * @link https://wordpress.org/plugins/wp-force-login/
+	 * @return bool
+	 */
+	public static function has_sqlite(): bool {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
@@ -420,15 +439,18 @@ class WPLoupe {
 				__( 'SQLite3 not install', 'wp-loupe' ),
 				__( 'WP Loupe requires SQLite3 version 3.16.0 or newer to be installed.', 'wp-loupe' )
 			);
+			return false;
 		} else {
 			$version = \SQLite3::version();
-			if ( version_compare( $version['versionString'], '3.16.0', '<' ) ) {
+			if ( version_compare( $version[ 'versionString' ], '3.16.0', '<' ) ) {
 				self::display_error_and_deactivate_plugin(
 					__( 'SQLite3 version too old', 'wp-loupe' ),
 					__( 'WP Loupe requires SQLite3 version 3.16.0 or newer to be installed', 'wp-loupe' )
 				);
+				return false;
 			}
 		}
+		return true;
 	}
 
 	/**
@@ -441,14 +463,14 @@ class WPLoupe {
 	private static function display_error_and_deactivate_plugin( string $error_title, string $error_message ) {
 		add_action(
 			'all_admin_notices',
-			function () use ( $error_title, $error_message ) {
+			function () use ($error_title, $error_message) {
 				$msg   = [];
 				$msg[] = '<div class="notice notice-error is-dismissible ">';
 				$msg[] = '<p><strong>' . esc_html( $error_title ) . '</strong></p>';
 				$msg[] = '<p>' . esc_html( $error_message ) . '</p>';
 				$msg[] = '</div>';
 				echo implode( PHP_EOL, $msg ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-
+	
 				deactivate_plugins( WP_LOUPE_NAME );
 				if ( is_multisite() ) {
 					deactivate_plugins( WP_LOUPE_NAME, false, true );
