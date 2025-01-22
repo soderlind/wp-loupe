@@ -276,7 +276,7 @@ class WPLoupe {
 		$hits  = [];
 		$stats = [];
 		foreach ( $this->post_types as $post_type ) {
-			dump( 'query: ' . $$query );
+			dump( 'query: ' . $query );
 			$loupe = $this->loupe[ $post_type ];
 			dump( $loupe );
 			$search_parameters = SearchParameters::create()
