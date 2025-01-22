@@ -13,6 +13,6 @@
 	],
 	"require": {
 		"ext-PDO": "*",
-		"loupe/loupe": "~0.6.3"
+		"loupe/loupe": "~0.9.0"
 	}
 }
