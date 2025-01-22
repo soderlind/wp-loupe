@@ -45,5 +45,12 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 
 == Changelog ==
 
+= 0.0.10 =
+* Performance: Reduced search attributes to only retrieve essential fields
+* Performance: Removed content from sortable attributes
+* Performance: Removed highlighting feature
+* Fixed: Typo in search query variable
+* Fixed: Code style improvements for better maintainability
+
 = 0.0.1 - 0.0.5 =
 Development version, do not use in production.
