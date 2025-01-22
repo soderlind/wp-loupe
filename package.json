@@ -1,0 +1,34 @@
+{
+	"name": "wp-loupe",
+	"version": "0.0.10",
+	"description": "Enhance the search functionality of your WordPress site with WP Loupe.",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "npm run format -- && wp-scripts build",
+		"bump": "wp-update-project-version -s package.json -p readme.txt composer.json wp-loupe.php",
+		"format": "wp-scripts format ./src"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/soderlind/wp-loupe.git"
+	},
+	"keywords": [],
+	"author": "Per Søderlind",
+	"license": "GPLv2",
+	"bugs": {
+		"url": "https://github.com/soderlind/wp-loupe/issues"
+	},
+	"homepage": "https://github.com/soderlind/wp-loupe#readme",
+	"devDependencies": {
+		"@wordpress/scripts": "^30.9.0",
+		"terser-webpack-plugin": "^5.3.11"
+	},
+	"dependencies": {
+		"@soderlind/wp-project-version-sync": "^2.0.2",
+		"@wordpress/api-fetch": "^7.16.0",
+		"@wordpress/i18n": "^5.16.0",
+		"cross-spawn": "^7.0.6",
+		"dexie": "^4.0.11"
+	}
+}
