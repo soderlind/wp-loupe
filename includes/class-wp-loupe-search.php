@@ -11,12 +11,15 @@ class WP_Loupe_Search {
 	private $loupe = [];
 	private $log;
 
+	private $total_found_posts = 0;
+	private $max_num_pages = 0;
+
 	public function __construct( $post_types ) {
 		$this->post_types = $post_types;
 		$this->db         = WP_Loupe_DB::get_instance();
+		$this->offset     = 10;
 		add_filter( 'posts_pre_query', array( $this, 'posts_pre_query' ), 10, 2 );
 		add_action( 'wp_footer', array( $this, 'action_wp_footer' ), 999 );
-
 		$iso6391_lang = ( '' === get_locale() ) ? 'en' : strtolower( substr( get_locale(), 0, 2 ) );
 		$this->loupe  = [];
 		foreach ( $this->post_types as $post_type ) {
@@ -24,15 +27,53 @@ class WP_Loupe_Search {
 		}
 	}
 
+	/**
+	 * Filter posts before the main query is executed. This is where we intercept the query and replace the results with
+	 * our own. Also, we calculate the pagination parameters.
+	 *
+	 * @param array    $posts Array of posts.
+	 * @param \WP_Query $query WP_Query object.
+	 * @return array
+	 */
 	public function posts_pre_query( $posts, \WP_Query $query ) {
-		if ( $query->is_main_query() && $query->is_search() ) {
-			$query->set( 'post_type', $this->post_types );
-			$search_term = $this->prepare_search_term( $query->query_vars[ 'search_terms' ] );
-			$hits        = $this->search( $search_term );
-			WP_Loupe_Utils::dump( [ 'posts_pre_query > hits', $hits ] );
-			return $this->create_post_objects( $hits );
+		if ( ! $this->should_intercept_query( $query ) ) {
+			return $posts;
 		}
-		return $posts;
+
+		$query->set( 'post_type', $this->post_types );
+		$search_term = $this->prepare_search_term( $query->query_vars[ 'search_terms' ] );
+		$hits        = $this->search( $search_term );
+		WP_Loupe_Utils::dump( [ 'posts_pre_query > hits', $hits ] );
+
+		// Get all search results first
+		$all_posts               = $this->create_post_objects( $hits );
+		$this->total_found_posts = count( $all_posts );
+
+		// Get pagination parameters
+		$posts_per_page = get_option( 'posts_per_page' );
+		$paged          = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
+		$offset         = ( $paged - 1 ) * $posts_per_page;
+
+		// Calculate max pages
+		$this->max_num_pages = ceil( $this->total_found_posts / $posts_per_page );
+
+		// Slice the results for current page
+		$paged_posts = array_slice( $all_posts, $offset, $posts_per_page );
+
+		// Update the main query object with pagination info
+		$query->found_posts   = $this->total_found_posts;
+		$query->max_num_pages = $this->max_num_pages;
+
+		// Set query pagination properties
+		$query->is_paged = $paged > 1;
+
+		return $paged_posts;
+
+	}
+
+	private function should_intercept_query( $query ) {
+		// Your existing logic to determine if this query should be intercepted
+		return ! is_admin() && $query->is_main_query() && $query->is_search() && ! $query->is_admin;
 	}
 
 	private function prepare_search_term( $search_terms ) {

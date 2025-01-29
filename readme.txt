@@ -45,6 +45,13 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 
 == Changelog ==
 
+= 0.0.15 =
+* Added pagination support for search results
+* Added total found posts and max pages calculation
+* Added proper handling of posts per page setting
+* Improved search query interception logic
+* Enhanced performance for large result sets
+
 = 0.0.14 =
 * Fixed problem with reindexing all posts and pages from the admin interface
 
