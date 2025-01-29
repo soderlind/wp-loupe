@@ -15,7 +15,7 @@ class WP_Loupe_Search {
 		$this->post_types = $post_types;
 		$this->db         = WP_Loupe_DB::get_instance();
 		add_filter( 'posts_pre_query', array( $this, 'posts_pre_query' ), 10, 2 );
-		add_action( 'wp_footer', array( $this, 'action_wp_footer' ) );
+		add_action( 'wp_footer', array( $this, 'action_wp_footer' ), 999 );
 
 		$iso6391_lang = ( '' === get_locale() ) ? 'en' : strtolower( substr( get_locale(), 0, 2 ) );
 		$this->loupe  = [];
@@ -98,7 +98,7 @@ class WP_Loupe_Search {
 			$posts[] = $post;
 
 		}
-
+		WP_Loupe_Utils::dump( [ 'create_post_objects > posts', $posts ] );
 		return $posts;
 	}
 

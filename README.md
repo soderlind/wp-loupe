@@ -19,7 +19,7 @@ WP Loupe employs the [Loupe search engine](https://github.com/loupe-php/loupe/bl
 - [x] Utilizes stop words from the WordPress translation, e.g., [Norwegian bokmål](https://translate.wordpress.org/projects/wp/dev/nb/default/?filters%5Bstatus%5D=either&filters%5Boriginal_id%5D=70980&filters%5Btranslation_id%5D=2917948).
 - [x] Auto-detects languages
 - [x] Option to reindex all posts and pages from the admin interface (Settings > WP Loupe).
-- [x] Compatible with the theme's search.php template. Tested with [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/).
+- [x] Compatible with the theme's search.php template. Tested with [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/) and [Twenty Twenty-Five](https://wordpress.org/themes/twentytwentyfive/).
 - [x] Supports custom post types.
 - [x] Adds processing time, as a comment, to the footer.
 - [x] Supports translation. .pot file is included in the `languages` folder.
