@@ -26,9 +26,10 @@ class WP_Loupe_Search {
 
 	public function posts_pre_query( $posts, \WP_Query $query ) {
 		if ( $query->is_main_query() && $query->is_search() ) {
+			$query->set( 'post_type', $this->post_types );
 			$search_term = $this->prepare_search_term( $query->query_vars[ 'search_terms' ] );
 			$hits        = $this->search( $search_term );
-			WP_Loupe_Utils::dump( [ 'hits', $hits ] );
+			WP_Loupe_Utils::dump( [ 'posts_pre_query > hits', $hits ] );
 			return $this->create_post_objects( $hits );
 		}
 		return $posts;
@@ -43,6 +44,7 @@ class WP_Loupe_Search {
 	public function search( $query ) {
 		$hits  = [];
 		$stats = [];
+		WP_Loupe_Utils::dump( [ 'search > post_types', $this->post_types ] );
 		foreach ( $this->post_types as $post_type ) {
 			$loupe  = $this->loupe[ $post_type ];
 			$result = $loupe->search(
@@ -52,22 +54,28 @@ class WP_Loupe_Search {
 					->withSort( [ 'post_date:desc' ] )
 			);
 
-			WP_Loupe_Utils::dump( [ 'result', $result ] );
+			WP_Loupe_Utils::dump( [ 'search > result', $result ] );
 
 			$stats = array_merge_recursive( $stats, (array) $result->toArray()[ 'processingTimeMs' ] );
-			$hits  = array_merge_recursive( $hits, $result->toArray()[ 'hits' ] );
+
 			// add post type to hits
-			foreach ( $hits as $key => $hit ) {
-				$hits[ $key ][ 'post_type' ] = $post_type;
+			$tmp_hits = $result->toArray()[ 'hits' ];
+			foreach ( $tmp_hits as $key => $hit ) {
+				$tmp_hits[ $key ][ 'post_type' ] = $post_type;
 			}
+
+			$hits = array_merge_recursive( $hits, $tmp_hits );
+			WP_Loupe_Utils::dump( [ 'search > hits', $hits ] );
+
 		}
 
 		$this->log = sprintf( 'WP Loupe processing time: %s ms', (string) array_sum( $stats ) );
 		return $this->sort_hits_by_date( $hits );
+		// return $hits;
 	}
 
 	private function sort_hits_by_date( $hits ) {
-		WP_Loupe_Utils::dump( [ 'sort_hits_by_date', $hits ] );
+		WP_Loupe_Utils::dump( [ 'sort_hits_by_date > hits', $hits ] );
 		usort( $hits, function ($a, $b) {
 			return $b[ 'post_date' ] <=> $a[ 'post_date' ];
 		} );
@@ -78,81 +86,19 @@ class WP_Loupe_Search {
 		$posts = [];
 
 		foreach ( $hits as $hit ) {
-			$post     = new \stdClass();
-			$post->ID = $hit[ 'id' ];
+			$post            = new \stdClass();
+			$post->ID        = $hit[ 'id' ];
+			$post->post_type = $hit[ 'post_type' ];
 
-			if ( 'post' === $hit[ 'post_type' ] ) {
-				$post->post_type = 'page';
-				// $post->post_title  = $hit[ 'post_title' ];
-				$post->post_status = 'publish';
 
-				// $post->post_date  = $hit[ 'post_date' ];
-				$post->filter = 'raw';
-				// $post->post_content = get_post_field( 'post_content', $post->ID );
-				$post->post_content = '';
-			} else {
-				$post = new \WP_Post( $post );
-			}
-			// else {
-			// 	$post->post_content = get_post_field( 'post_content', $post->ID );
-			// }
-			// $post->post_content = '';
-			// $tmp     = get_post( $post->ID );
-			WP_Loupe_Utils::dump( [ 'tmp', $post ] );
+			$post = new \WP_Post( $post );
+
+
+			WP_Loupe_Utils::dump( [ 'create_post_objects > post', $post ] );
 			$posts[] = $post;
 
-			// $posts[] = new \WP_Post( $post );
 		}
 
-		// foreach ( $hits as $post_array ) {
-		// 	$post = new \stdClass();
-
-		// 	$post_array = (array) $post_array;
-		// 	// $post_data  = $post_array[ 'post_data' ];
-
-		// 	// $post->ID      = ( isset( $post_array[ 'parent_id' ] ) && $post_array[ 'parent_id' ] ) ? $post_array[ 'parent_id' ] : $post_data->ID;
-		// 	$post->ID      = $post_array[ 'id' ];
-		// 	$post->site_id = get_current_blog_id();
-
-		// 	// if ( ! empty( $post_data->site_id ) ) {
-		// 	// 	$post->site_id = $post_data->site_id;
-		// 	// }
-
-		// 	$post_return_args = array(
-		// 		'post_type',
-		// 		'post_author',
-		// 		'post_name',
-		// 		'post_status',
-		// 		'post_title',
-		// 		'post_parent',
-		// 		'post_content',
-		// 		'post_excerpt',
-		// 		'post_date',
-		// 		'post_date_gmt',
-		// 		'post_modified',
-		// 		'post_modified_gmt',
-		// 		'post_mime_type',
-		// 		'comment_count',
-		// 		'comment_status',
-		// 		'ping_status',
-		// 		'menu_order',
-		// 		'permalink',
-		// 		'terms',
-		// 		'post_meta',
-		// 	);
-
-		// 	foreach ( $post_return_args as $key ) {
-		// 		if ( isset( $post_data->$key ) ) {
-		// 			$post->$key = $post_data->$key;
-		// 		}
-		// 	}
-
-		// 	$post->wploupe = true; // Super useful for debugging
-
-		// 	if ( $post ) {
-		// 		$posts[] = $post;
-		// 	}
-		// }
 		return $posts;
 	}
 

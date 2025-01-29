@@ -136,15 +136,15 @@ class WP_Loupe_Indexer {
 					$search_terms[] = $term;
 				}
 			}
-			WP_Loupe_Utils::dump( $search_terms );
+			WP_Loupe_Utils::dump( [ 'posts_pre_query > search_terms', $search_terms ] );
 
 			// Combine the search terms into a single string.
 			$search_term = implode( ' ', $search_terms );
-			WP_Loupe_Utils::dump( $search_term );
+			WP_Loupe_Utils::dump( [ 'posts_pre_query > search_term', $search_term ] );
 
 			// Perform the search and get the results.
 			$hits = $this->search( $search_term );
-			WP_Loupe_Utils::dump( $hits );
+			WP_Loupe_Utils::dump( [ 'posts_pre_query > search_term', $hits ] );
 			// Initialize an array to hold the IDs of the search results.
 			$ids = [];
 			foreach ( $hits as $hit ) {
@@ -177,17 +177,17 @@ class WP_Loupe_Indexer {
 		$hits  = [];
 		$stats = [];
 		foreach ( $this->post_types as $post_type ) {
-			WP_Loupe_Utils::dump( 'query: ' . $query );
+			WP_Loupe_Utils::dump( [ 'search > query', $query ] );
 			$loupe = $this->loupe[ $post_type ];
-			WP_Loupe_Utils::dump( $loupe );
+			WP_Loupe_Utils::dump( [ 'search > loupe', $loupe ] );
 			$search_parameters = SearchParameters::create()
 				->withQuery( $query )
 				->withAttributesToRetrieve( [ 'id', 'post_title', 'post_date' ] )
 				->withSort( [ 'post_date:desc' ] );
 
-			WP_Loupe_Utils::dump( $search_parameters );
+			WP_Loupe_Utils::dump( [ 'search > search_parameters', $search_parameters ] );
 			$result = $loupe->search( $search_parameters );
-			WP_Loupe_Utils::dump( $result );
+			WP_Loupe_Utils::dump( [ 'search > result', $result ] );
 			$stats = array_merge_recursive( $stats, (array) $result->toArray()[ 'processingTimeMs' ] );
 			$hits  = array_merge_recursive( $hits, $result->toArray()[ 'hits' ] );
 		}
