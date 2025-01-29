@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.15] - 2025-01-31
+
+### Added
+
+- Added pagination support for search results
+- Added total found posts and max pages calculation
+- Added proper handling of posts per page setting
+
+### Changed
+
+- Improved search query interception logic
+- Enhanced performance for large result sets
+
 ## [0.0.14] - 2025-01-30
 
 ### Fixed
@@ -53,3 +66,4 @@ All notable changes to this project will be documented in this file.
 [0.0.12]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.12
 [0.0.13]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.13
 [0.0.14]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.14
+[0.0.15]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.15
