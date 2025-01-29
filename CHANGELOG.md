@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.14] - 2025-01-30
+
+### Changed
+
+- Fixed problem with reindexing all posts and pages from the admin interface
+
 ## [0.0.13] - 2025-01-29
 
 ### Changed
@@ -46,3 +52,4 @@ All notable changes to this project will be documented in this file.
 [0.0.11]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.11
 [0.0.12]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.12
 [0.0.13]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.13
+[0.0.14]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.14

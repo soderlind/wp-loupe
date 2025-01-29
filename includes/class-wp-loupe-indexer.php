@@ -18,6 +18,7 @@ class WP_Loupe_Indexer {
 	public function __construct( $post_types ) {
 		$this->post_types = $post_types;
 		$this->db         = WP_Loupe_DB::get_instance();
+		$this->init();
 		$this->register_hooks();
 	}
 
@@ -51,6 +52,8 @@ class WP_Loupe_Indexer {
 		if ( ! $this->is_indexable( $post_id, $post ) ) {
 			return;
 		}
+
+		WP_Loupe_Utils::dump( [ 'add > post', $post ] );
 
 		$document = [ 
 			'id'           => $post_id,
