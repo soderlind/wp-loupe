@@ -1,6 +1,10 @@
 <?php
 namespace Soderlind\Plugin\WPLoupe;
 
+use Loupe\Loupe\Config\TypoTolerance;
+use Loupe\Loupe\Configuration;
+use Loupe\Loupe\LoupeFactory;
+
 /**
  * Shared functionality for WP Loupe classes
  *
