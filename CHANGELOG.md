@@ -24,3 +24,4 @@ All notable changes to this project will be documented in this file.
 - Code style improvements for better maintainability
 
 [0.0.10]: https://github.com/soderlind/wp-loupe/compare/v0.0.9...v0.0.10
+[0.0.11]: https://github.com/soderlind/wp-loupe/compare/0.0.10...0.0.11
