@@ -4,7 +4,7 @@ Tags: search, loupe, posts, pages, custom post types
 Requires at least: 6.2
 Requires PHP: 8.1
 Tested up to: 6.4
-Stable tag: 0.0.10
+Stable tag: 0.0.11
 Donate link: https://paypal.me/PerSoderlind
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -44,6 +44,11 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 
 
 == Changelog ==
+
+= 0.0.11 =
+* Added trait for sharing Loupe instance creation between classes
+* Updated field names to match WordPress post field names
+* Fixed search results handling and post object creation
 
 = 0.0.10 =
 * Performance: Reduced search attributes to only retrieve essential fields

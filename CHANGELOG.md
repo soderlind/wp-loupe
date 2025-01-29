@@ -2,15 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.0.11] - 2025-01-28
+
+### Changed
+
+- Added trait for sharing Loupe instance creation between classes
+- Updated field names to match WordPress post field names (title -> post_title, etc)
+- Fixed search results handling and post object creation
 
 ## [0.0.10] - 2025-01-22
 
 ### Changed
 
-- Reduced search attributes to only retrieve 'id', 'title', and 'date' for better performance
-- Removed 'content' from sortable attributes for better performance
+- Reduced search attributes to only retrieve 'id', 'post_title', and 'date' for better performance
+- Removed 'post_content' from sortable attributes for better performance
 - Removed highlighting feature for better performance
 - Fixed typo in search query variable (removed extra $ from $$query)
 
