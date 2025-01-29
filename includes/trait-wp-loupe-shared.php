@@ -1,11 +1,21 @@
 <?php
 namespace Soderlind\Plugin\WPLoupe;
 
-use Loupe\Loupe\Config\TypoTolerance;
-use Loupe\Loupe\Configuration;
-use Loupe\Loupe\LoupeFactory;
-
+/**
+ * Shared functionality for WP Loupe classes
+ *
+ * @package Soderlind\Plugin\WPLoupe
+ * @since 0.0.1
+ */
 trait WP_Loupe_Shared {
+	/**
+	 * Create a Loupe search instance
+	 *
+	 * @since 0.0.1
+	 * @param string $post_type Post type to create instance for.
+	 * @param string $lang      Language code.
+	 * @return \Loupe\Loupe\Loupe Loupe instance
+	 */
 	protected function create_loupe_instance( $post_type, $lang ) {
 		$filterable_attributes = apply_filters(
 			"wp_loupe_filterable_attribute_{$post_type}",

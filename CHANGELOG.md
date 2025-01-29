@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.12] - 2025-01-28
+
+### Added
+
+- Added comprehensive documentation to all classes and methods
+- Added proper DocBlocks following WordPress coding standards
+
+### Changed
+
+- Improved code documentation across all files
+- Updated version number in package.json and plugin file
+
 ## [0.0.11] - 2025-01-28
 
 ### Changed
@@ -25,3 +37,4 @@ All notable changes to this project will be documented in this file.
 
 [0.0.10]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.10
 [0.0.11]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.11
+[0.0.12]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.12
