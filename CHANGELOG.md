@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.0.14] - 2025-01-30
 
-### Changed
+### Fixed
 
 - Fixed problem with reindexing all posts and pages from the admin interface
 
