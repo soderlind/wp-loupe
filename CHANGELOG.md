@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.13] - 2025-01-29
+
+### Changed
+
+- Improved search results handling for custom post types
+- Enhanced post object creation with proper post type support
+
 ## [0.0.12] - 2025-01-28
 
 ### Added
@@ -38,3 +45,4 @@ All notable changes to this project will be documented in this file.
 [0.0.10]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.10
 [0.0.11]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.11
 [0.0.12]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.12
+[0.0.13]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.13
