@@ -53,11 +53,11 @@ class WP_Loupe_Indexer {
 		}
 
 		$document = [ 
-			'id'      => $post_id,
-			'title'   => \get_the_title( $post ),
-			'content' => \apply_filters( 'wp_loupe_schema_content', preg_replace( '~<!--(.*?)-->~s', '', $post->post_content ) ),
-			'url'     => \get_permalink( $post ),
-			'date'    => \get_post_timestamp( $post ),
+			'id'           => $post_id,
+			'post_title'   => \get_the_title( $post ),
+			'post_content' => \apply_filters( 'wp_loupe_schema_content', preg_replace( '~<!--(.*?)-->~s', '', $post->post_content ) ),
+			'permalink'    => \get_permalink( $post ),
+			'post_date'    => \get_post_timestamp( $post ),
 		];
 
 		$loupe = $this->loupe[ $post->post_type ];
@@ -182,8 +182,8 @@ class WP_Loupe_Indexer {
 			WP_Loupe_Utils::dump( $loupe );
 			$search_parameters = SearchParameters::create()
 				->withQuery( $query )
-				->withAttributesToRetrieve( [ 'id', 'title', 'date' ] )
-				->withSort( [ 'date:desc' ] );
+				->withAttributesToRetrieve( [ 'id', 'post_title', 'post_date' ] )
+				->withSort( [ 'post_date:desc' ] );
 
 			WP_Loupe_Utils::dump( $search_parameters );
 			$result = $loupe->search( $search_parameters );
@@ -197,7 +197,7 @@ class WP_Loupe_Indexer {
 		usort(
 			$hits,
 			function ($a, $b) {
-				return $b[ 'date' ] <=> $a[ 'date' ];
+				return $b[ 'post_date' ] <=> $a[ 'post_date' ];
 			}
 		);
 		return $hits;
@@ -242,11 +242,11 @@ class WP_Loupe_Indexer {
 			$documents = [];
 			foreach ( $posts as $post ) {
 				$document    = [ 
-					'id'      => $post->ID,
-					'title'   => \get_the_title( $post ),
-					'content' => \apply_filters( 'wp_loupe_schema_content', preg_replace( '~<!--(.*?)-->~s', '', $post->post_content ) ),
-					'url'     => \get_permalink( $post ),
-					'date'    => \get_post_timestamp( $post ),
+					'id'           => $post->ID,
+					'post_title'   => \get_the_title( $post ),
+					'post_content' => \apply_filters( 'wp_loupe_schema_content', preg_replace( '~<!--(.*?)-->~s', '', $post->post_content ) ),
+					'permalink'    => \get_permalink( $post ),
+					'post_date'    => \get_post_timestamp( $post ),
 				];
 				$documents[] = $document;
 			}

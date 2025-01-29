@@ -12,7 +12,7 @@
  * Plugin URI: https://github.com/soderlind/wp-loupe
  * GitHub Plugin URI: https://github.com/soderlind/wp-loupe
  * Description: Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.
- * Version:     0.0.10
+ * Version:     0.0.11
  * Author:      Per Soderlind
  * Author URI:  https://soderlind.no
  * Text Domain: wp-loupe
@@ -31,6 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'WP_LOUPE_VERSION', '0.0.10' );
 define( 'WP_LOUPE_FILE', __FILE__ );
+define( 'WP_LOUPE_NAME', plugin_basename( WP_LOUPE_FILE ) );
 define( 'WP_LOUPE_PATH', plugin_dir_path( WP_LOUPE_FILE ) );
 define( 'WP_LOUPE_URL', plugin_dir_url( WP_LOUPE_FILE ) );
 

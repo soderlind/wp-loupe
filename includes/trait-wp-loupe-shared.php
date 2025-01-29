@@ -9,13 +9,13 @@ trait WP_Loupe_Shared {
 	protected function create_loupe_instance( $post_type, $lang ) {
 		$filterable_attributes = apply_filters(
 			"wp_loupe_filterable_attribute_{$post_type}",
-			[ 'title', 'content' ]
+			[ 'post_title', 'post_date', 'post_content' ]
 		);
 
 		$configuration = Configuration::create()
 			->withPrimaryKey( 'id' )
 			->withFilterableAttributes( $filterable_attributes )
-			->withSortableAttributes( [ 'date', 'title' ] )
+			->withSortableAttributes( [ 'post_date', 'post_title' ] )
 			->withLanguages( [ $lang ] )
 			->withTypoTolerance(
 				TypoTolerance::create()->withFirstCharTypoCountsDouble( false )

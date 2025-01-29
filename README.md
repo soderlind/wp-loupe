@@ -61,10 +61,10 @@ add_filter( 'wp_loupe_db_path', WP_CONTENT_DIR . '/my-path' );
 add_filter( 'wp_loupe_post_types', [ 'post', 'page', 'book' ] );
 ```
 
-3. `wp_loupe_filterable_attribute_{$post_type}`: This dynamic filter allows you to modify the array of filterable attributes for each post type. By default, it includes 'title' and 'content'.
+3. `wp_loupe_filterable_attribute_{$post_type}`: This dynamic filter allows you to modify the array of filterable attributes for each post type. By default, it includes 'post_title' and 'post_content'.
 
 ```php
-add_filter( "wp_loupe_filterable_attribute_book", [ 'title', 'author', 'isbn' ] );
+add_filter( "wp_loupe_filterable_attribute_book", [ 'post_title', 'author', 'isbn' ] );
 ```
 
 ## Acknowledgements

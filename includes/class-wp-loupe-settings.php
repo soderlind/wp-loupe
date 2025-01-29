@@ -58,7 +58,7 @@ class WPLoupe_Settings_Page {
 		register_setting( 'wp-loupe', 'wp_loupe_custom_post_types' );
 
 		$this->cpt = get_post_types(
-			[
+			[ 
 				'public'   => true,
 				'_builtin' => false,
 			],
@@ -88,7 +88,7 @@ class WPLoupe_Settings_Page {
 		if ( ! empty( $this->cpt ) ) {
 
 			$options      = get_option( 'wp_loupe_custom_post_types', [] );
-			$selected_ids = ! empty( $options ) && isset( $options['wp_loupe_post_type_field'] ) && ! empty( $options['wp_loupe_post_type_field'] ) ? (array) $options['wp_loupe_post_type_field'] : [];
+			$selected_ids = ! empty( $options ) && isset( $options[ 'wp_loupe_post_type_field' ] ) && ! empty( $options[ 'wp_loupe_post_type_field' ] ) ? (array) $options[ 'wp_loupe_post_type_field' ] : [];
 			echo '<select id="wp_loupe_custom_post_types" name="wp_loupe_custom_post_types[wp_loupe_post_type_field][]" multiple>';
 			foreach ( $this->cpt as $post_type ) {
 				echo '<option value="' . esc_attr( $post_type ) . '" ' . selected( in_array( $post_type, $selected_ids, true ), true, false ) . '>' . esc_html( $post_type ) . '</option>';
@@ -103,7 +103,7 @@ class WPLoupe_Settings_Page {
 	 * @return void
 	 */
 	public function wp_loupe_reindex_field_callback() {
-		echo '<input type="hidden" name="wp_loupe_reindex" id="wp_loupe_reindex">';
+		echo '<input type="hidden" name="wp_loupe_reindex" id="wp_loupe_reindex" value="1">';
 	}
 
 	/**
@@ -118,7 +118,7 @@ class WPLoupe_Settings_Page {
 		}
 
 		// Get custom post types.
-		$args       = [
+		$args       = [ 
 			'public'   => true,
 			'_builtin' => false,
 		];
@@ -128,17 +128,17 @@ class WPLoupe_Settings_Page {
 		<div class="wrap">
 			<h2><?php echo esc_html( get_admin_page_title() ); ?></h2>
 			<form action="options.php" method="POST">
-				<input type="hidden" name="wp_loupe_reindex" id="wp_loupe_reindex">
-				<?php
-				// add nonce field in the form.
-				wp_nonce_field( 'wp_loupe_nonce_action', 'wp_loupe_nonce_field' );
-				settings_fields( 'wp-loupe' );
-				do_settings_sections( 'wp-loupe' );
-				submit_button( __( 'Reindex search index', 'wp-loupe' ) );
-				?>
+				<input
+				type="hidden" name="wp_loupe_reindex" id="wp_loupe_reindex" value="on">
+			<?php
+			// add nonce field in the form.
+			wp_nonce_field( 'wp_loupe_nonce_action', 'wp_loupe_nonce_field' );
+			settings_fields( 'wp-loupe' );
+			do_settings_sections( 'wp-loupe' );
+			submit_button( __( 'Reindex search index', 'wp-loupe' ) );
+			?>
 			</form>
-		</div>
-		<?php
+		</div><?php
 	}
 
 
