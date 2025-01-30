@@ -68,6 +68,12 @@ add_filter( 'wp_loupe_post_types', [ 'post', 'page', 'book' ] );
 add_filter( "wp_loupe_filterable_attribute_book", [ 'post_title', 'author', 'isbn' ] );
 ```
 
+4. `wp_loupe_posts_per_page`: This filter allows you to modify the number of search results per page. By default it's 10, set in `WPAdmin->Settings->Reading` "Blog pages show at most".
+
+```php
+add_filter( 'wp_loupe_posts_per_page', 20 );
+```
+
 ## Acknowledgements
 
 WP Loupe is built upon [Loupe](https://github.com/loupe-php/loupe/). Loupe is licensed under the MIT license.

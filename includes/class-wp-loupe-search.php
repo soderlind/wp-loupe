@@ -57,7 +57,7 @@ class WP_Loupe_Search {
 		$this->total_found_posts = count( $all_posts );
 
 		// Get pagination parameters
-		$posts_per_page = get_option( 'posts_per_page' );
+		$posts_per_page = apply_filters( 'wp_loupe_posts_per_page', get_option( 'posts_per_page' ) );
 		$paged          = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
 		$offset         = ( $paged - 1 ) * $posts_per_page;
 
