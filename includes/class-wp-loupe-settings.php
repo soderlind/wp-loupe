@@ -76,14 +76,6 @@ class WPLoupe_Settings_Page {
 	 * @return void
 	 */
 	public function wp_loupe_post_type_field_callback() {
-		// $post_types = get_post_types(
-		// [
-		// 'public'   => true,
-		// '_builtin' => false,
-		// ],
-		// 'names',
-		// 'and'
-		// );
 
 		if ( ! empty( $this->cpt ) ) {
 
@@ -149,7 +141,7 @@ class WPLoupe_Settings_Page {
 	 */
 	public static function enqueue_select2_jquery() {
 
-		\wp_register_style( 'select2css', WP_LOUPE_URL . '/lib/css/select2.min.css', false, '4.0.13', 'all' );
+		\wp_register_style( 'select2css', WP_LOUPE_URL . '/lib/css/select2.min.css', [], '4.0.13', 'all' );
 		\wp_enqueue_style( 'select2css' );
 
 		\wp_register_script( 'select2', WP_LOUPE_URL . '/lib/js/select2.min.js', [ 'jquery' ], '4.0.13', true );

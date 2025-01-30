@@ -66,7 +66,7 @@ class WP_Loupe_Utils {
 	 *
 	 * @since 0.0.1
 	 * @param int     $post_id Post ID.
-	 * @param WP_Post $post    Post object.
+	 * @param \WP_Post $post    Post object.
 	 * @return boolean True if post should be indexed
 	 */
 	public static function is_post_indexable( $post_id, $post ) {
@@ -87,7 +87,7 @@ class WP_Loupe_Utils {
 	 */
 	public static function dump( $var ) {
 		if ( function_exists( '\ray' ) ) {
-			\ray( $var );
+			\ray( $var ); // phpcs:ignore
 		}
 	}
 }
