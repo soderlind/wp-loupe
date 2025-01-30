@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.17] - 2025-02-02
+
+### Added
+
+- Added wp_loupe_posts_per_page filter hook for customizing posts per page
+- Added PHPDoc blocks for all class properties in search class
+
+### Changed
+
+- Improved code documentation for all method parameters
+- Enhanced error handling in database operations
+
 ## [0.0.15] - 2025-01-31
 
 ### Added
@@ -67,3 +79,4 @@ All notable changes to this project will be documented in this file.
 [0.0.13]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.13
 [0.0.14]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.14
 [0.0.15]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.15
+[0.0.17]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.17

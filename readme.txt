@@ -45,6 +45,14 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 
 == Changelog ==
 
+= 0.0.17 =
+* Added wp_loupe_posts_per_page filter hook for customizing posts per page
+* Added PHPDoc blocks for all class properties in search class
+* Improved code documentation for all method parameters
+* Enhanced error handling in database operations
+
+= 0.0.16 =
+
 = 0.0.15 =
 * Added pagination support for search results
 * Added total found posts and max pages calculation

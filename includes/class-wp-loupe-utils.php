@@ -5,13 +5,13 @@ namespace Soderlind\Plugin\WPLoupe;
  * Utility functions for WP Loupe
  *
  * @package Soderlind\Plugin\WPLoupe
- * @since 0.0.11
+ * @since 0.0.1
  */
 class WP_Loupe_Utils {
 	/**
 	 * Check if SQLite3 is installed and meets version requirements
 	 *
-	 * @since 0.0.11
+	 * @since 0.0.1
 	 * @return boolean True if SQLite3 is available and meets requirements
 	 */
 	public static function has_sqlite() {
@@ -42,7 +42,7 @@ class WP_Loupe_Utils {
 	/**
 	 * Display error message and deactivate plugin
 	 *
-	 * @since 0.0.11
+	 * @since 0.0.1
 	 * @param string $error_title   The error title.
 	 * @param string $error_message The error message.
 	 * @return void
@@ -64,7 +64,7 @@ class WP_Loupe_Utils {
 	/**
 	 * Check if a post should be indexed
 	 *
-	 * @since 0.0.11
+	 * @since 0.0.1
 	 * @param int     $post_id Post ID.
 	 * @param \WP_Post $post    Post object.
 	 * @return boolean True if post should be indexed
@@ -81,7 +81,7 @@ class WP_Loupe_Utils {
 	/**
 	 * Debug function that uses Ray if available
 	 *
-	 * @since 0.0.11
+	 * @since 0.0.1
 	 * @param mixed $var Variable to dump.
 	 * @return void
 	 */
