@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.16] - 2025-02-01
+
+### Added
+
+- Added proper documentation to WP_Loupe_Search class
+- Added missing PHPDoc blocks for class properties
+
+### Fixed
+
+- Fixed PHPCS warnings related to comment formatting
+- Fixed inline documentation for better code readability
+
 ## [0.0.15] - 2025-01-31
 
 ### Added
@@ -67,3 +79,4 @@ All notable changes to this project will be documented in this file.
 [0.0.13]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.13
 [0.0.14]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.14
 [0.0.15]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.15
+[0.0.16]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.16
