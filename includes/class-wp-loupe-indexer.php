@@ -7,7 +7,12 @@ use Loupe\Loupe\LoupeFactory;
 use Loupe\Loupe\SearchParameters;
 
 
-
+/**
+ * Indexer class for WP Loupe
+ *
+ * @package Soderlind\Plugin\WPLoupe
+ * @since 0.0.11
+ */
 class WP_Loupe_Indexer {
 	use WP_Loupe_Shared;
 

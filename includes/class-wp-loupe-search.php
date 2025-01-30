@@ -4,8 +4,15 @@ namespace Soderlind\Plugin\WPLoupe;
 use Loupe\Loupe\SearchParameters;
 use Soderlind\Plugin\WPLoupe\WP_Loupe_DB;
 
+/**
+ * Search class for WP Loupe
+ *
+ * @package Soderlind\Plugin\WPLoupe
+ * @since 0.0.11
+ */
 class WP_Loupe_Search {
 	use WP_Loupe_Shared;
+
 
 	private $post_types;
 	private $loupe = [];
@@ -50,7 +57,7 @@ class WP_Loupe_Search {
 		$this->total_found_posts = count( $all_posts );
 
 		// Get pagination parameters
-		$posts_per_page = get_option( 'posts_per_page' );
+		$posts_per_page = apply_filters( 'wp_loupe_posts_per_page', get_option( 'posts_per_page' ) );
 		$paged          = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
 		$offset         = ( $paged - 1 ) * $posts_per_page;
 
@@ -71,17 +78,35 @@ class WP_Loupe_Search {
 
 	}
 
+	/**
+	 * Determine if the query should be intercepted
+	 *
+	 * @param \WP_Query $query WP_Query object.
+	 * @return bool
+	 */
 	private function should_intercept_query( $query ) {
 		// Your existing logic to determine if this query should be intercepted
 		return ! is_admin() && $query->is_main_query() && $query->is_search() && ! $query->is_admin;
 	}
 
+	/**
+	 * Prepare search term
+	 *
+	 * @param array $search_terms Array of search terms.
+	 * @return string
+	 */
 	private function prepare_search_term( $search_terms ) {
 		return implode( ' ', array_map( function ($term) {
 			return strpos( $term, ' ' ) !== false ? '"' . $term . '"' : $term;
 		}, $search_terms ) );
 	}
 
+	/**
+	 * Search the loupe indexes
+	 *
+	 * @param string $query Search query.
+	 * @return array
+	 */
 	public function search( $query ) {
 		$hits  = [];
 		$stats = [];
@@ -115,6 +140,12 @@ class WP_Loupe_Search {
 		// return $hits;
 	}
 
+	/**
+	 * Sort hits by date
+	 *
+	 * @param array $hits Array of hits.
+	 * @return array
+	 */
 	private function sort_hits_by_date( $hits ) {
 		WP_Loupe_Utils::dump( [ 'sort_hits_by_date > hits', $hits ] );
 		usort( $hits, function ($a, $b) {
@@ -123,6 +154,12 @@ class WP_Loupe_Search {
 		return $hits;
 	}
 
+	/**
+	 * Create post objects
+	 *
+	 * @param array $hits Array of hits.
+	 * @return array
+	 */
 	private function create_post_objects( $hits ) {
 		$posts = [];
 
@@ -143,12 +180,20 @@ class WP_Loupe_Search {
 		return $posts;
 	}
 
+	/**
+	 * Write log to footer
+	 */
 	public function action_wp_footer() {
 		if ( ! is_admin() ) {
 			echo "\n<!-- {$this->log} -->\n";
 		}
 	}
 
+	/**
+	 * Get log
+	 *
+	 * @return string
+	 */
 	public function get_log() {
 		return $this->log;
 	}

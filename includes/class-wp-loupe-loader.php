@@ -1,6 +1,12 @@
 <?php
 namespace Soderlind\Plugin\WPLoupe;
 
+/**
+ * Main plugin loader
+ *
+ * @package Soderlind\Plugin\WPLoupe
+ * @since 0.0.11
+ */
 class WP_Loupe_Loader {
 	private static $instance = null;
 	private $search;
@@ -21,6 +27,11 @@ class WP_Loupe_Loader {
 		$this->register_hooks();
 	}
 
+	/**
+	 * Load dependencies
+	 * 
+	 * @return void
+	 */
 	private function load_dependencies() {
 		require_once WP_LOUPE_PATH . 'vendor/autoload.php';
 		require_once WP_LOUPE_PATH . 'includes/trait-wp-loupe-shared.php';
@@ -31,21 +42,42 @@ class WP_Loupe_Loader {
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-settings.php';
 	}
 
+	/**
+	 * Setup post types
+	 * 
+	 * @return void
+	 */
 	private function setup_post_types() {
 		add_filter( 'wp_loupe_post_types', array( $this, 'filter_post_types' ) );
 		$this->post_types = apply_filters( 'wp_loupe_post_types', array( 'post', 'page' ) );
 	}
 
+	/**
+	 * Initialize components
+	 * 
+	 * @return void
+	 */
 	private function init_components() {
 		$this->search  = new WP_Loupe_Search( $this->post_types );
 		$this->indexer = new WP_Loupe_Indexer( $this->post_types );
 	}
 
+	/**
+	 * Register hooks
+	 * 
+	 * @return void
+	 */
 	private function register_hooks() {
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 		// Register other global hooks
 	}
 
+	/**
+	 * Filter post types
+	 * 
+	 * @param array $post_types
+	 * @return array
+	 */
 	public function filter_post_types( $post_types ) {
 		$options           = get_option( 'wp_loupe_custom_post_types', array() );
 		$custom_post_types = ! empty( $options ) && isset( $options[ 'wp_loupe_post_type_field' ] )
@@ -54,6 +86,11 @@ class WP_Loupe_Loader {
 		return array_merge( $post_types, $custom_post_types );
 	}
 
+	/**
+	 * Load textdomain
+	 * 
+	 * @return void
+	 */
 	public function load_textdomain() {
 		load_plugin_textdomain( 'wp-loupe', false, dirname( plugin_basename( WP_LOUPE_FILE ) ) . '/languages' );
 	}

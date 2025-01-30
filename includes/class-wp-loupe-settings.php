@@ -8,10 +8,12 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	wp_die();
 }
+
 /**
- * Admin class.
- *
- * @package  soderlind\plugin\WPLoupe
+ * Settings page.
+ * 
+ * @package Soderlind\Plugin\WPLoupe
+ * @since 0.0.11
  */
 class WPLoupe_Settings_Page {
 
