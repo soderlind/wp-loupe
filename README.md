@@ -34,11 +34,10 @@ WP Loupe employs the [Loupe search engine](https://github.com/loupe-php/loupe/bl
 
 - [x] Manual installation via command line using `git` and `composer`.
 - [x] Installation using `composer require soderlind/wp-loupe`
-- [x] Download the latest release `wp-loupe.zip` file, unzip, and upload to your plugins folder.
-- [x] Download the latest release `wp-loupe.zip` file and install from the WordPress admin interface (Plugins > Add New > Upload Plugin).
+- [x] [Download the latest release `wp-loupe.zip`](https://github.com/soderlind/wp-loupe/releases/latest/download/wp-loupe.zip) file and install from the WordPress admin interface (Plugins > Add New > Upload Plugin).
 - [ ] Install directly from the WordPress admin interface (Plugins > Add New > Search for "WP Loupe").
 
-The `wp-loupe.zip` file can be found in the "Assets" section of the [latest release](https://github.com/soderlind/wp-loupe/releases/latest).
+The `wp-loupe.zip` file can also be found in the "Assets" section of the [latest release](https://github.com/soderlind/wp-loupe/releases/latest).
 
 After installation, activate the plugin and navigate to `Settings > WP Loupe` to reindex all posts and pages.
 
