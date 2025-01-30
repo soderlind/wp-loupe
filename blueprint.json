@@ -14,7 +14,7 @@
 		"networking": true
 	},
 	"plugins": [
-		"https://github-proxy.com/proxy/?repo=soderlind/wp-loupe"
+		"https://github.com/soderlind/wp-loupe/releases/latest/download/wp-loupe.zip"
 	],
 	"steps": [
 		{
