@@ -33,7 +33,7 @@
 			"step": "importWxr",
 			"file": {
 				"resource": "url",
-				"url": "https://raw.githubusercontent.com/WordPress/theme-test-data/refs/heads/master/themeunittestdata.wordpress.xml"
+				"url": "https://raw.githubusercontent.com/wpaccessibility/a11y-theme-unit-test/master/a11y-theme-unit-test-data.xml"
 			}
 		},
 		{
