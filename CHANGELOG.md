@@ -1,6 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
 ## [0.0.17] - 2025-02-02
 
 ### Added
@@ -12,6 +13,7 @@ All notable changes to this project will be documented in this file.
 
 - Improved code documentation for all method parameters
 - Enhanced error handling in database operations
+
 ## [0.0.16] - 2025-02-01
 
 ### Added
@@ -89,3 +91,5 @@ All notable changes to this project will be documented in this file.
 [0.0.13]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.13
 [0.0.14]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.14
 [0.0.15]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.15
+[0.0.16]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.16
+[0.0.17]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.17

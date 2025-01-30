@@ -4,7 +4,7 @@ Tags: search, loupe, posts, pages, custom post types
 Requires at least: 6.3
 Requires PHP: 8.1
 Tested up to: 6.7
-Stable tag: 0.0.16
+Stable tag: 0.0.17
 Donate link: https://paypal.me/PerSoderlind
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
