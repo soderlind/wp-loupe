@@ -5,13 +5,13 @@ namespace Soderlind\Plugin\WPLoupe;
  * Database management class for WP Loupe
  *
  * @package Soderlind\Plugin\WPLoupe
- * @since 0.0.1
+ * @since 0.0.11
  */
 class WP_Loupe_DB {
 	/**
 	 * Instance of this class
 	 *
-	 * @since 0.0.1
+	 * @since 0.0.11
 	 * @var WP_Loupe_DB
 	 */
 	private static $instance = null;
@@ -19,7 +19,7 @@ class WP_Loupe_DB {
 	/**
 	 * Get instance of this class
 	 *
-	 * @since 0.0.1
+	 * @since 0.0.11
 	 * @return WP_Loupe_DB Instance of this class
 	 */
 	public static function get_instance() {
@@ -32,7 +32,7 @@ class WP_Loupe_DB {
 	/**
 	 * Delete the search index
 	 *
-	 * @since 0.0.1
+	 * @since 0.0.11
 	 * @return void
 	 */
 	public function delete_index() {
@@ -50,7 +50,7 @@ class WP_Loupe_DB {
 	/**
 	 * Get database path for a post type
 	 *
-	 * @since 0.0.1
+	 * @since 0.0.11
 	 * @param string $post_type Post type.
 	 * @return string Path to database file
 	 */

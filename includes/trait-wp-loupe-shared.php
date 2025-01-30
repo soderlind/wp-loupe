@@ -9,13 +9,13 @@ use Loupe\Loupe\LoupeFactory;
  * Shared functionality for WP Loupe classes
  *
  * @package Soderlind\Plugin\WPLoupe
- * @since 0.0.1
+ * @since 0.0.11
  */
 trait WP_Loupe_Shared {
 	/**
 	 * Create a Loupe search instance
 	 *
-	 * @since 0.0.1
+	 * @since 0.0.11
 	 * @param string $post_type Post type to create instance for.
 	 * @param string $lang      Language code.
 	 * @return \Loupe\Loupe\Loupe Loupe instance
