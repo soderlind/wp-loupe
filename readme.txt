@@ -45,6 +45,10 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 
 == Changelog ==
 
+= 0.0.18 =
+* Fixed return value in posts_pre_query to return null instead of posts for better WP Core integration
+
+
 = 0.0.17 =
 * Added wp_loupe_posts_per_page filter hook for customizing posts per page
 * Added PHPDoc blocks for all class properties in search class
