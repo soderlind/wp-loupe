@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.18] - 2025-02-03
+
+### Changed
+
+- Fixed return value in posts_pre_query to return null instead of posts for better WP Core integration
+
 ## [0.0.17] - 2025-02-02
 
 ### Added
@@ -93,3 +99,4 @@ All notable changes to this project will be documented in this file.
 [0.0.15]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.15
 [0.0.16]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.16
 [0.0.17]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.17
+[0.0.18]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.18

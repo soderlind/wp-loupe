@@ -44,7 +44,7 @@ class WP_Loupe_Search {
 	 */
 	public function posts_pre_query( $posts, \WP_Query $query ) {
 		if ( ! $this->should_intercept_query( $query ) ) {
-			return $posts;
+			return null;
 		}
 
 		$query->set( 'post_type', $this->post_types );
