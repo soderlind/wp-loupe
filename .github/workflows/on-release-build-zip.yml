@@ -11,24 +11,24 @@ jobs:
     permissions:
       contents: write
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Build plugin # Remove or modify this step as needed
-      run: |
-        composer install --no-dev
+      - name: Build plugin # Remove or modify this step as needed
+        run: |
+          composer install --no-dev
 
-    - name: Archive Release
-      uses: thedoctor0/zip-release@0.7.5
-      with:
-        type: 'zip'
-        filename: 'wp-loupe.zip'
-        exclusions: '*.git* .editorconfig composer* *.md'
+      - name: Archive Release
+        uses: thedoctor0/zip-release@0.7.5
+        with:
+          type: 'zip'
+          filename: 'wp-loupe.zip'
+          exclusions: '*.git* .editorconfig composer* *.md package.json package-lock.json'
 
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-      with:
-        files: wp-loupe.zip
-        tag_name: ${{ github.event.release.tag_name }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: wp-loupe.zip
+          tag_name: ${{ github.event.release.tag_name }}
