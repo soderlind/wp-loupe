@@ -1,6 +1,6 @@
 # WP Loupe Plugin
 
-[Features](#key-features) | [Installation](#installation-methods) | [Usage](#how-to-use) | [Filters](#filters) | [Acknowledgements](#acknowledgements) | [License](#copyright-and-license)
+[Features](#key-features) | [Searching](#searching) | [Installation](#installation-methods) | [Usage](#how-to-use) | [Filters](#filters) | [Acknowledgements](#acknowledgements) | [License](#copyright-and-license)
 
 ## Overview
 
@@ -27,10 +27,17 @@ WP Loupe employs the [Loupe search engine](https://github.com/loupe-php/loupe/bl
 - [x] Pagination.
 - [ ] Categories, tags, and custom taxonomies.
 - [ ] Custom fields.
+- [ ] Filter search results (AND, OR, IN, NOT IN, etc.)
 - [ ] Multisite support, including the option to index all sites in a network.
 - [ ] Multisite support. Select which sites to index.
 - [ ] Multisite support. Select which site to do search from.
 - [ ] (Under consideration) Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
+
+## Searching
+
+- `Hello World` will search for posts containing `Hello` or `World`.
+- `"Hello World"` will search for posts containing the phrase `Hello World`.
+- `Hello -World` will search for posts containing `Hello` but not `World`.
 
 ## Installation Methods
 
