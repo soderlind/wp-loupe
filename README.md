@@ -20,11 +20,13 @@ WP Loupe employs the [Loupe search engine](https://github.com/loupe-php/loupe/bl
 - [x] Auto-detects languages
 - [x] Option to reindex all posts and pages from the admin interface (Settings > WP Loupe).
 - [x] Compatible with the theme's search.php template. Tested with [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/) and [Twenty Twenty-Five](https://wordpress.org/themes/twentytwentyfive/).
-- [x] Supports custom post types.
+- [x] Custom post types.
 - [x] Adds processing time, as a comment, to the footer.
 - [x] Supports translation. .pot file is included in the `languages` folder.
 - [x] Delete posts and pages from the search index when they are deleted.
 - [x] Pagination.
+- [ ] Categories, tags, and custom taxonomies.
+- [ ] Custom fields.
 - [ ] Multisite support, including the option to index all sites in a network.
 - [ ] Multisite support. Select which sites to index.
 - [ ] Multisite support. Select which site to do search from.
