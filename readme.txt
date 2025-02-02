@@ -29,12 +29,21 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 * Uses the theme's search.php template. Tested with [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/).
 * Supports custom post types.
 * Add prosessing time, as a comment, to the footer.
+* Add translation. .pot file is included in the `languages` folder.
+* Delete posts and pages from the search index when they are deleted.
+* Pagination.
 
 = Usage =
 
 * The search index is updated automatically when a post or page is created or updated.
 * If you need to add older posts or pages to the search index, go to `Settings > WP Loupe`, and click the "Reindex search index" button.
 * Add custom post types to the search index by selecting the post type in the `Settings > WP Loupe` admin page, or by adding the post type to the `wp_loupe_post_types` filter (see below).
+
+= Searching =
+
+* `Hello World` will search for posts containing `Hello` or `World`.
+* `"Hello World"` will search for posts containing the phrase `Hello World`.
+* `Hello -World` will search for posts containing `Hello` but not `World`.
 
 == Installation ==
 
