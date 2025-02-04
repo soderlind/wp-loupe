@@ -1,6 +1,6 @@
 # WP Loupe Plugin
 
-[Features](#key-features) | [Searching](#searching) | [Installation](#installation-methods) | [Usage](#how-to-use) | [Filters](#filters) | [Acknowledgements](#acknowledgements) | [License](#copyright-and-license)
+[Features](#key-features) | [Installation](#installation-methods) | [Usage](#how-to-use) | [Filters](#filters) | [Acknowledgements](#acknowledgements) | [License](#copyright-and-license)
 
 ## Overview
 
@@ -33,12 +33,6 @@ WP Loupe employs the [Loupe search engine](https://github.com/loupe-php/loupe/bl
 - [ ] Multisite support. Select which site to do search from.
 - [ ] (Under consideration) Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
 
-## Searching
-
-- `Hello World` will search for posts containing `Hello` or `World`.
-- `"Hello World"` will search for posts containing the phrase `Hello World`.
-- `Hello -World` will search for posts containing `Hello` but not `World`.
-
 ## Installation Methods
 
 - [x] Manual installation via command line using `git` and `composer`.
@@ -46,14 +40,22 @@ WP Loupe employs the [Loupe search engine](https://github.com/loupe-php/loupe/bl
 - [x] [Download the latest release `wp-loupe.zip`](https://github.com/soderlind/wp-loupe/releases/latest/download/wp-loupe.zip) file and install from the WordPress admin interface (Plugins > Add New > Upload Plugin).
 - [ ] Install directly from the WordPress admin interface (Plugins > Add New > Search for "WP Loupe").
 
-The `wp-loupe.zip` file can also be found in the "Assets" section of the [latest release](https://github.com/soderlind/wp-loupe/releases/latest).
+> The `wp-loupe.zip` file can also be found in the "Assets" section of the [latest release](https://github.com/soderlind/wp-loupe/releases/latest).
 
-After installation, activate the plugin and navigate to `Settings > WP Loupe` to reindex all posts and pages.
+After installation, activate the plugin and navigate to `Settings > WP Loupe`m and click the `Reindex search index` button, to reindex all posts and pages.
 
 ## How to Use
 
+### Searching
+
+- `Hello World` will search for posts containing `Hello` or `World`.
+- `"Hello World"` will search for posts containing the phrase `Hello World`.
+- `Hello -World` will search for posts containing `Hello` but not `World`.
+
+### Usage
+
 - The search index is automatically updated when a post or page is created or updated.
-- To add older posts or pages to the search index, navigate to `Settings > WP Loupe`, and click the "Reindex search index" button.
+- To add older posts or pages to the search index, navigate to `Settings > WP Loupe`, and click the `Reindex search index` button.
 - Add custom post types to the search index by selecting the post type in the `Settings > WP Loupe` admin page, or by adding the post type to the `wp_loupe_post_types` filter (see below).
 
 ## Filters
