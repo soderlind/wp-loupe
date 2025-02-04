@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c18363820463fbcae0661bfbc9d03d56",
+    "content-hash": "2d3bbe136d800fa3fc373231a0a02cf6",
     "packages": [
         {
             "name": "doctrine/dbal",
@@ -236,16 +236,16 @@
         },
         {
             "name": "loupe/loupe",
-            "version": "0.9.0",
+            "version": "0.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/loupe-php/loupe.git",
-                "reference": "da01e0cf3b1d7a7bf27a21f33c4028d34877c8e7"
+                "reference": "3bc895feab128b01aac73941bf112b9a0ad386c5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/loupe-php/loupe/zipball/da01e0cf3b1d7a7bf27a21f33c4028d34877c8e7",
-                "reference": "da01e0cf3b1d7a7bf27a21f33c4028d34877c8e7",
+                "url": "https://api.github.com/repos/loupe-php/loupe/zipball/3bc895feab128b01aac73941bf112b9a0ad386c5",
+                "reference": "3bc895feab128b01aac73941bf112b9a0ad386c5",
                 "shasum": ""
             },
             "require": {
@@ -287,7 +287,7 @@
             "description": "A full text search engine with tokenization, stemming, typo tolerance, filters and geo support based on only PHP and SQLite",
             "support": {
                 "issues": "https://github.com/loupe-php/loupe/issues",
-                "source": "https://github.com/loupe-php/loupe/tree/0.9.0"
+                "source": "https://github.com/loupe-php/loupe/tree/0.9.2"
             },
             "funding": [
                 {
@@ -295,7 +295,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-17T10:37:37+00:00"
+            "time": "2025-02-03T10:55:28+00:00"
         },
         {
             "name": "mjaschen/phpgeo",
