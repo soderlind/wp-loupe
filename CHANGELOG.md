@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.20] - 2025-02-05
+
+- Fix Typo in class-wp-loupe-loader.php
+
 ## [0.0.19] - 2025-02-04
 
 ### Changed
@@ -106,3 +110,5 @@ All notable changes to this project will be documented in this file.
 [0.0.16]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.16
 [0.0.17]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.17
 [0.0.18]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.18
+[0.0.19]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.19
+[0.0.30]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.20
