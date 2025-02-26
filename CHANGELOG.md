@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.30] - 2025-02-06
+
+### Added
+
+- Added post type selection in settings page
+- Added support for all public post types in search
+- Added default selection of 'post' and 'page' for new installations
+
+### Changed
+
+- Improved settings UI with Select2 dropdown for post type selection
+- Updated post type handling in search index
+
 ## [0.0.20] - 2025-02-05
 
 - Fix Typo in class-wp-loupe-loader.php
@@ -111,4 +124,5 @@ All notable changes to this project will be documented in this file.
 [0.0.17]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.17
 [0.0.18]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.18
 [0.0.19]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.19
-[0.0.30]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.20
+[0.0.20]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.20
+[0.0.30]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.30

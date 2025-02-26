@@ -59,17 +59,21 @@ class WPLoupe_Settings_Page {
 	public function wp_loupe_setup_fields() {
 		register_setting( 'wp-loupe', 'wp_loupe_custom_post_types' );
 
-		$this->cpt = get_post_types(
+		$this->cpt = array_diff( get_post_types(
 			[ 
-				'public'   => true,
-				'_builtin' => false,
+				'public' => true,
 			],
 			'names',
 			'and'
+		), [ 'attachment' ] );
+
+		add_settings_field(
+			'wp_loupe_post_type_field',
+			__( 'Select Post Types', 'wp-loupe' ),
+			[ $this, 'wp_loupe_post_type_field_callback' ],
+			'wp-loupe',
+			'wp_loupe_section'
 		);
-		if ( ! empty( $this->cpt ) ) {
-			add_settings_field( 'wp_loupe_post_type_field', __( 'Select Custom Post Type', 'wp-loupe' ), [ $this, 'wp_loupe_post_type_field_callback' ], 'wp-loupe', 'wp_loupe_section' );
-		}
 	}
 
 	/**
@@ -78,17 +82,21 @@ class WPLoupe_Settings_Page {
 	 * @return void
 	 */
 	public function wp_loupe_post_type_field_callback() {
+		$options      = get_option( 'wp_loupe_custom_post_types', [] );
+		$selected_ids = ! empty( $options ) && isset( $options[ 'wp_loupe_post_type_field' ] )
+			? (array) $options[ 'wp_loupe_post_type_field' ]
+			: [ 'post', 'page' ]; // Default selection
 
-		if ( ! empty( $this->cpt ) ) {
-
-			$options      = get_option( 'wp_loupe_custom_post_types', [] );
-			$selected_ids = ! empty( $options ) && isset( $options[ 'wp_loupe_post_type_field' ] ) && ! empty( $options[ 'wp_loupe_post_type_field' ] ) ? (array) $options[ 'wp_loupe_post_type_field' ] : [];
-			echo '<select id="wp_loupe_custom_post_types" name="wp_loupe_custom_post_types[wp_loupe_post_type_field][]" multiple>';
-			foreach ( $this->cpt as $post_type ) {
-				echo '<option value="' . esc_attr( $post_type ) . '" ' . selected( in_array( $post_type, $selected_ids, true ), true, false ) . '>' . esc_html( $post_type ) . '</option>';
-			}
-			echo '</select>';
+		echo '<select id="wp_loupe_custom_post_types" name="wp_loupe_custom_post_types[wp_loupe_post_type_field][]" multiple>';
+		foreach ( $this->cpt as $post_type ) {
+			echo sprintf(
+				'<option value="%s" %s>%s</option>',
+				esc_attr( $post_type ),
+				selected( in_array( $post_type, $selected_ids, true ), true, false ),
+				esc_html( $post_type )
+			);
 		}
+		echo '</select>';
 	}
 
 	/**
@@ -129,7 +137,7 @@ class WPLoupe_Settings_Page {
 			wp_nonce_field( 'wp_loupe_nonce_action', 'wp_loupe_nonce_field' );
 			settings_fields( 'wp-loupe' );
 			do_settings_sections( 'wp-loupe' );
-			submit_button( __( 'Reindex search index', 'wp-loupe' ) );
+			submit_button( __( 'Reindex', 'wp-loupe' ) );
 			?>
 			</form>
 		</div><?php
@@ -149,6 +157,7 @@ class WPLoupe_Settings_Page {
 		\wp_register_script( 'select2', WP_LOUPE_URL . '/lib/js/select2.min.js', [ 'jquery' ], '4.0.13', true );
 		\wp_enqueue_script( 'select2' );
 
+		// Code to initialize the select2 dropdown. Connects the dropdown to the select2 library.
 		$locale_script = <<<EOT
 jQuery(document).ready(function($) {
     $('#wp_loupe_custom_post_types,#wp_loupe_network_sites,#wp_loupe_network_search_site').select2({
@@ -157,7 +166,34 @@ jQuery(document).ready(function($) {
 	});
 });
 EOT;
+
 		\wp_add_inline_script( 'select2', $locale_script );
+
+		// Add custom styles for the select2 dropdown. Ads a down arrow to the dropdown.
+		$locale_style = <<<EOT
+.select2-container--default .select2-selection--multiple {
+    position: relative;
+    padding-right: 20px;
+}
+
+.select2-container--default .select2-selection--multiple:after {
+    content: '';
+    border-color: #888 transparent transparent transparent;
+    border-style: solid;
+    border-width: 5px 4px 0 4px;
+    position: absolute;
+    top: 50%;
+    right: 5px;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.select2-container--default.select2-container--open .select2-selection--multiple:after {
+    border-color: transparent transparent #888 transparent;
+    border-width: 0 4px 5px 4px;
+}
+EOT;
+		\wp_add_inline_style( 'select2css', $locale_style );
 	}
 }
 new WPLoupe_Settings_Page();

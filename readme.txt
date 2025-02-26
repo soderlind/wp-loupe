@@ -4,7 +4,7 @@ Tags: search, loupe, posts, pages, custom post types
 Requires at least: 6.3
 Requires PHP: 8.1
 Tested up to: 6.7
-Stable tag: 0.0.20
+Stable tag: 0.0.30
 Donate link: https://paypal.me/PerSoderlind
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -53,6 +53,13 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 
 
 == Changelog ==
+
+= 0.0.30 =
+* Added post type selection in settings page
+* Added support for all public post types in search
+* Added default selection of 'post' and 'page' for new installations
+* Improved settings UI with Select2 dropdown
+* Updated post type handling in search index
 
 = 0.0.20 =
 * Fix Typo in class-wp-loupe-loader.php
