@@ -42,12 +42,12 @@ WP Loupe employs the [Loupe search engine](https://github.com/loupe-php/loupe/bl
 
 > The `wp-loupe.zip` file can also be found in the "Assets" section of the [latest release](https://github.com/soderlind/wp-loupe/releases/latest).
 
-After installation, activate the plugin and navigate to `Settings > WP Loupe`m and click the `Reindex search index` button, to reindex all posts and pages.
+After installation, activate the plugin and navigate to `Settings > WP Loupe`m and click the `Reindex` button, to reindex all posts and pages.
 
 ## How to Use
 
 - The search index is automatically updated when a post or page is created, updated or deleted.
-- To add older posts or pages to the search index, navigate to `Settings > WP Loupe`, and click the `Reindex search index` button.
+- To add older posts or pages to the search index, navigate to `Settings > WP Loupe`, and click the `Reindex` button.
 - Add custom post types to the search index by selecting the post type in the `Settings > WP Loupe` admin page, or by adding the post type to the `wp_loupe_post_types` filter (see below).
 
 ### Searching
