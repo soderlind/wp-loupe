@@ -1,6 +1,6 @@
 {
 	"name": "wp-loupe",
-	"version": "0.0.20",
+	"version": "0.0.30",
 	"description": "Enhance the search functionality of your WordPress site with WP Loupe.",
 	"main": "index.js",
 	"scripts": {

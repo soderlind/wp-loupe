@@ -117,99 +117,6 @@ class WP_Loupe_Indexer {
 		$loupe->deleteDocuments( $post_ids );
 	}
 
-	/**
-	 * Create a new WP_Post object for each search result.
-	 * The WP_Query will then use these objects instead of querying the database.
-	 *
-	 * @param array     $posts Array of post objects.
-	 * @param \WP_Query $query The WP_Query instance (passed by reference).
-	 * @return array    Array of post objects. If empty, the WP_Query will continue, and use the database query.
-	 */
-	public function posts_pre_query( $posts, \WP_Query $query ) {
-		// Check if the query is the main query and a search query.
-		if ( /*! \is_admin() && */ $query->is_main_query() && $query->is_search() ) {
-			// Get the search terms from the query variables.
-			// The search terms are prefiltered by WordPress and stopwords are removed.
-			$raw_search_terms = $query->query_vars[ 'search_terms' ];
-
-			// Initialize an array to hold the processed search terms.
-			$search_terms = [];
-			// Loop through each raw search term.
-			foreach ( $raw_search_terms as $term ) {
-				// If the term contains a space, wrap it in quotes.
-				if ( false !== strpos( $term, ' ' ) ) {
-					$search_terms[] = '"' . $term . '"';
-				} else {
-					// Otherwise, add the term as is.
-					$search_terms[] = $term;
-				}
-			}
-			WP_Loupe_Utils::dump( [ 'posts_pre_query > search_terms', $search_terms ] );
-
-			// Combine the search terms into a single string.
-			$search_term = implode( ' ', $search_terms );
-			WP_Loupe_Utils::dump( [ 'posts_pre_query > search_term', $search_term ] );
-
-			// Perform the search and get the results.
-			$hits = $this->search( $search_term );
-			WP_Loupe_Utils::dump( [ 'posts_pre_query > search_term', $hits ] );
-			// Initialize an array to hold the IDs of the search results.
-			$ids = [];
-			foreach ( $hits as $hit ) {
-				$ids[] = $hit[ 'id' ];
-			}
-
-			// Initialize an array to hold the posts.
-			$posts = [];
-			// Loop through each ID.
-			foreach ( $ids as $id ) {
-				// Create a new WP_Post object and set its ID.
-				$post     = new \WP_Post( new \stdClass() );
-				$post->ID = $id;
-				// Add the post to the posts array.
-				$posts[] = $post;
-			}
-		}
-
-		// Return the posts.
-		return $posts;
-	}
-
-	/**
-	 * Search the loupe indexes
-	 *
-	 * @param string $query Search query.
-	 * @return array
-	 */
-	public function search( string $query ): array {
-		$hits  = [];
-		$stats = [];
-		foreach ( $this->post_types as $post_type ) {
-			WP_Loupe_Utils::dump( [ 'search > query', $query ] );
-			$loupe = $this->loupe[ $post_type ];
-			WP_Loupe_Utils::dump( [ 'search > loupe', $loupe ] );
-			$search_parameters = SearchParameters::create()
-				->withQuery( $query )
-				->withAttributesToRetrieve( [ 'id', 'post_title', 'post_date' ] )
-				->withSort( [ 'post_date:desc' ] );
-
-			WP_Loupe_Utils::dump( [ 'search > search_parameters', $search_parameters ] );
-			$result = $loupe->search( $search_parameters );
-			WP_Loupe_Utils::dump( [ 'search > result', $result ] );
-			$stats = array_merge_recursive( $stats, (array) $result->toArray()[ 'processingTimeMs' ] );
-			$hits  = array_merge_recursive( $hits, $result->toArray()[ 'hits' ] );
-		}
-		$this->log = sprintf( 'WP Loupe processing time: %s ms', (string) array_sum( $stats ) );
-
-		// Sort the results by date.
-		usort(
-			$hits,
-			function ($a, $b) {
-				return $b[ 'post_date' ] <=> $a[ 'post_date' ];
-			}
-		);
-		return $hits;
-	}
 
 	/**
 	 * Handle reindexing
@@ -235,10 +142,10 @@ class WP_Loupe_Indexer {
 	 * @return void
 	 */
 	public function reindex_all() {
+		WP_Loupe_Utils::dump( [ 'reindex_all > post_types', $this->post_types ] );
 
 		$this->delete_index();
 		$this->init();
-
 		foreach ( $this->post_types as $post_type ) {
 			$posts     = \get_posts(
 				[ 

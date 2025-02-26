@@ -50,6 +50,7 @@ class WP_Loupe_Loader {
 	private function setup_post_types() {
 		add_filter( 'wp_loupe_post_types', array( $this, 'filter_post_types' ) );
 		$this->post_types = apply_filters( 'wp_loupe_post_types', array( 'post', 'page' ) );
+		WP_Loupe_Utils::dump( [ 'setup_post_types > post_types', $this->post_types ] );
 	}
 
 	/**
@@ -79,11 +80,14 @@ class WP_Loupe_Loader {
 	 * @return array
 	 */
 	public function filter_post_types( $post_types ) {
-		$options           = get_option( 'wp_loupe_custom_post_types', array() );
-		$custom_post_types = ! empty( $options ) && isset( $options[ 'wp_loupe_post_type_field' ] )
-			? (array) $options[ 'wp_loupe_post_type_field' ]
-			: array();
-		return array_merge( $post_types, $custom_post_types );
+		$options = get_option( 'wp_loupe_custom_post_types', [] );
+
+		if ( ! empty( $options ) && isset( $options[ 'wp_loupe_post_type_field' ] ) ) {
+			return (array) $options[ 'wp_loupe_post_type_field' ];
+		}
+
+		return $post_types;
+		// return array_merge( $post_types, $custom_post_types );
 	}
 
 	/**

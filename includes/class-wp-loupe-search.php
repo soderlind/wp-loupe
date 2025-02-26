@@ -71,7 +71,7 @@ class WP_Loupe_Search {
 		$query->found_posts   = $this->total_found_posts;
 		$query->max_num_pages = $this->max_num_pages;
 
-		// Set query pagination properties
+		// Set query pagination proper ties
 		$query->is_paged = $paged > 1;
 
 		return $paged_posts;
@@ -117,7 +117,7 @@ class WP_Loupe_Search {
 				SearchParameters::create()
 					->withQuery( $query )
 					->withAttributesToRetrieve( [ 'id', 'post_title', 'post_date' ] )
-					->withSort( [ 'post_date:desc' ] )
+					->withSort( [ 'post_date:desc', '_relevance:desc' ] )
 			);
 
 			WP_Loupe_Utils::dump( [ 'search > result', $result ] );
@@ -136,21 +136,6 @@ class WP_Loupe_Search {
 		}
 
 		$this->log = sprintf( 'WP Loupe processing time: %s ms', (string) array_sum( $stats ) );
-		return $this->sort_hits_by_date( $hits );
-		// return $hits;
-	}
-
-	/**
-	 * Sort hits by date
-	 *
-	 * @param array $hits Array of hits.
-	 * @return array
-	 */
-	private function sort_hits_by_date( $hits ) {
-		WP_Loupe_Utils::dump( [ 'sort_hits_by_date > hits', $hits ] );
-		usort( $hits, function ($a, $b) {
-			return $b[ 'post_date' ] <=> $a[ 'post_date' ];
-		} );
 		return $hits;
 	}
 
