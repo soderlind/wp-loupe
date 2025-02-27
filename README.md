@@ -88,7 +88,7 @@ add_filter( 'wp_loupe_posts_per_page', 20 );
 add_filter( 'wp_loupe_index_protected','__return_true' );
 ```
 
-6. `wp_loupe_schema_content`: This filter allows you to modify the content before it's indexed. By default, removes HTML comments from content.
+6. `wp_loupe_schema_content`: This filter allows you to modify the content before it's indexed. By default, removes HTML comments from content (i.e. it remove WordPress block comments).
 
 ```php
 add_filter('wp_loupe_schema_content', function($content) {
