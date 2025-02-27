@@ -1,56 +1,73 @@
-# WP Loupe Plugin
+# WP Loupe - Enhanced WordPress Search
 
-[Features](#key-features) | [Installation](#installation-methods) | [Usage](#how-to-use) | [Filters](#filters) | [Acknowledgements](#acknowledgements) | [License](#copyright-and-license)
+A powerful search enhancement plugin for WordPress that delivers fast, accurate, and typo-tolerant search results.
+
+## Quick Links
+
+[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Configuration](#configuration) | [Filters](#filters) | [FAQ](#faq)
 
 ## Overview
 
-WP Loupe is a plugin for WordPress that significantly improves the search capabilities of your website. It leverages a custom search index to deliver quick and precise search results.
+WP Loupe transforms WordPress's search functionality by:
 
-WP Loupe employs the [Loupe search engine](https://github.com/loupe-php/loupe/blob/main/README.md) to construct a search index for your posts and pages. The search index is stored in a SQLite database, which is automatically updated when a post or page is created or updated.
+- Creating a dedicated search index for lightning-fast results
+- Supporting typo-tolerant searches
+- Offering phrase matching and advanced search operators
+- Automatically maintaining the search index
+- Providing customization options for developers
 
-## Key Features
+## Features
 
-(This is my to-do list, not all features are implemented yet)
+### Core Features
 
-- [x] Automatic update of search index upon creation or modification of a post or page.
-- [x] Tolerant to typos (based on the State Set Index Algorithm and Levenshtein)
-- [x] Supports phrase search using `"` quotation marks
-- [x] Supports stemming
-- [x] Utilizes stop words from the WordPress translation, e.g., [Norwegian bokmål](https://translate.wordpress.org/projects/wp/dev/nb/default/?filters%5Bstatus%5D=either&filters%5Boriginal_id%5D=70980&filters%5Btranslation_id%5D=2917948).
-- [x] Auto-detects languages
-- [x] Option to reindex all posts and pages from the admin interface (Settings > WP Loupe).
-- [x] Compatible with the theme's search.php template. Tested with [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/) and [Twenty Twenty-Five](https://wordpress.org/themes/twentytwentyfive/).
-- [x] Custom post types.
-- [x] Adds processing time, as a comment, to the footer.
-- [x] Supports translation. .pot file is included in the `languages` folder.
-- [x] Delete posts and pages from the search index when they are deleted.
-- [x] Pagination.
-- [ ] Categories, tags, and custom taxonomies.
-- [ ] Custom fields.
-- [ ] Filter search results (AND, OR, IN, NOT IN, etc.)
-- [ ] Multisite support, including the option to index all sites in a network.
-- [ ] Multisite support. Select which sites to index.
-- [ ] Multisite support. Select which site to do search from.
-- [ ] (Under consideration) Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
+- ✨ Fast, accurate search results
+- 🔄 Automatic index updates
+- 🌍 Multi-language support
+- 📑 Custom post type support
+- 📊 Built-in search analytics
 
-## Installation Methods
+### Search Capabilities
 
-- [x] Manual installation via command line using `git` and `composer`.
-- [x] Installation using `composer require soderlind/wp-loupe`
-- [x] [Download the latest release `wp-loupe.zip`](https://github.com/soderlind/wp-loupe/releases/latest/download/wp-loupe.zip) file and install from the WordPress admin interface (Plugins > Add New > Upload Plugin).
-- [ ] Install directly from the WordPress admin interface (Plugins > Add New > Search for "WP Loupe").
+- 🔍 Typo-tolerant searching
+- "..." Phrase matching with quotation marks
+- `-` Exclusion operator support
+- 📱 Mobile-friendly interface
+- 📖 Pagination support
 
-> The `wp-loupe.zip` file can also be found in the "Assets" section of the [latest release](https://github.com/soderlind/wp-loupe/releases/latest).
+### Developer Features
 
-After installation, activate the plugin and navigate to `Settings > WP Loupe`m and click the `Reindex` button, to reindex all posts and pages.
+- 🛠️ Extensive filter system
+- 📊 Performance monitoring
+- 🔧 Customizable indexing
+- 🎯 API for custom integrations
 
-## How to Use
+## Installation
 
-- The search index is automatically updated when a post or page is created, updated or deleted.
-- To add older posts or pages to the search index, navigate to `Settings > WP Loupe`, and click the `Reindex` button.
-- Add custom post types to the search index by selecting the post type in the `Settings > WP Loupe` admin page, or by adding the post type to the `wp_loupe_post_types` filter (see below).
+1. **Quick Install**
 
-### Searching
+   - Download [`wp-loupe.zip`](https://github.com/soderlind/wp-loupe/releases/latest/download/wp-loupe.zip)
+   - Upload via WordPress Plugins > Add New > Upload Plugin
+
+2. **Composer Install**
+
+   ```bash
+   composer require soderlind/wp-loupe
+   ```
+
+3. **Post-Installation**
+   - Activate the plugin
+   - Go to Settings > WP Loupe
+   - Click "Reindex" to build the initial search index
+
+## Usage
+
+### Basic Search
+
+- Type normally in your search box
+- Results are instant and typo-tolerant
+- Matches are highlighted in results
+
+### Advanced Search Operators
 
 - `Hello World` will search for posts containing `Hello` **or** `World`.
 - `"Hello World"` will search for posts containing the phrase `Hello World`.

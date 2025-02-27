@@ -2,7 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.0.30] - 2025-02-26
+## [0.0.31] - 2025-02-27
+
+- Update README.md
 
 ### Added
 
