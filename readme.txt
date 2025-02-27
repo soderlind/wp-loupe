@@ -1,58 +1,113 @@
 === WP Loupe ===
 Contributors: PerS
-Tags: search, loupe, posts, pages, custom post types
+Tags: search, loupe, posts, pages, custom post types, typo-tolerant, fast search, advanced search
 Requires at least: 6.3
 Requires PHP: 8.1
 Tested up to: 6.7
-Stable tag: 0.0.30
+Stable tag: 0.0.31
 Donate link: https://paypal.me/PerSoderlind
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Enhance the search functionality of your WordPress site with WP Loupe.
+Transform your WordPress search with lightning-fast, typo-tolerant results and advanced search capabilities.
 
 == Description ==
 
-WP Loupe is a WordPress plugin that enhances the search functionality of your WordPress site. It uses a custom search index to provide fast and accurate search results.
+WP Loupe enhances WordPress search functionality by providing a powerful, fast, and accurate search experience. Built on the Loupe search engine, it creates and maintains a dedicated search index for optimal performance.
 
-WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/main/README.md) to create a search index for your posts and pages.
+= Core Features =
 
-= Features =
+* ✨ Lightning-fast search results
+* 🔄 Automatic index updates
+* 🌍 Multi-language support with auto-detection
+* 📑 Custom post type support
+* 🔍 Typo-tolerant searching
+* 📱 Mobile-friendly interface
+* 📖 Built-in pagination
+* 📊 Performance monitoring
 
-* Search index is updated automatically when a post or page is created or updated.
-* Typo-tolerant (based on the State Set Index Algorithm and Levenshtein)
-* Supports phrase search using `"` quotation marks
-* Supports stemming
-* Uses stop words from the WordPress translation,
-* Auto-detects languages
-* Reindex all posts and pages from the admin interface (Settings > WP Loupe).
-* Uses the theme's search.php template. Tested with [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/).
-* Supports custom post types.
-* Add prosessing time, as a comment, to the footer.
-* Add translation. .pot file is included in the `languages` folder.
-* Delete posts and pages from the search index when they are deleted.
-* Pagination.
+= Advanced Search Capabilities =
 
-= Usage =
+* Phrase matching using quotation marks: `"exact phrase"`
+* Exclusion operators: `term -excluded`
+* OR search: `term1 term2`
+* Customizable via filters
+* Stemming support
+* Stop words recognition
 
-* The search index is updated automatically when a post or page is created or updated.
-* If you need to add older posts or pages to the search index, go to `Settings > WP Loupe`, and click the "Reindex" button.
-* Add custom post types to the search index by selecting the post type in the `Settings > WP Loupe` admin page, or by adding the post type to the `wp_loupe_post_types` filter (see below).
+= Developer-Friendly =
 
-= Searching =
+* Extensive filter system for customization
+* Performance monitoring and diagnostics
+* API for custom integrations
+* Customizable indexing options
 
-* `Hello World` will search for posts containing `Hello` or `World`.
-* `"Hello World"` will search for posts containing the phrase `Hello World`.
-* `Hello -World` will search for posts containing `Hello` but not `World`.
+= Administration =
+
+* Simple settings interface
+* Post type selection
+* One-click reindexing
+* Processing time monitoring
 
 == Installation ==
 
-1. Upload the plugin files to the `/wp-content/plugins/wp-loupe` directory, or install the plugin zip file through the WordPress plugins screen directly.
-2. Activate the plugin through the 'Plugins' screen in WordPress
-3. Use the Settings->WP Loupe screen to configure the plugin
+1. Upload 'wp-loupe' to the '/wp-content/plugins/' directory
+2. Activate through the 'Plugins' menu in WordPress
+3. Visit Settings > WP Loupe to configure
+4. Click 'Reindex' to build the initial search index
 
+== Frequently Asked Questions ==
+
+= How does it handle updates to posts? =
+
+The search index automatically updates when content is created, modified, or deleted.
+
+= Will it slow down my site? =
+
+No. WP Loupe uses a separate, optimized search index and doesn't impact your main database performance.
+
+= Can I customize what content is searchable? =
+
+Yes, using filters you can control exactly what content gets indexed and how it's searched.
+
+= Does it work with custom post types? =
+
+Yes, you can select which post types to include in the Settings page or via filters.
+
+== Filters ==
+
+These filters allow developers to customize WP Loupe's behavior:
+
+= wp_loupe_db_path =
+Controls where the search index is stored.
+Default: WP_CONTENT_DIR . '/wp-loupe-db'
+
+= wp_loupe_post_types =
+Modifies which post types are included in search.
+Default: ['post', 'page']
+
+= wp_loupe_filterable_attribute_{$post_type} =
+Customizes searchable attributes per post type.
+Default: ['post_title', 'post_date', 'post_content']
+
+= wp_loupe_posts_per_page =
+Controls search results per page.
+Default: WordPress "Blog pages show at most" setting
+
+= wp_loupe_index_protected =
+Controls indexing of password-protected posts.
+Default: false
+
+= wp_loupe_schema_content =
+Modifies content before indexing.
+Default: Removes HTML comments
+
+For usage examples, see the plugin's README.md file.
 
 == Changelog ==
+
+= 0.0.31 =
+* Update readme.txt
 
 = 0.0.30 =
 * Added post type selection in settings page
@@ -70,13 +125,11 @@ WP Loupe uses the [Loupe search engine](https://github.com/loupe-php/loupe/blob/
 = 0.0.18 =
 * Fixed return value in posts_pre_query to return null instead of posts for better WP Core integration
 
-
 = 0.0.17 =
 * Added wp_loupe_posts_per_page filter hook for customizing posts per page
 * Added PHPDoc blocks for all class properties in search class
 * Improved code documentation for all method parameters
 * Enhanced error handling in database operations
-
 
 = 0.0.16 =
 * Added proper documentation to WP_Loupe_Search class
