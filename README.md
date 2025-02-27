@@ -76,10 +76,25 @@ add_filter( 'wp_loupe_post_types', [ 'post', 'page', 'book' ] );
 add_filter( "wp_loupe_filterable_attribute_book", [ 'post_title', 'author', 'isbn' ] );
 ```
 
-4. `wp_loupe_posts_per_page`: This filter allows you to modify the number of search results per page. By default it's 10, set in `WPAdmin->Settings->Reading` "Blog pages show at most".
+4. `wp_loupe_posts_per_page`: This filter allows you to modify the number of search results per page. By default it's 10, set in `WPAdmin->Settings->Reading->"Blog pages show at most"`.
 
 ```php
 add_filter( 'wp_loupe_posts_per_page', 20 );
+```
+
+5. `wp_loupe_index_protected`: This filter allows you to index posts and pages that are protected by a password. By default, it's set to `false`.
+
+```php
+add_filter( 'wp_loupe_index_protected','__return_true' );
+```
+
+6. `wp_loupe_schema_content`: This filter allows you to modify the content before it's indexed. By default, removes HTML comments from content.
+
+```php
+add_filter('wp_loupe_schema_content', function($content) {
+    // Modify content before indexing
+    return $content;
+});
 ```
 
 ## Acknowledgements
