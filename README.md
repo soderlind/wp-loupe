@@ -20,12 +20,13 @@ WP Loupe transforms WordPress's search functionality by:
 
 ### Core Features
 
-- ✨ Fast, accurate search results
-- 🔄 Automatic index updates
-- 🌍 Multi-language support
-- 📑 Custom post type support
-- 📊 Built-in search analytics
-- ✅ Tested with popular themes like [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/) and [Twenty Twenty-Five](https://wordpress.org/themes/twentytwentyfive/)
+- 🚀 Enhanced search engine replacing WordPress default
+- ⚡ Lightning-fast, precise result delivery
+- 🔄 Real-time index synchronization
+- 🌐 Support for multiple languages
+- 📦 Full custom post type integration
+- 📈 Integrated search performance metrics
+- ✅ Seamless compatibility with WordPress default themes
 
 ### Search Capabilities
 

@@ -17,14 +17,13 @@ WP Loupe enhances WordPress search functionality by providing a powerful, fast, 
 
 = Core Features =
 
-* ✨ Lightning-fast search results
-* 🔄 Automatic index updates
-* 🌍 Multi-language support with auto-detection
-* 📑 Custom post type support
-* 🔍 Typo-tolerant searching
-* 📱 Mobile-friendly interface
-* 📖 Built-in pagination
-* 📊 Performance monitoring
+* 🚀 Enhanced search engine replacing WordPress default
+* ⚡ Lightning-fast, precise result delivery
+* 🔄 Real-time index synchronization
+* 🌐 Support for multiple languages
+* 📦 Full custom post type integration
+* 📈 Integrated search performance metrics
+* ✅ Seamless compatibility with WordPress default themes
 
 = Advanced Search Capabilities =
 
