@@ -4,7 +4,7 @@ A powerful search enhancement plugin for WordPress that delivers fast, accurate,
 
 ## Quick Links
 
-[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Configuration](#configuration) | [Filters](#filters) | [FAQ](#faq)
+[Features](#features) | [Installation](#installation) | [Usage](#usage) | [FAQ](#faq) | [Filters](#filters)
 
 ## Overview
 
@@ -72,6 +72,24 @@ WP Loupe transforms WordPress's search functionality by:
 - `Hello World` will search for posts containing `Hello` **or** `World`.
 - `"Hello World"` will search for posts containing the phrase `Hello World`.
 - `Hello -World` will search for posts containing `Hello` but not `World`.
+
+## FAQ
+
+### How does it handle updates to posts?
+
+The search index automatically updates when content is created, modified, or deleted.
+
+### Will it slow down my site?
+
+No. WP Loupe uses a separate, optimized search index and doesn't impact your main database performance.
+
+### Can I customize what content is searchable?
+
+Yes, using filters you can control exactly what content gets indexed and how it's searched.
+
+### Does it work with custom post types?
+
+Yes, you can select which post types to include in the Settings page or via filters.
 
 ## Filters
 
