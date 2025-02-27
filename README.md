@@ -25,13 +25,13 @@ WP Loupe transforms WordPress's search functionality by:
 - 🌍 Multi-language support
 - 📑 Custom post type support
 - 📊 Built-in search analytics
+- ✅ Tested with popular themes like [Twenty Twenty-Four](https://wordpress.org/themes/twentytwentyfour/) and [Twenty Twenty-Five](https://wordpress.org/themes/twentytwentyfive/)
 
 ### Search Capabilities
 
 - 🔍 Typo-tolerant searching
 - "..." Phrase matching with quotation marks
 - `-` Exclusion operator support
-- 📱 Mobile-friendly interface
 - 📖 Pagination support
 
 ### Developer Features
@@ -39,7 +39,6 @@ WP Loupe transforms WordPress's search functionality by:
 - 🛠️ Extensive filter system
 - 📊 Performance monitoring
 - 🔧 Customizable indexing
-- 🎯 API for custom integrations
 
 ## Installation
 
