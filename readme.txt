@@ -38,7 +38,6 @@ WP Loupe enhances WordPress search functionality by providing a powerful, fast, 
 
 * Extensive filter system for customization
 * Performance monitoring and diagnostics
-* API for custom integrations
 * Customizable indexing options
 
 = Administration =
