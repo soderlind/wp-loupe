@@ -94,7 +94,7 @@ add_filter( 'wp_loupe_index_protected','__return_true' );
 add_filter('wp_loupe_schema_content', function($content) {
     // Modify content before indexing
 	$content = preg_replace('/<!--(.*?)-->/s', '', $content);
-    return $content;
+	return $content;
 });
 ```
 
