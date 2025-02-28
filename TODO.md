@@ -1,6 +1,6 @@
-## TO
+## TO DO
 
-This is my to-do list, not all features are implemented yet. Some features are under consideration.
+This is my to-do list, not all features are implemented yet. Some features below are under consideration.
 
 - [x] Automatic update of search index upon creation or modification of a post or page.
 - [x] Tolerant to typos (based on the State Set Index Algorithm and Levenshtein)
@@ -21,4 +21,4 @@ This is my to-do list, not all features are implemented yet. Some features are u
 - [ ] Multisite support, including the option to index all sites in a network.
 - [ ] Multisite support. Select which sites to index.
 - [ ] Multisite support. Select which site to do search from.
-- [ ] (Under consideration) Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
+- [ ] Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
