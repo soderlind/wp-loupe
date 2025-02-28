@@ -1,6 +1,6 @@
 ## TO DO
 
-This is my to-do list, not all features are implemented yet. Some features below are under consideration.
+This is a list of features, both implemented and planned. Checked items are completed, while unchecked items are under development or consideration.
 
 - [x] Automatic update of search index upon creation or modification of a post or page.
 - [x] Tolerant to typos (based on the State Set Index Algorithm and Levenshtein)
