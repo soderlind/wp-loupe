@@ -144,7 +144,7 @@ Modify the search schema for a specific post type. The filter name is dynamicall
 ```php
 // Customize the schema for 'book' post type
 add_filter( 'wp_loupe_schema_book', function( $schema ) {
-	$schema['book_isbn'] = [
+	$schema['book_isbn'] = [      // Add a new field
 		'weight'     => 2.0,      // Higher weight means higher relevance in search results
 		'filterable' => true,     // Allow filtering by this field
 		'sortable'   => [         // Allow sorting by this field
