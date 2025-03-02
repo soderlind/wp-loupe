@@ -93,37 +93,41 @@ Yes, you can select which post types to include in the Settings page or via filt
 
 ## Filters
 
-1. `wp_loupe_db_path`: This filter allows you to change the path where the Loupe database files are stored. By default, it's in the `WP_CONTENT_DIR .'/wp-loupe-db'` directory.
+### `wp_loupe_db_path`
+
+This filter allows you to change the path where the Loupe database files are stored. By default, it's in the `WP_CONTENT_DIR .'/wp-loupe-db'` directory.
 
 ```php
 add_filter( 'wp_loupe_db_path', WP_CONTENT_DIR . '/my-path' );
 ```
 
-2. `wp_loupe_post_types`: This filter allows you to modify the array of post types that the WP Loupe plugin works with. By default, it includes 'post' and 'page'.
+### `wp_loupe_post_types`
+
+This filter allows you to modify the array of post types that the WP Loupe plugin works with. By default, it includes 'post' and 'page'.
 
 ```php
 add_filter( 'wp_loupe_post_types', [ 'post', 'page', 'book' ] );
 ```
 
-3. `wp_loupe_filterable_attribute_{$post_type}`: This dynamic filter allows you to modify the array of filterable attributes for each post type. By default, it includes 'post_title' and 'post_content'.
+### `wp_loupe_posts_per_page`
 
-```php
-add_filter( "wp_loupe_filterable_attribute_book", [ 'post_title', 'author', 'isbn' ] );
-```
-
-4. `wp_loupe_posts_per_page`: This filter allows you to modify the number of search results per page. By default it's 10, set in `WPAdmin->Settings->Reading->"Blog pages show at most"`.
+This filter allows you to modify the number of search results per page. By default it's 10, set in `WPAdmin->Settings->Reading->"Blog pages show at most"`.
 
 ```php
 add_filter( 'wp_loupe_posts_per_page', 20 );
 ```
 
-5. `wp_loupe_index_protected`: This filter allows you to index posts and pages that are protected by a password. By default, it's set to `false`.
+### `wp_loupe_index_protected`
+
+This filter allows you to index posts and pages that are protected by a password. By default, it's set to `false`.
 
 ```php
 add_filter( 'wp_loupe_index_protected','__return_true' );
 ```
 
-6. `wp_loupe_schema_content`: This filter allows you to modify the content before it's indexed. By default, removes HTML comments from content (i.e. remove WordPress block comments).
+### `wp_loupe_schema_content`
+
+This filter allows you to modify the content before it's indexed. By default, removes HTML comments from content (i.e. remove WordPress block comments).
 
 ```php
 add_filter('wp_loupe_schema_content', function($content) {
@@ -133,7 +137,9 @@ add_filter('wp_loupe_schema_content', function($content) {
 });
 ```
 
-7. `wp_loupe_schema_{$post_type}`: Modify the search schema for a specific post type. The filter name is dynamically generated based on the post type.
+### `wp_loupe_schema_{$post_type}`
+
+Modify the search schema for a specific post type. The filter name is dynamically generated based on the post type.
 
 ```php
 // Customize the schema for 'book' post type
