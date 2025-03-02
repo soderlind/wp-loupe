@@ -176,12 +176,12 @@ Default schema fields:
 		'filterable' => true,
 		'sortable'   => [ 'direction' => 'asc' ],
 	],
-	'post_content' => [ 'weight' => 1.0,
+	'post_content' => [ 'weight' => 1.0],
 	'post_excerpt' => [ 'weight' => 1.5 ],
 	'post_date'    => [
 		'weight'     => 1.0,
 		'filterable' => true,
-		'sortable'   => [ 'direction' => 'desc',
+		'sortable'   => [ 'direction' => 'desc' ],
 	],
 	'post_author'  => [
 		'weight'     => 1.0,
