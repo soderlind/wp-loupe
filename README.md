@@ -133,31 +133,23 @@ add_filter('wp_loupe_schema_content', function($content) {
 });
 ```
 
-### wp*loupe_schema*{$post_type}
-
-Modify the search schema for a specific post type. The filter name is dynamically generated based on the post type.
-
-**Parameters:**
-
-- `$schema` (array) The default schema for indexing and searching posts.
-
-**Example:**
+7. `wp_loupe_schema_{$post_type}`: Modify the search schema for a specific post type. The filter name is dynamically generated based on the post type.
 
 ```php
 // Customize the schema for 'book' post type
 add_filter( 'wp_loupe_schema_book', function( $schema ) {
-    $schema['book_isbn'] = [
-        'weight'     => 2.0,      // Higher weight means higher relevance in search results
-        'filterable' => true,     // Allow filtering by this field
-        'sortable'   => [         // Allow sorting by this field
-            'direction' => 'asc'  // Default sort direction
-        ],
-    ];
+	$schema['book_isbn'] = [
+		'weight'     => 2.0,      // Higher weight means higher relevance in search results
+		'filterable' => true,     // Allow filtering by this field
+		'sortable'   => [         // Allow sorting by this field
+			'direction' => 'asc'  // Default sort direction
+		],
+	];
 
-    // Modify existing field settings
-    $schema['post_title']['weight'] = 3.0; // Increase title weight for books
+	// Modify existing field settings
+	$schema['post_title']['weight'] = 3.0; // Increase title weight for books
 
-    return $schema;
+	return $schema;
 });
 ```
 
