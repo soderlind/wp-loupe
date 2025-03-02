@@ -133,6 +133,57 @@ add_filter('wp_loupe_schema_content', function($content) {
 });
 ```
 
+### wp*loupe_schema*{$post_type}
+
+Modify the search schema for a specific post type. The filter name is dynamically generated based on the post type.
+
+**Parameters:**
+
+- `$schema` (array) The default schema for indexing and searching posts.
+
+**Example:**
+
+```php
+// Customize the schema for 'book' post type
+add_filter( 'wp_loupe_schema_book', function( $schema ) {
+    $schema['book_isbn'] = [
+        'weight'     => 2.0,      // Higher weight means higher relevance in search results
+        'filterable' => true,     // Allow filtering by this field
+        'sortable'   => [         // Allow sorting by this field
+            'direction' => 'asc'  // Default sort direction
+        ],
+    ];
+
+    // Modify existing field settings
+    $schema['post_title']['weight'] = 3.0; // Increase title weight for books
+
+    return $schema;
+});
+```
+
+The schema configuration supports the following options for each field:
+
+- `weight` (float): The relevance weight in search results. Default: 1.0
+- `filterable` (bool): Whether the field can be used for filtering. Default: false
+- `sortable` (array): Sorting configuration with `direction` key ('asc' or 'desc'). Default: null
+
+Default schema fields:
+
+```php
+[
+    'post_title' => [
+        'weight'     => 1.0,
+        'filterable' => false,
+        'sortable'   => null,
+    ],
+    'post_content' => [
+        'weight'     => 1.0,
+        'filterable' => false,
+        'sortable'   => null,
+    ],
+]
+```
+
 ## Acknowledgements
 
 WP Loupe is built upon [Loupe](https://github.com/loupe-php/loupe/). Loupe is licensed under the MIT license.

@@ -1,6 +1,9 @@
 <?php
 namespace Soderlind\Plugin\WPLoupe;
 
+use Loupe\Loupe\Config\TypoTolerance;
+use Loupe\Loupe\Configuration;
+use Loupe\Loupe\LoupeFactory;
 use Loupe\Loupe\SearchParameters;
 use Soderlind\Plugin\WPLoupe\WP_Loupe_DB;
 
@@ -13,18 +16,22 @@ use Soderlind\Plugin\WPLoupe\WP_Loupe_DB;
 class WP_Loupe_Search {
 	use WP_Loupe_Shared;
 
-
 	private $post_types;
 	private $loupe = [];
 	private $log;
+	private $schema_manager;
+	private $db;
 
 	private $total_found_posts = 0;
 	private $max_num_pages = 0;
+	private $search_cache = [];
+	private const CACHE_TTL = 3600; // 1 hour
 
 	public function __construct( $post_types ) {
-		$this->post_types = $post_types;
-		$this->db         = WP_Loupe_DB::get_instance();
-		$this->offset     = 10;
+		$this->post_types     = $post_types;
+		$this->db             = WP_Loupe_DB::get_instance();
+		$this->schema_manager = WP_Loupe_Schema_Manager::get_instance();
+		$this->offset         = 10;
 		add_filter( 'posts_pre_query', array( $this, 'posts_pre_query' ), 10, 2 );
 		add_action( 'wp_footer', array( $this, 'action_wp_footer' ), 999 );
 		$iso6391_lang = ( '' === get_locale() ) ? 'en' : strtolower( substr( get_locale(), 0, 2 ) );
@@ -108,61 +115,96 @@ class WP_Loupe_Search {
 	 * @return array
 	 */
 	public function search( $query ) {
-		$hits  = [];
-		$stats = [];
-		WP_Loupe_Utils::dump( [ 'search > post_types', $this->post_types ] );
+		$cache_key = md5( $query . serialize( $this->post_types ) );
+
+		// Check transient cache first
+		$cached_result = get_transient( "wp_loupe_search_$cache_key" );
+		if ( false !== $cached_result ) {
+			$this->log = sprintf( 'WP Loupe cache hit: %s ms', 0 );
+			return $cached_result;
+		}
+
+		$hits       = [];
+		$stats      = [];
+		$start_time = microtime( true );
+
 		foreach ( $this->post_types as $post_type ) {
+			$schema = $this->schema_manager->get_schema_for_post_type( $post_type );
+
+			// Get indexable fields with weights for search
+			$indexable_fields = $this->schema_manager->get_indexable_fields( $schema );
+
+			// Get sortable fields with their directions
+			$sort_fields = array_map( function ($field) {
+				return "{$field[ 'field' ]}:{$field[ 'direction' ]}";
+			}, $this->schema_manager->get_sortable_fields( $schema ) );
+
+
+			// Get all fields that should be retrieved
+			$retrievable_fields = array_unique( array_merge(
+				[ 'id' ],
+				array_map( function ($field) {
+					return $field[ 'field' ];
+				}, $indexable_fields ),
+				$this->schema_manager->get_filterable_fields( $schema )
+			)
+			);
+
 			$loupe  = $this->loupe[ $post_type ];
 			$result = $loupe->search(
 				SearchParameters::create()
 					->withQuery( $query )
-					->withAttributesToRetrieve( [ 'id', 'post_title', 'post_date' ] )
-					->withSort( [ 'post_date:desc', '_relevance:desc' ] )
+					->withAttributesToRetrieve( $retrievable_fields )
+					->withSort( $sort_fields )
 			);
 
-			WP_Loupe_Utils::dump( [ 'search > result', $result ] );
-
-			$stats = array_merge_recursive( $stats, (array) $result->toArray()[ 'processingTimeMs' ] );
-
-			// add post type to hits
+			// Merge stats and add post type to hits
+			$stats    = array_merge_recursive( $stats, (array) $result->toArray()[ 'processingTimeMs' ] );
 			$tmp_hits = $result->toArray()[ 'hits' ];
 			foreach ( $tmp_hits as $key => $hit ) {
 				$tmp_hits[ $key ][ 'post_type' ] = $post_type;
 			}
-
 			$hits = array_merge_recursive( $hits, $tmp_hits );
-			WP_Loupe_Utils::dump( [ 'search > hits', $hits ] );
-
 		}
 
 		$this->log = sprintf( 'WP Loupe processing time: %s ms', (string) array_sum( $stats ) );
+
+		// Cache the results
+		set_transient( "wp_loupe_search_$cache_key", $hits, self::CACHE_TTL );
+
 		return $hits;
 	}
 
 	/**
-	 * Create post objects
+	 * Create post objects with schema-based fields
 	 *
 	 * @param array $hits Array of hits.
 	 * @return array
 	 */
 	private function create_post_objects( $hits ) {
-		$posts = [];
-
-		foreach ( $hits as $hit ) {
-			$post            = new \stdClass();
-			$post->ID        = $hit[ 'id' ];
-			$post->post_type = $hit[ 'post_type' ];
-
-
-			$post = new \WP_Post( $post );
-
-
-			WP_Loupe_Utils::dump( [ 'create_post_objects > post', $post ] );
-			$posts[] = $post;
-
+		if ( empty( $hits ) ) {
+			return [];
 		}
-		WP_Loupe_Utils::dump( [ 'create_post_objects > posts', $posts ] );
-		return $posts;
+
+		// Get all post IDs
+		$post_ids = array_column( $hits, 'id' );
+
+		// Fetch all posts in one query
+		$posts = get_posts( [ 
+			'post__in'       => $post_ids,
+			'posts_per_page' => -1,
+			'post_type'      => $this->post_types,
+			'orderby'        => 'post__in', // Maintain search result order
+			'no_found_rows'  => true,
+		] );
+
+		// Create a lookup table
+		$posts_lookup = array_column( $posts, null, 'ID' );
+
+		// Map results maintaining original order
+		return array_map( function ($hit) use ($posts_lookup) {
+			return isset( $posts_lookup[ $hit[ 'id' ] ] ) ? $posts_lookup[ $hit[ 'id' ] ] : null;
+		}, $hits );
 	}
 
 	/**
@@ -181,5 +223,37 @@ class WP_Loupe_Search {
 	 */
 	public function get_log() {
 		return $this->log;
+	}
+
+	protected function create_loupe_instance( $post_type, $lang ) {
+		$schema     = $this->schema_manager->get_schema_for_post_type( $post_type );
+		$filterable = $this->schema_manager->get_filterable_fields( $schema );
+		$sortable   = $this->schema_manager->get_sortable_fields( $schema );
+		$sortable   = array_map( function ($field) {
+			return "{$field[ 'field' ]}";
+		}, $sortable );
+
+		$sortable = array_unique( $sortable );
+		// ...existing code...
+		$filterable_attributes = apply_filters(
+			"wp_loupe_filterable_attribute_{$post_type}",
+			$filterable
+		);
+
+		$configuration = Configuration::create()
+			->withPrimaryKey( 'id' )
+			->withFilterableAttributes( $filterable_attributes )
+			->withSortableAttributes( $sortable )
+			->withLanguages( [ $lang ] )
+			->withTypoTolerance(
+				TypoTolerance::create()->withFirstCharTypoCountsDouble( false )
+			);
+
+		$loupe_factory = new LoupeFactory();
+		return $loupe_factory->create(
+			$this->db->get_db_path( $post_type ),
+			$configuration
+		);
+
 	}
 }

@@ -35,6 +35,7 @@ class WP_Loupe_Loader {
 	private function load_dependencies() {
 		require_once WP_LOUPE_PATH . 'vendor/autoload.php';
 		require_once WP_LOUPE_PATH . 'includes/trait-wp-loupe-shared.php';
+		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-schema-manager.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-search.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-indexer.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-db.php';
