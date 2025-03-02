@@ -19,10 +19,12 @@ class WP_Loupe_Indexer {
 	private $post_types;
 	private $loupe = [];
 	private $db;
+	private $schema_manager;
 
 	public function __construct( $post_types ) {
-		$this->post_types = $post_types;
-		$this->db         = WP_Loupe_DB::get_instance();
+		$this->post_types     = $post_types;
+		$this->db             = WP_Loupe_DB::get_instance();
+		$this->schema_manager = new WP_Loupe_Schema_Manager();
 		$this->init();
 		$this->register_hooks();
 	}
@@ -42,8 +44,6 @@ class WP_Loupe_Indexer {
 		}
 	}
 
-	// Remove the create_loupe_instance method as it's now in the trait
-
 	/**
 	 * Add post to the loupe index
 	 *
@@ -52,23 +52,13 @@ class WP_Loupe_Indexer {
 	 * @param bool     $update  Whether this is an existing post being updated or not.
 	 * @return void
 	 */
-	public function add( int $post_id, \WP_Post $post, bool $update ): void { // phpcs:ignore.
-		// Check if the post should be indexed.
+	public function add( int $post_id, \WP_Post $post, bool $update ): void {
 		if ( ! $this->is_indexable( $post_id, $post ) ) {
 			return;
 		}
 
-		WP_Loupe_Utils::dump( [ 'add > post', $post ] );
-
-		$document = [ 
-			'id'           => $post_id,
-			'post_title'   => \get_the_title( $post ),
-			'post_content' => \apply_filters( 'wp_loupe_schema_content', preg_replace( '~<!--(.*?)-->~s', '', $post->post_content ) ),
-			'permalink'    => \get_permalink( $post ),
-			'post_date'    => \get_post_timestamp( $post ),
-		];
-
-		$loupe = $this->loupe[ $post->post_type ];
+		$document = $this->prepare_document( $post );
+		$loupe    = $this->loupe[ $post->post_type ];
 		$loupe->deleteDocument( $post_id );
 		$loupe->addDocument( $document );
 	}
@@ -146,27 +136,22 @@ class WP_Loupe_Indexer {
 
 		$this->delete_index();
 		$this->init();
+
 		foreach ( $this->post_types as $post_type ) {
-			$posts     = \get_posts(
-				[ 
-					'post_type'      => $post_type,
-					'posts_per_page' => -1,
-					'post_status'    => 'publish',
-				]
+			$posts = \get_posts( [ 
+				'post_type'      => $post_type,
+				'posts_per_page' => -1,
+				'post_status'    => 'publish',
+			] );
+
+			$documents = array_map(
+				[ $this, 'prepare_document' ],
+				$posts
 			);
-			$documents = [];
-			foreach ( $posts as $post ) {
-				$document    = [ 
-					'id'           => $post->ID,
-					'post_title'   => \get_the_title( $post ),
-					'post_content' => \apply_filters( 'wp_loupe_schema_content', preg_replace( '~<!--(.*?)-->~s', '', $post->post_content ) ),
-					'permalink'    => \get_permalink( $post ),
-					'post_date'    => \get_post_timestamp( $post ),
-				];
-				$documents[] = $document;
+
+			if ( ! empty( $documents ) ) {
+				$this->loupe[ $post_type ]->addDocuments( $documents );
 			}
-			$loupe = $this->loupe[ $post_type ];
-			$loupe->addDocuments( $documents );
 		}
 	}
 
@@ -237,6 +222,31 @@ class WP_Loupe_Indexer {
 		if ( ! is_admin() ) {
 			echo "\n" . '<!--' . $this->log . ' -->' . "\n";
 		}
+	}
+
+	private function prepare_document( \WP_Post $post ): array {
+		$schema           = $this->schema_manager->get_schema_for_post_type( $post->post_type );
+		$indexable_fields = $this->schema_manager->get_indexable_fields( $schema );
+
+		$document = [ 'id' => $post->ID ];
+
+		foreach ( $indexable_fields as $field ) {
+			if ( property_exists( $post, $field[ 'field' ] ) ) {
+				$document[ $field[ 'field' ] ] = $post->{$field[ 'field' ]};
+			} else {
+				// Handle custom fields
+				$document[ $field[ 'field' ] ] = get_post_meta( $post->ID, $field[ 'field' ], true );
+			}
+		}
+
+		// Apply content filter
+		if ( isset( $document[ 'post_content' ] ) ) {
+			$document[ 'post_content' ] = apply_filters( 'wp_loupe_schema_content',
+				preg_replace( '~<!--(.*?)-->~s', '', $document[ 'post_content' ] )
+			);
+		}
+
+		return $document;
 	}
 
 }
