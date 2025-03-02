@@ -48,7 +48,7 @@ trait WP_Loupe_Shared {
 		WP_Loupe_Utils::dump( [ 'create_loupe_instance > indexable', $indexable ] );
 		$configuration = Configuration::create()
 			->withPrimaryKey( 'id' )
-			// ->withSearchableAttributes( $indexable )
+			->withSearchableAttributes( $indexable )
 			->withFilterableAttributes( $filterable )
 			->withSortableAttributes( $sortable )
 			->withLanguages( [ $lang ] )

@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.0] - 2025-02-28
+
+### Schema Management:
+
+- Added a new class `WP_Loupe_Schema_Manager` to handle schema configurations for different post types, including methods to get indexable, filterable, and sortable fields.
+
+### Indexing Enhancements:
+
+- Introduced a `prepare_document` method in `WP_Loupe_Indexer` to create documents based on schema configurations.
+- Modified the `reindex_all` method to use the `prepare_document` method for consistency and efficiency.
+
+### Search Improvements:
+
+- Enhanced the `search` method in `WP_Loupe_Search` to use schema-based fields for indexing and sorting, and added caching for search results to improve performance.
+- Updated the `create_post_objects` method to fetch all posts in a single query, maintaining the search result order.
+
+### Documentation:
+
+- Added detailed documentation on how to customize the search schema for specific post types in `README.md`.
+
 ## [0.0.31] - 2025-02-27
 
 - Update README.md
@@ -128,3 +148,4 @@ All notable changes to this project will be documented in this file.
 [0.0.19]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.19
 [0.0.20]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.20
 [0.0.30]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.30
+[0.1.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.0

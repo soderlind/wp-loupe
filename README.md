@@ -171,16 +171,24 @@ Default schema fields:
 
 ```php
 [
-    'post_title' => [
-        'weight'     => 1.0,
-        'filterable' => false,
-        'sortable'   => null,
-    ],
-    'post_content' => [
-        'weight'     => 1.0,
-        'filterable' => false,
-        'sortable'   => null,
-    ],
+	'post_title'   => [
+		'weight'     => 2,
+		'filterable' => true,
+		'sortable'   => [ 'direction' => 'asc' ],
+	],
+	'post_content' => [ 'weight' => 1.0,
+	'post_excerpt' => [ 'weight' => 1.5 ],
+	'post_date'    => [
+		'weight'     => 1.0,
+		'filterable' => true,
+		'sortable'   => [ 'direction' => 'desc',
+	],
+	'post_author'  => [
+		'weight'     => 1.0,
+		'filterable' => true,
+		'sortable'   => [ 'direction' => 'asc' ],
+	],
+	'permalink'    => [ 'weight' => 1.0 ],
 ]
 ```
 
