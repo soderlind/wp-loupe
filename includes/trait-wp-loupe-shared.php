@@ -26,16 +26,13 @@ trait WP_Loupe_Shared {
 		$schema         = $schema_manager->get_schema_for_post_type( $post_type );
 
 		$indexable = $schema_manager->get_indexable_fields( $schema );
-		WP_Loupe_Utils::dump( [ 'create_loupe_instance > indexable A', $indexable ] );
 		// sort indexable fields, based on weight. The higher the weight, the higher the field is in the list
 		uasort( $indexable, function ($a, $b) {
 			return $b[ 'weight' ] <=> $a[ 'weight' ];
 		} );
-		WP_Loupe_Utils::dump( [ 'create_loupe_instance > indexable B', $indexable ] );
-		$indexable = array_map( function ($field) {
+		$indexable  = array_map( function ($field) {
 			return "{$field[ 'field' ]}";
 		}, $indexable );
-		WP_Loupe_Utils::dump( [ 'create_loupe_instance > indexable C', $indexable ] );
 		$filterable = $schema_manager->get_filterable_fields( $schema );
 
 		$sortable = $schema_manager->get_sortable_fields( $schema );
@@ -43,9 +40,9 @@ trait WP_Loupe_Shared {
 			return "{$field[ 'field' ]}";
 		}, $sortable );
 
-		WP_Loupe_Utils::dump( [ 'create_loupe_instance > filterable', $filterable ] );
-		WP_Loupe_Utils::dump( [ 'create_loupe_instance > sortable', $sortable ] );
-		WP_Loupe_Utils::dump( [ 'create_loupe_instance > indexable', $indexable ] );
+		WP_Loupe_Utils::dump( [ 'filterable', $filterable ] );
+		WP_Loupe_Utils::dump( [ 'sortable', $sortable ] );
+		WP_Loupe_Utils::dump( [ 'indexable', $indexable ] );
 		$configuration = Configuration::create()
 			->withPrimaryKey( 'id' )
 			->withSearchableAttributes( $indexable )

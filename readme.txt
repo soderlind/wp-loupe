@@ -4,7 +4,7 @@ Tags: search, loupe, posts, pages, custom post types, typo-tolerant, fast search
 Requires at least: 6.3
 Requires PHP: 8.1
 Tested up to: 6.7
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 Donate link: https://paypal.me/PerSoderlind
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -103,6 +103,19 @@ Default: Removes HTML comments
 For usage examples, see the plugin's README.md file.
 
 == Changelog ==
+
+= 0.1.1 =
+* Clear search results cache when reindexing, saving, updating or deleting posts
+
+= 0.1.0 =
+* Added new WP_Loupe_Schema_Manager class for schema configurations
+* Added methods for indexable, filterable, and sortable fields
+* Added prepare_document method in WP_Loupe_Indexer
+* Enhanced reindex_all method with prepare_document
+* Improved search method in WP_Loupe_Search with schema-based fields
+* Added search results caching for better performance
+* Updated create_post_objects method for efficient post fetching
+* Added schema customization documentation in README.md
 
 = 0.0.31 =
 * Update readme.txt
