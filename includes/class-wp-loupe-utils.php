@@ -87,7 +87,104 @@ class WP_Loupe_Utils {
 	 */
 	public static function dump( $var ) {
 		if ( function_exists( '\ray' ) ) {
-			\ray( $var ); // phpcs:ignore
+			// add function name of calling function
+			$backtrace = debug_backtrace();
+			$caller    = $backtrace[ 1 ][ 'function' ];
+			\ray( [ $caller, $var ] ); // phpcs:ignore
+			// \ray( $var ); // phpcs:ignore
 		}
+	}
+
+
+	/**
+	 * Remove transients from the database
+	 *
+	 * @since  1.0
+	 * @param  string $prefix Transient prefix to remove
+	 * @return void
+	 */
+	public static function remove_transient( $prefix ) {
+
+		$matches = self::get_transients( array(
+			'search' => $prefix,
+			'count'  => false,
+			'offset' => 0,
+			'number' => 1000,
+		) );
+		WP_Loupe_Utils::dump( [ 'matches', $matches ] );
+		foreach ( $matches as $match ) {
+			$transient_name = str_replace( '_transient_', '', $match->option_name );
+			WP_Loupe_Utils::dump( [ 'transient_name', $transient_name ] );
+			delete_transient( $transient_name );
+		}
+	}
+
+
+	/**
+	 * Get transients from the database
+	 *
+	 * These queries are uncached, to prevent race conditions with persistent
+	 * object cache setups and the way Transients use them.
+	 *
+	 * @copyright wpbeginner
+	 * @see https://github.com/awesomemotive/Transients-Manager/blob/master/src/TransientsManager.php#L693
+	 * @since  1.0
+	 * @param  array $args
+	 * @return array
+	 */
+	private static function get_transients( $args = array() ) {
+		global $wpdb;
+
+		// Parse arguments
+		$r = wp_parse_args( $args, array(
+			'offset' => 0,
+			'number' => 30,
+			'search' => '',
+			'count'  => false,
+		) );
+
+		// Escape some LIKE parts
+		$esc_name = '%' . $wpdb->esc_like( '_transient_' ) . '%';
+		$esc_time = '%' . $wpdb->esc_like( '_transient_timeout_' ) . '%';
+
+		// SELECT
+		$sql = array( 'SELECT' );
+
+		// COUNT
+		if ( ! empty( $r[ 'count' ] ) ) {
+			$sql[] = 'count(option_id)';
+		} else {
+			$sql[] = '*';
+		}
+
+		// FROM
+		$sql[] = "FROM {$wpdb->options} WHERE option_name LIKE %s AND option_name NOT LIKE %s";
+
+		// Search
+		if ( ! empty( $r[ 'search' ] ) ) {
+			$search = '%' . $wpdb->esc_like( $r[ 'search' ] ) . '%';
+			$sql[]  = $wpdb->prepare( "AND option_name LIKE %s", $search );
+		}
+
+		// Limits
+		if ( empty( $r[ 'count' ] ) ) {
+			$offset = absint( $r[ 'offset' ] );
+			$number = absint( $r[ 'number' ] );
+			$sql[]  = $wpdb->prepare( "ORDER BY option_id DESC LIMIT %d, %d", $offset, $number );
+		}
+
+		// Combine the SQL parts
+		$query = implode( ' ', $sql );
+
+		// Prepare
+		$prepared = $wpdb->prepare( $query, $esc_name, $esc_time );
+
+		// Query
+		$transients = empty( $r[ 'count' ] )
+			? $wpdb->get_results( $prepared ) // Rows
+			: $wpdb->get_var( $prepared );    // Count
+
+		// Return transients
+		return $transients;
 	}
 }

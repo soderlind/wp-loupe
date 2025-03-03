@@ -51,7 +51,7 @@ class WP_Loupe_Loader {
 	private function setup_post_types() {
 		add_filter( 'wp_loupe_post_types', array( $this, 'filter_post_types' ) );
 		$this->post_types = apply_filters( 'wp_loupe_post_types', array( 'post', 'page' ) );
-		WP_Loupe_Utils::dump( [ 'setup_post_types > post_types', $this->post_types ] );
+		WP_Loupe_Utils::dump( [ 'post_types', $this->post_types ] );
 	}
 
 	/**

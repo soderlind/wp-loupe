@@ -69,12 +69,12 @@ class WP_Loupe_Schema_Manager {
 
 		$processed_fields = [];
 		foreach ( $schema as $field => $settings ) {
-			WP_Loupe_Utils::dump( [ 'get_fields_by_type > settings >' . $field, $settings ] );
+			WP_Loupe_Utils::dump( [ 'settings >' . $field, $settings ] );
 			$processed_fields[] = $this->process_field( $field, $settings, $type );
 		}
 
-		$processed_fields               = array_unique( $processed_fields, SORT_REGULAR );
-		$processed_fields               = array_values( array_filter( $processed_fields ) );
+		$processed_fields                 = array_unique( $processed_fields, SORT_REGULAR );
+		$processed_fields                 = array_values( array_filter( $processed_fields ) );
 		$this->fields_cache[ $cache_key ] = $processed_fields;
 
 		return $processed_fields;

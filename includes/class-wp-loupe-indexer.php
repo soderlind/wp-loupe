@@ -57,6 +57,8 @@ class WP_Loupe_Indexer {
 			return;
 		}
 
+		WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
+
 		$document = $this->prepare_document( $post );
 		$loupe    = $this->loupe[ $post->post_type ];
 		$loupe->deleteDocument( $post_id );
@@ -73,6 +75,7 @@ class WP_Loupe_Indexer {
 		if ( ! 'publish' === $previous_status ) {
 			return;
 		}
+		WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
 		// Verify if is trashing multiple posts.
 		if ( isset( $_GET[ 'post' ] ) && is_array( $_GET[ 'post' ] ) ) {
 			\check_admin_referer( 'bulk-posts' );
@@ -132,9 +135,10 @@ class WP_Loupe_Indexer {
 	 * @return void
 	 */
 	public function reindex_all() {
-		WP_Loupe_Utils::dump( [ 'reindex_all > post_types', $this->post_types ] );
+		WP_Loupe_Utils::dump( [ 'post_types', $this->post_types ] );
 
 		$this->delete_index();
+		WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
 		$this->init();
 
 		foreach ( $this->post_types as $post_type ) {
