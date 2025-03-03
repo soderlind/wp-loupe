@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2025-03-01
+
+### Fixed
+
+- Clear search results cache when reindexing, saving, updating or deleting posts.
+
 ## [0.1.0] - 2025-02-28
 
 ### Schema Management:
@@ -149,3 +155,4 @@ All notable changes to this project will be documented in this file.
 [0.0.20]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.20
 [0.0.30]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.30
 [0.1.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.0
+[0.1.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.1
