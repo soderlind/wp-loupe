@@ -4,7 +4,7 @@ A powerful search enhancement plugin for WordPress that delivers fast, accurate,
 
 ## Quick Links
 
-[Features](#features) | [Installation](#installation) | [Usage](#usage) | [FAQ](#faq) | [Filters](#filters) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
+[Features](#features) | [Installation](#installation) | [Usage](#usage) | [FAQ](#faq) | [Filters](#filters) | [Behind the scenes](#behind-the-scenes) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
 
 ## Overview
 
