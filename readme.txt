@@ -54,6 +54,8 @@ WP Loupe enhances WordPress search functionality by providing a powerful, fast, 
 3. Visit Settings > WP Loupe to configure
 4. Click 'Reindex' to build the initial search index
 
+Plugin updates are handled automatically via GitHub.
+
 == Frequently Asked Questions ==
 
 = How does it handle updates to posts? =
