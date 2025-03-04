@@ -1,23 +1,22 @@
 <?php
 /**
- * WP Loupe
+ * The plugin bootstrap file
  *
- * @package     soderlind\plugin\WPLoupe
- * @author      Per Soderlind
- * @copyright   2021 Per Soderlind
- * @license     GPL-2.0+
+ * @link              https://github.com/soderlind/wp-loupe
+ * @since             0.0.1
+ * @package           WP_Loupe
  *
  * @wordpress-plugin
- * Plugin Name: WP Loupe
- * Plugin URI: https://github.com/soderlind/wp-loupe
- * GitHub Plugin URI: https://github.com/soderlind/wp-loupe
- * Description: Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.
- * Version:     0.1.1
- * Author:      Per Soderlind
- * Author URI:  https://soderlind.no
- * Text Domain: wp-loupe
- * License:     GPL-2.0+
- * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * Plugin Name:       WP Loupe
+ * Plugin URI:        https://github.com/soderlind/wp-loupe
+ * Description:       Enhance the search functionality of your WordPress site with WP Loupe.
+ * Version:           0.1.2
+ * Author:            Per Soderlind
+ * Author URI:        https://soderlind.no
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       wp-loupe
+ * Domain Path:       /languages
  */
 
 declare(strict_types=1);
@@ -25,11 +24,12 @@ namespace Soderlind\Plugin\WPLoupe;
 
 use Soderlind\Plugin\WPLoupe\WP_Loupe_Utils;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	wp_die();
+// If this file is called directly, abort.
+if ( ! defined( 'WPINC' ) ) {
+	die;
 }
 
-define( 'WP_LOUPE_VERSION', '0.0.10' );
+define( 'WP_LOUPE_VERSION', '0.1.2' );
 define( 'WP_LOUPE_FILE', __FILE__ );
 define( 'WP_LOUPE_NAME', plugin_basename( WP_LOUPE_FILE ) );
 define( 'WP_LOUPE_PATH', plugin_dir_path( WP_LOUPE_FILE ) );
@@ -46,5 +46,6 @@ function init() {
 		return;
 	}
 
+	// new WP_Loupe_Updater( WP_LOUPE_FILE );
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\init' );

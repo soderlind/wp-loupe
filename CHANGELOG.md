@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2025-03-15
+
+### Added
+
+- Added "Behind the scenes" documentation section explaining plugin's internal dataflow
+- Added detailed step-by-step documentation on indexing and search processes
+- Implemented automatic GitHub updates using YahnisElsts/plugin-update-checker library
+- Added acknowledgement for third-party libraries used
+
+### Changed
+
+- Improved README documentation with more thorough explanations of architecture
+- Enhanced code organization and comments for better developer understanding
+- Simplified plugin update process with direct GitHub integration
+
 ## [0.1.1] - 2025-03-01
 
 ### Fixed
@@ -156,3 +171,4 @@ All notable changes to this project will be documented in this file.
 [0.0.30]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.30
 [0.1.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.0
 [0.1.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.1
+[0.1.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.2
