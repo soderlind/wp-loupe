@@ -35,12 +35,15 @@ class WP_Loupe_Loader {
 	private function load_dependencies() {
 		require_once WP_LOUPE_PATH . 'vendor/autoload.php';
 		require_once WP_LOUPE_PATH . 'includes/trait-wp-loupe-shared.php';
+		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-updater.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-schema-manager.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-search.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-indexer.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-db.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-utils.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-settings.php';
+
+
 	}
 
 	/**
@@ -60,6 +63,8 @@ class WP_Loupe_Loader {
 	 * @return void
 	 */
 	private function init_components() {
+		new WP_Loupe_Updater( WP_LOUPE_FILE );
+
 		$this->search  = new WP_Loupe_Search( $this->post_types );
 		$this->indexer = new WP_Loupe_Indexer( $this->post_types );
 	}

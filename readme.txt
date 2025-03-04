@@ -4,7 +4,7 @@ Tags: search, loupe, posts, pages, custom post types, typo-tolerant, fast search
 Requires at least: 6.3
 Requires PHP: 8.1
 Tested up to: 6.7
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 Donate link: https://paypal.me/PerSoderlind
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -103,6 +103,15 @@ Default: Removes HTML comments
 For usage examples, see the plugin's README.md file.
 
 == Changelog ==
+
+= 0.1.2 =
+* Added "Behind the scenes" documentation section explaining plugin's internal dataflow
+* Added detailed step-by-step documentation on indexing and search processes
+* Implemented automatic GitHub updates using YahnisElsts/plugin-update-checker library
+* Added acknowledgement for third-party libraries used
+* Improved README documentation with more thorough explanations of architecture
+* Enhanced code organization and comments for better developer understanding
+* Simplified plugin update process with direct GitHub integration
 
 = 0.1.1 =
 * Clear search results cache when reindexing, saving, updating or deleting posts
