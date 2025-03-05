@@ -2,17 +2,31 @@
 // Get current tag/version
 $manualVersion = getenv( 'MANUAL_VERSION' );
 $githubRef     = getenv( 'GITHUB_REF' );
+$githubEvent   = getenv( 'GITHUB_EVENT_NAME' );
 $version       = '';
+
+echo "Starting info.json generation...\n";
+echo "Event type: " . ( $githubEvent ?: "Not specified" ) . "\n";
 
 // Check for version from workflow_dispatch input
 if ( ! empty( $manualVersion ) ) {
 	$version = $manualVersion;
+	echo "Using manually specified version: {$version}\n";
 	// Check for version from GitHub release event (refs/tags/v1.2.3)
 } elseif ( ! empty( $githubRef ) && strpos( $githubRef, 'refs/tags/' ) === 0 ) {
 	$version = str_replace( 'refs/tags/', '', $githubRef );
-	echo "Found version from GitHub release: {$version}\n";
+	echo "Found version from GitHub reference: {$version}\n";
 } else {
-	// Get latest tag as fallback
+	// For release events, we should always have a tag reference
+	if ( $githubEvent === 'release' ) {
+		echo "Error: This is a release event but no tag reference was found.\n";
+		echo "GITHUB_REF: " . ( $githubRef ?: "empty" ) . "\n";
+		echo "This should not happen during a normal GitHub release. Exiting.\n";
+		exit( 1 );
+	}
+
+	// Get latest tag as fallback for non-release events
+	echo "No version specified, attempting to use latest git tag...\n";
 	$tagsOutput = shell_exec( 'git tag -l --sort=-v:refname' );
 	$tags       = explode( "\n", trim( $tagsOutput ) );
 	if ( ! empty( $tags[ 0 ] ) ) {
@@ -28,9 +42,12 @@ if ( empty( $version ) ) {
 
 // Verify this is a valid version format
 if ( ! preg_match( '/^v?\d+\.\d+(\.\d+)?(-[a-zA-Z0-9.-]+)?$/', $version ) ) {
-	echo "Error: Invalid version format '{$version}'. Exiting.\n";
+	echo "Error: Invalid version format '{$version}'. Must match pattern v1.2.3 or 1.2.3. Exiting.\n";
 	exit( 1 );
 }
+
+// Print confirmation of version being used
+echo "Proceeding with version: {$version}\n";
 
 // Read plugin file to get metadata
 $pluginFile = file_get_contents( 'wp-loupe.php' );
