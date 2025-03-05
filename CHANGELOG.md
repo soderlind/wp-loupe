@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.5] - 2025-03-06
+
+### Fixed
+
+- Fixed GitHub API authentication errors in updater class
+- Resolved 403 errors when checking for plugin updates
+
 ## [0.1.4] - 2025-03-05
 
 ### Fixed
@@ -199,3 +206,4 @@ All notable changes to this project will be documented in this file.
 [0.1.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.2
 [0.1.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.3
 [0.1.4]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.4
+[0.1.5]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.5
