@@ -59,7 +59,7 @@ WP Loupe transforms WordPress's search functionality by:
    - Go to Settings > WP Loupe
    - Click "Reindex" to build the initial search index
 
-As of version 0.1.4, plugin updates are handled automatically via GitHub. No need to manually download and install updates.
+> As of version 0.1.4, plugin updates are handled automatically via GitHub. No need to manually download and install updates.
 
 ## Usage
 
