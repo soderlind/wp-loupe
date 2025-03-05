@@ -24,6 +24,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          # Ensure we're not in detached HEAD state by checking out the default branch
+          ref: ${{ github.event_name == 'release' && 'main' || github.ref }}
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -42,6 +44,16 @@ jobs:
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          # Check if there are changes to commit
+          if git diff --quiet info.json; then
+            echo "No changes to info.json detected"
+            exit 0
+          fi
+
+          # Add and commit changes
           git add info.json
-          git commit -m "Update info.json for latest release" || echo "No changes to commit"
-          git push
+          git commit -m "Update info.json for latest release"
+
+          # Push changes (specify the branch explicitly)
+          git push origin HEAD:${{ github.event_name == 'release' && 'main' || github.ref_name }}
