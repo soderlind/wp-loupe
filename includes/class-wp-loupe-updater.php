@@ -1,6 +1,8 @@
 <?php
 namespace Soderlind\Plugin\WPLoupe;
 
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
 /**
  * Plugin updater class for WP Loupe
  * 
@@ -13,7 +15,8 @@ class WP_Loupe_Updater {
 	/**
 	 * @var string GitHub repository URL
 	 */
-	private $info_json = 'https://raw.githubusercontent.com/soderlind/wp-loupe/refs/heads/main/info.json';
+	// private $info_json = 'https://raw.githubusercontent.com/soderlind/wp-loupe/refs/heads/main/info.json';
+	private $github_url = 'https://github.com/soderlind/wp-loupe';
 
 	/**
 	 * @var string Main plugin file path
@@ -46,17 +49,13 @@ class WP_Loupe_Updater {
 	 * Set up the update checker using GitHub integration
 	 */
 	public function setup_updater() {
-		// Path to the plugin-update-checker library
-		$update_checker_path = WP_LOUPE_PATH . '/vendor/yahnis-elsts/plugin-update-checker/plugin-update-checker.php';
-		// Only proceed if the library is available
-		if ( file_exists( $update_checker_path ) ) {
-			require_once $update_checker_path;
+		$update_checker = PucFactory::buildUpdateChecker(
+			$this->github_url,
+			$this->plugin_file,
+			$this->plugin_slug
+		);
 
-			$update_checker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
-				$this->info_json,
-				$this->plugin_file,
-				$this->plugin_slug
-			);
-		}
+		$update_checker->setBranch( 'main' );
+		$update_checker->getVcsApi()->enableReleaseAssets( '/wp-loupe\.zip/' );
 	}
 }
