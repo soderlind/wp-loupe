@@ -105,7 +105,7 @@ For usage examples, see the plugin's README.md file.
 
 == Changelog ==
 
-= 0.1.5 - 2025-03-06 =
+= 0.1.5 =
 * Fixed: GitHub API authentication errors in updater class
 * Fixed: Added proper token-based authentication for GitHub API requests
 * Fixed: Resolved 403 errors when checking for plugin updates
