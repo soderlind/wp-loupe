@@ -109,7 +109,8 @@ function get_wordpress_tested_version() {
 }
 
 /**
- * Get the full description from the readme.txt file
+ * Get the full description from the readme.txt file,
+ * excluding the metadata section at the top
  * 
  * @return string The formatted description or empty string if not found
  */
@@ -120,15 +121,7 @@ function get_readme_description() {
 
 	$readme = file_get_contents( 'readme.txt' );
 
-	// Extract content between the === Plugin Name === header and the == Description == heading,
-	// or between === Plugin Name === and the next == heading if Description heading is not present
-	if ( preg_match( '/===.*?===\s*(.*?)(?:==|$)/s', $readme, $shortDescription ) ) {
-		$shortDesc = trim( $shortDescription[ 1 ] );
-	} else {
-		$shortDesc = '';
-	}
-
-	// Look for the Description section content
+	// Look for the Description section content - the true plugin description
 	if ( preg_match( '/== Description ==\s*(.*?)(?:==|$)/s', $readme, $longDescription ) ) {
 		$longDesc = trim( $longDescription[ 1 ] );
 
@@ -141,19 +134,10 @@ function get_readme_description() {
 		$longDesc = preg_replace( '/^\*\s*(.*?)$/m', '<li>$1</li>', $longDesc );
 		$longDesc = preg_replace( '/(<li>.*?<\/li>\s*)+/', '<ul>$0</ul>', $longDesc );
 
-		// Use both short and long descriptions if available
-		if ( ! empty( $shortDesc ) ) {
-			return '<p>' . $shortDesc . '</p>' . $longDesc;
-		}
-
 		return $longDesc;
 	}
 
-	// If no Description section, use the short description if available
-	if ( ! empty( $shortDesc ) ) {
-		return '<p>' . $shortDesc . '</p>';
-	}
-
+	// If no Description section found
 	return '';
 }
 
