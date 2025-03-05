@@ -4,7 +4,7 @@ Tags: search, loupe, posts, pages, custom post types, typo-tolerant, fast search
 Requires at least: 6.3
 Requires PHP: 8.1
 Tested up to: 6.7
-Stable tag: 0.1.3
+Stable tag: 0.1.4
 Donate link: https://paypal.me/PerSoderlind
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -104,6 +104,10 @@ Default: Removes HTML comments
 For usage examples, see the plugin's README.md file.
 
 == Changelog ==
+
+= 0.1.4 =
+* Fixed issue with plugin update notification not showing in some cases
+* Fixed GitHub release asset detection for automatic updates
 
 = 0.1.3 =
 * Security: Improved GitHub integration with proper API token handling

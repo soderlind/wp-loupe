@@ -13,7 +13,7 @@ class WP_Loupe_Updater {
 	/**
 	 * @var string GitHub repository URL
 	 */
-	private $info_json = 'https://github.com/soderlind/wp-loupe/info.json';
+	private $info_json = 'https://raw.githubusercontent.com/soderlind/wp-loupe/refs/heads/main/info.json';
 
 	/**
 	 * @var string Main plugin file path
