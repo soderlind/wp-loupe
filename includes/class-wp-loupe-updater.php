@@ -59,13 +59,14 @@ class WP_Loupe_Updater {
 			);
 
 			// Set to use GitHub releases as the update source
-			$update_checker->getVcsApi()->enableReleaseAssets();
+			$update_checker->getVcsApi()->enableReleaseAssets( '/wp-loupe\.zip/' );
 
 			// Optional: Set branch name if not using 'master'
 			$update_checker->setBranch( 'main' );
 
-			// Optional: Set authentication if needed for private repos
-			// $update_checker->setAuthentication('your-token');
+			if ( defined( 'WP_LOUPE_GITHUB_TOKEN' ) && WP_LOUPE_GITHUB_TOKEN ) {
+				$update_checker->setAuthentication( WP_LOUPE_GITHUB_TOKEN );
+			}
 		}
 	}
 }
