@@ -63,10 +63,6 @@ class WP_Loupe_Updater {
 
 			// Optional: Set branch name if not using 'master'
 			$update_checker->setBranch( 'main' );
-
-			if ( defined( 'WP_LOUPE_GITHUB_TOKEN' ) && WP_LOUPE_GITHUB_TOKEN ) {
-				$update_checker->setAuthentication( WP_LOUPE_GITHUB_TOKEN );
-			}
 		}
 	}
 }

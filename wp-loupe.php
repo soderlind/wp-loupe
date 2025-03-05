@@ -33,7 +33,6 @@ define( 'WP_LOUPE_FILE', __FILE__ );
 define( 'WP_LOUPE_NAME', plugin_basename( WP_LOUPE_FILE ) );
 define( 'WP_LOUPE_PATH', plugin_dir_path( WP_LOUPE_FILE ) );
 define( 'WP_LOUPE_URL', plugin_dir_url( WP_LOUPE_FILE ) );
-define( 'WP_LOUPE_GITHUB_TOKEN', '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' );
 
 require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-loader.php';
 
