@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] - 2025-03-30
+
+### Security
+
+- Improved GitHub integration with proper API token handling
+- Updated GitHub actions workflow for better release asset management
+
+### Added
+
+- Added plugin update success notification
+- Improved GitHub release asset detection with regex pattern
+- Updated installation instructions for automatic updates
+
+### Changed
+
+- Enhanced updater with better error handling
+- Updated dependencies to latest versions
+
 ## [0.1.2] - 2025-03-15
 
 ### Added
@@ -172,3 +190,4 @@ All notable changes to this project will be documented in this file.
 [0.1.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.0
 [0.1.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.1
 [0.1.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.2
+[0.1.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.3

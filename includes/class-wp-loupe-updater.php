@@ -13,7 +13,7 @@ class WP_Loupe_Updater {
 	/**
 	 * @var string GitHub repository URL
 	 */
-	private $github_repo_url = 'https://github.com/soderlind/wp-loupe';
+	private $info_json = 'https://github.com/soderlind/wp-loupe/info.json';
 
 	/**
 	 * @var string Main plugin file path
@@ -53,19 +53,10 @@ class WP_Loupe_Updater {
 			require_once $update_checker_path;
 
 			$update_checker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
-				$this->github_repo_url,
+				$this->info_json,
 				$this->plugin_file,
 				$this->plugin_slug
 			);
-
-			// Set to use GitHub releases as the update source
-			$update_checker->getVcsApi()->enableReleaseAssets();
-
-			// Optional: Set branch name if not using 'master'
-			$update_checker->setBranch( 'main' );
-
-			// Optional: Set authentication if needed for private repos
-			// $update_checker->setAuthentication('your-token');
 		}
 	}
 }
