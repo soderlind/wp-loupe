@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.3] - 2025-03-30
+## [0.1.4] - 2025-03-05
+
+### Fixed
+
+- Fixed issue with plugin update notification not showing in some cases
+- Fixed GitHub release asset detection for automatic updates
+
+## [0.1.3] - 2025-03-05
 
 ### Security
 
@@ -20,7 +27,7 @@ All notable changes to this project will be documented in this file.
 - Enhanced updater with better error handling
 - Updated dependencies to latest versions
 
-## [0.1.2] - 2025-03-15
+## [0.1.2] - 2025-03-04
 
 ### Added
 
@@ -191,3 +198,4 @@ All notable changes to this project will be documented in this file.
 [0.1.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.1
 [0.1.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.2
 [0.1.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.3
+[0.1.4]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.4
