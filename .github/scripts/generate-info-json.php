@@ -68,6 +68,7 @@ if ( empty( $description ) ) {
 // Read changelog from readme.txt only
 $readmeChangelog = get_readme_changelog();
 
+$downloadUrl = 'https://github.com/soderlind/wp-loupe/releases/latest/download/wp-loupe.zip';
 // Build info array
 $info = [ 
 	'name'            => isset( $pluginNameMatches[ 1 ] ) ? trim( $pluginNameMatches[ 1 ] ) : 'WP Loupe',
