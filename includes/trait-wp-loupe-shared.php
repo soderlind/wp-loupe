@@ -40,9 +40,9 @@ trait WP_Loupe_Shared {
 			return "{$field[ 'field' ]}";
 		}, $sortable );
 
-		WP_Loupe_Utils::dump( [ 'filterable', $filterable ] );
-		WP_Loupe_Utils::dump( [ 'sortable', $sortable ] );
-		WP_Loupe_Utils::dump( [ 'indexable', $indexable ] );
+		
+		
+		
 		$configuration = Configuration::create()
 			->withPrimaryKey( 'id' )
 			->withSearchableAttributes( $indexable )

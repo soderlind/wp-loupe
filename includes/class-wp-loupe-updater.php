@@ -21,7 +21,7 @@ class WP_Loupe_Updater {
 	/**
 	 * @var string Main plugin file path
 	 */
-	private $plugin_file;
+	private $plugin_file = WP_LOUPE_FILE;
 
 	/**
 	 * @var string Plugin slug
@@ -33,8 +33,7 @@ class WP_Loupe_Updater {
 	 * 
 	 * @param string $plugin_file Main plugin file path
 	 */
-	public function __construct( $plugin_file ) {
-		$this->plugin_file = $plugin_file;
+	public function __construct() {
 		$this->init();
 	}
 

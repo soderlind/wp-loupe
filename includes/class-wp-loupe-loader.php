@@ -42,8 +42,6 @@ class WP_Loupe_Loader {
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-db.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-utils.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-settings.php';
-
-
 	}
 
 	/**
@@ -54,7 +52,7 @@ class WP_Loupe_Loader {
 	private function setup_post_types() {
 		add_filter( 'wp_loupe_post_types', array( $this, 'filter_post_types' ) );
 		$this->post_types = apply_filters( 'wp_loupe_post_types', array( 'post', 'page' ) );
-		WP_Loupe_Utils::dump( [ 'post_types', $this->post_types ] );
+		
 	}
 
 	/**
@@ -63,8 +61,7 @@ class WP_Loupe_Loader {
 	 * @return void
 	 */
 	private function init_components() {
-		new WP_Loupe_Updater( WP_LOUPE_FILE );
-
+		new WP_Loupe_Updater();
 		$this->search  = new WP_Loupe_Search( $this->post_types );
 		$this->indexer = new WP_Loupe_Indexer( $this->post_types );
 	}

@@ -135,7 +135,7 @@ class WP_Loupe_Indexer {
 	 * @return void
 	 */
 	public function reindex_all() {
-		WP_Loupe_Utils::dump( [ 'post_types', $this->post_types ] );
+		
 
 		$this->delete_index();
 		WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
