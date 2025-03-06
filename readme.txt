@@ -4,7 +4,7 @@ Tags: search, loupe, posts, pages, custom post types, typo-tolerant, fast search
 Requires at least: 6.3
 Requires PHP: 8.1
 Tested up to: 6.7
-Stable tag: 0.1.6
+Stable tag: 0.1.7
 Donate link: https://paypal.me/PerSoderlind
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -104,6 +104,14 @@ Default: Removes HTML comments
 For usage examples, see the plugin's README.md file.
 
 == Changelog ==
+
+= 0.1.7 =
+* Refactored code: Replaced WP_Loupe_Shared trait with WP_Loupe_Factory class
+* Improved code organization and maintainability
+* Enhanced code structure for better testability
+
+= 0.1.6 =
+* Housekeeping
 
 = 0.1.5 =
 * Fixed: GitHub API authentication errors in updater class

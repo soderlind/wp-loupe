@@ -14,7 +14,6 @@ use Loupe\Loupe\SearchParameters;
  * @since 0.0.11
  */
 class WP_Loupe_Indexer {
-	use WP_Loupe_Shared;
 
 	private $post_types;
 	private $loupe = [];
@@ -40,7 +39,7 @@ class WP_Loupe_Indexer {
 	public function init() {
 		$iso6391_lang = ( '' === get_locale() ) ? 'en' : strtolower( substr( get_locale(), 0, 2 ) );
 		foreach ( $this->post_types as $post_type ) {
-			$this->loupe[ $post_type ] = $this->create_loupe_instance( $post_type, $iso6391_lang );
+			$this->loupe[$post_type] = WP_Loupe_Factory::create_loupe_instance($post_type, $iso6391_lang, $this->db);
 		}
 	}
 

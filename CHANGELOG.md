@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.7] - 2025-03-06
+
+### Changed
+
+- Refactored code: Replaced WP_Loupe_Shared trait with WP_Loupe_Factory class
+- Improved code organization and maintainability
+- Enhanced code structure for better testability
+
 ## [0.1.6] - 2025-03-06
 
 ### Changed
