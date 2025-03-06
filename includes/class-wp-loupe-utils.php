@@ -111,10 +111,10 @@ class WP_Loupe_Utils {
 			'offset' => 0,
 			'number' => 1000,
 		) );
-		WP_Loupe_Utils::dump( [ 'matches', $matches ] );
+		
 		foreach ( $matches as $match ) {
 			$transient_name = str_replace( '_transient_', '', $match->option_name );
-			WP_Loupe_Utils::dump( [ 'transient_name', $transient_name ] );
+			
 			delete_transient( $transient_name );
 		}
 	}

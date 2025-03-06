@@ -57,7 +57,7 @@ class WP_Loupe_Search {
 		$query->set( 'post_type', $this->post_types );
 		$search_term = $this->prepare_search_term( $query->query_vars[ 'search_terms' ] );
 		$hits        = $this->search( $search_term );
-		WP_Loupe_Utils::dump( [ 'hits', $hits ] );
+		
 
 		// Get all search results first
 		$all_posts               = $this->create_post_objects( $hits );

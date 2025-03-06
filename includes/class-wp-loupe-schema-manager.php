@@ -69,7 +69,7 @@ class WP_Loupe_Schema_Manager {
 
 		$processed_fields = [];
 		foreach ( $schema as $field => $settings ) {
-			WP_Loupe_Utils::dump( [ 'settings >' . $field, $settings ] );
+			
 			$processed_fields[] = $this->process_field( $field, $settings, $type );
 		}
 
