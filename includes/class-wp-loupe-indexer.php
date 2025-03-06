@@ -28,6 +28,11 @@ class WP_Loupe_Indexer {
 		$this->register_hooks();
 	}
 
+	/**
+	 * Register hooks
+	 *
+	 * @return void
+	 */
 	private function register_hooks() {
 		foreach ( $this->post_types as $post_type ) {
 			add_action( "save_post_{$post_type}", array( $this, 'add' ), 10, 3 );
@@ -36,6 +41,11 @@ class WP_Loupe_Indexer {
 		add_action( 'admin_init', array( $this, 'handle_reindex' ) );
 	}
 
+	/**
+	 * Initialize the Loupe instances for each post type
+	 *
+	 * @return void
+	 */
 	public function init() {
 		$iso6391_lang = ( '' === get_locale() ) ? 'en' : strtolower( substr( get_locale(), 0, 2 ) );
 		foreach ( $this->post_types as $post_type ) {
@@ -109,7 +119,6 @@ class WP_Loupe_Indexer {
 		$loupe->deleteDocuments( $post_ids );
 	}
 
-
 	/**
 	 * Handle reindexing
 	 *
@@ -127,15 +136,12 @@ class WP_Loupe_Indexer {
 		}
 	}
 
-
 	/**
 	 * Reindex all posts
 	 *
 	 * @return void
 	 */
 	public function reindex_all() {
-		
-
 		$this->delete_index();
 		WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
 		$this->init();
@@ -227,6 +233,12 @@ class WP_Loupe_Indexer {
 		}
 	}
 
+	/**
+	 * Prepare document
+	 *
+	 * @param \WP_Post $post Post object.
+	 * @return array
+	 */
 	private function prepare_document( \WP_Post $post ): array {
 		$schema           = $this->schema_manager->get_schema_for_post_type( $post->post_type );
 		$indexable_fields = $this->schema_manager->get_indexable_fields( $schema );
