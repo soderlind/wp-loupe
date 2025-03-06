@@ -202,85 +202,119 @@ Default schema fields:
 ]
 ```
 
-## Behind the scenes
 
-### Content Indexing Dataflow in WP Loupe
+## Behind the Scenes
 
-WP Loupe follows a structured approach to indexing and searching content in WordPress. Here's how it works:
+This document explains the architecture and technical implementation of the WP Loupe plugin, detailing how it provides fast search functionality for WordPress sites.
 
-#### Initial Setup and Configuration
+### Overview
 
-1. **Plugin Initialization**: The `WP_Loupe_Indexer` class is instantiated with an array of post types to be indexed
-2. **Database Connection**: It retrieves a `WP_Loupe_DB` singleton instance
-3. **Schema Management**: Creates a `WP_Loupe_Schema_Manager` for handling data structures
-4. **Search Engine Setup**: Initializes Loupe search engine instances (one per post type)
-5. **WordPress Integration**: Registers WordPress hooks for content lifecycle events
+WP Loupe is a search plugin that enhances WordPress's default search with a fast, SQLite-based search engine. The plugin creates and maintains search indexes for WordPress content and intercepts search queries to provide improved results.
 
-#### Post Indexing Flow (When Content is Created/Updated)
+### Core Components
 
-1. **Content Creation Event**: WordPress triggers the `save_post` hook when a post is published or updated
-2. **Validation**: The indexer validates if the post should be indexed:
-   - Confirms the post is published
-   - Verifies it's not password-protected (configurable via filter)
-   - Checks if it belongs to a registered post type
-3. **Document Preparation**: The indexer calls `prepare_document()` which:
-   - Retrieves the schema for the post's type via `get_schema_for_post_type()`
-   - Extracts indexable fields via `get_indexable_fields()`
-   - Creates a document array with the post ID
-   - For each field in the schema:
-     - If it's a standard post property (title, content), gets it directly from the post object
-     - For custom fields, retrieves values from post meta
-   - Applies content filters (like removing HTML comments)
-4. **Index Update**:
-   - Removes any existing document with the same ID (for updates)
-   - Adds the document to the appropriate post type's index
+#### 1. Search Engine
 
-#### Content Removal Flow
+The plugin uses the Loupe search library, which provides:
+- Full-text search capabilities
+- Typo tolerance
+- Fast queries via SQLite
 
-1. **Deletion Event**: WordPress triggers trash/delete hooks when posts are removed
-2. **Status Check**: The indexer verifies the previous status was "published"
-3. **Deletion Process**: Handles both single and bulk deletion operations
-4. **Index Cleanup**: Removes the document from the appropriate post type's index
+Each post type has its own search index stored in separate SQLite databases:
+```
+/wp-content/wp-loupe-db/
+  ├── post/
+  ├── page/
+  └── {custom-post-type}/
+```
 
-#### Manual Reindexing Flow
+#### 3. Component Classes
 
-1. **Admin Request**: Admin initiates reindexing through the settings interface
-2. **Index Reset**:
-   - Displays a status message
-   - Deletes the entire index directory using WordPress filesystem API
-   - Re-initializes all Loupe instances
-3. **Bulk Indexing**: For each post type:
-   - Fetches all published posts
-   - Processes each post using the same document preparation flow
-   - Adds all documents in a batch to the index
+##### Factory Pattern
 
-#### Schema Management Flow
+`WP_Loupe_Factory` creates Loupe instances with appropriate configuration:
+- Uses schema information to determine which fields to index, search, filter, and sort
+- Processes field weights for relevance scoring
+- Configures language and typo tolerance settings
 
-1. **Field Definition**: For each indexed field, the Schema Manager:
-   - Retrieves the default schema or a filtered schema for the specific post type
-   - Processes field definitions with types (indexable, filterable, sortable)
-   - Caches processed schemas for performance
-2. **Document Processing**: When preparing documents, the Schema Manager:
-   - Gets the schema for the post type
-   - Extracts fields based on the requested type (indexable/filterable/sortable)
-   - Returns field settings including weights, directions, etc.
-3. **Custom Fields**: For custom post fields:
-   - Retrieves field definitions from the settings
-   - Adds them to the schema with appropriate weighting
-   - Extracts values using WordPress meta functions
+##### Schema Management
 
-#### Search Query Flow
+`WP_Loupe_Schema_Manager` handles search schema configuration:
+- Defines which fields are searchable and their weights
+- Manages filterable and sortable fields
+- Provides a default schema that can be customized via filters
 
-1. **Query Construction**: When a search is initiated:
-   - The search parameters are gathered from the request
-   - Filters and sorting are applied as specified
-   - Results are limited based on pagination settings
-2. **Result Processing**: Search results are processed to:
-   - Format according to the requested output structure
-   - Include post-specific data like permalinks
-   - Apply WordPress-specific filters for display
+##### Indexing
 
-The architecture leverages WordPress hooks extensively and provides multiple filter points to customize indexing behavior, schema definitions, and search results.
+`WP_Loupe_Indexer`:
+- Monitors post changes (create, update, delete) to keep the search index current
+- Provides bulk indexing functionality
+- Transforms WordPress posts into documents that can be indexed
+
+##### Search
+
+`WP_Loupe_Search`:
+- Intercepts WordPress search queries
+- Performs optimized search using Loupe
+- Handles pagination and result formatting
+- Implements query result caching for improved performance
+
+### Key Technical Features
+
+#### 1. Performance Optimizations
+
+- **Single-Pass Processing**: All field types are processed in one loop for efficiency
+- **Result Caching**: Search results are cached using WordPress transients
+- **Batch Operations**: Bulk indexing uses optimized document batching
+
+#### 2. Database Management
+
+`WP_Loupe_DB` handles:
+- Index file paths and creation
+- Index deletion (when necessary)
+- Directory structure management
+
+#### 3. Integration Points
+
+- Hooks into WordPress search via `posts_pre_query` filter
+- Monitors post changes via `save_post_{post_type}` and `wp_trash_post` actions
+- Settings integration via WordPress Settings API
+
+### Search Flow
+
+When a user performs a search:
+
+1. WP Loupe intercepts the search query via `posts_pre_query`
+2. The search term is sanitized and prepared
+3. The plugin checks the cache for existing results
+4. If not cached, the query is sent to the appropriate Loupe instance(s)
+5. Results are combined and sorted by relevance
+6. The plugin formats results as WordPress post objects
+7. Results are cached for future queries
+8. The WordPress query object is updated with results and pagination info
+
+### Index Maintenance
+
+The plugin automatically:
+- Adds/updates documents when posts are published or modified
+- Removes documents when posts are trashed
+- Provides a manual reindex option in the settings
+
+### Admin Interface
+
+The plugin includes a settings page that allows:
+- Selecting which post types to include in search
+- Triggering a complete reindex of content
+- Configuring search behavior (via filters)
+
+### Technical Requirements
+
+- PHP 8.2
+- SQLite 3.16.0+ (required by the Loupe library)
+- WordPress 6.3+
+
+This architecture provides a balance between search quality, performance, and ease of integration with WordPress.
+
 
 ## Acknowledgements
 
