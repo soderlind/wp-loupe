@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.7] - 2025-03-06
+
+### Changed
+
+- Refactored code: Replaced WP_Loupe_Shared trait with WP_Loupe_Factory class
+- Improved code organization and maintainability
+- Enhanced code structure for better testability
+
 ## [0.1.6] - 2025-03-06
 
 ### Changed
@@ -214,3 +222,5 @@ All notable changes to this project will be documented in this file.
 [0.1.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.3
 [0.1.4]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.4
 [0.1.5]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.5
+[0.1.6]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.6
+[0.1.7]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.7

@@ -14,7 +14,6 @@ use Soderlind\Plugin\WPLoupe\WP_Loupe_DB;
  * @since 0.0.11
  */
 class WP_Loupe_Search {
-	use WP_Loupe_Shared;
 
 	private $post_types;
 	private $loupe = [];
@@ -31,13 +30,12 @@ class WP_Loupe_Search {
 		$this->post_types     = $post_types;
 		$this->db             = WP_Loupe_DB::get_instance();
 		$this->schema_manager = WP_Loupe_Schema_Manager::get_instance();
-		$this->offset         = 10;
 		add_filter( 'posts_pre_query', array( $this, 'posts_pre_query' ), 10, 2 );
 		add_action( 'wp_footer', array( $this, 'action_wp_footer' ), 999 );
 		$iso6391_lang = ( '' === get_locale() ) ? 'en' : strtolower( substr( get_locale(), 0, 2 ) );
 		$this->loupe  = [];
 		foreach ( $this->post_types as $post_type ) {
-			$this->loupe[ $post_type ] = $this->create_loupe_instance( $post_type, $iso6391_lang );
+			$this->loupe[$post_type] = WP_Loupe_Factory::create_loupe_instance($post_type, $iso6391_lang, $this->db);
 		}
 	}
 
@@ -223,68 +221,5 @@ class WP_Loupe_Search {
 	 */
 	public function get_log() {
 		return $this->log;
-	}
-
-	/**
-	 * Create a Loupe instance
-	 *
-	 * @param string $post_type Post type.
-	 * @param string $lang Language.
-	 * @return \Loupe\Loupe\Loupe
-	 */
-	protected function create_loupe_instance( string $post_type, string $lang ) {
-		$schema_manager = WP_Loupe_Schema_Manager::get_instance();
-		$schema         = $schema_manager->get_schema_for_post_type( $post_type );
-
-		// Get all fields in one pass and extract what we need
-		$fields = [ 
-			'indexable'  => [],
-			'filterable' => [],
-			'sortable'   => [],
-		];
-
-		// Process all fields in a single loop instead of multiple calls
-		foreach ( $schema as $field_name => $settings ) {
-			if ( ! is_array( $settings ) ) {
-				continue;
-			}
-
-			// Handle indexable fields with weights
-			if ( isset( $settings[ 'weight' ] ) ) {
-				$fields[ 'indexable' ][] = [ 
-					'field'  => $field_name,
-					'weight' => $settings[ 'weight' ],
-				];
-			}
-
-			// Handle filterable fields
-			if ( ! empty( $settings[ 'filterable' ] ) ) {
-				$fields[ 'filterable' ][] = $field_name;
-			}
-
-			// Handle sortable fields
-			if ( ! empty( $settings[ 'sortable' ] ) ) {
-				$fields[ 'sortable' ][] = $field_name;
-			}
-		}
-
-		// Sort indexable fields by weight once
-		if ( ! empty( $fields[ 'indexable' ] ) ) {
-			usort( $fields[ 'indexable' ], fn( $a, $b ) => $b[ 'weight' ] <=> $a[ 'weight' ] );
-			$fields[ 'indexable' ] = array_column( $fields[ 'indexable' ], 'field' );
-		}
-
-		return ( new LoupeFactory() )->create(
-			$this->db->get_db_path( $post_type ),
-			Configuration::create()
-				->withPrimaryKey( 'id' )
-				->withSearchableAttributes( $fields[ 'indexable' ] )
-				->withFilterableAttributes( $fields[ 'filterable' ] )
-				->withSortableAttributes( $fields[ 'sortable' ] )
-				->withLanguages( [ $lang ] )
-				->withTypoTolerance(
-					TypoTolerance::create()->withFirstCharTypoCountsDouble( false )
-				)
-		);
 	}
 }

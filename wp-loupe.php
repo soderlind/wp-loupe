@@ -10,7 +10,7 @@
  * Plugin Name:       WP Loupe
  * Plugin URI:        https://github.com/soderlind/wp-loupe
  * Description:       Enhance the search functionality of your WordPress site with WP Loupe.
- * Version:           0.1.6
+ * Version:           0.1.7
  * Author:            Per Soderlind
  * Author URI:        https://soderlind.no
  * License:           GPL-2.0+
