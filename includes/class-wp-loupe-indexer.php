@@ -263,7 +263,8 @@ class WP_Loupe_Indexer {
         $document = [ 'id' => $post->ID, 'post_type' => $post->post_type ];
 
         foreach ( $indexable_fields as $field ) {
-            $field_name = $field['field'];
+            // Remove any table aliases from field name (e.g., 'd.post_title' becomes 'post_title')
+            $field_name = str_contains($field['field'], '.') ? substr($field['field'], strpos($field['field'], '.') + 1) : $field['field'];
 
             // Skip if this field isn't selected for indexing in the settings
             $saved_fields = get_option('wp_loupe_fields', []);

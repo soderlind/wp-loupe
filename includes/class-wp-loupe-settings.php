@@ -35,6 +35,7 @@ class WPLoupe_Settings_Page {
 		add_action( 'admin_init', [ $this, 'register_settings' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
 		add_action('rest_api_init', [$this, 'register_rest_routes']);
+		add_action('load-settings_page_wp-loupe', [$this, 'add_help_tabs']);
 	}
 
 	public function register_rest_routes() {
@@ -392,5 +393,61 @@ class WPLoupe_Settings_Page {
         
         return $enhanced_fields;
     }
+
+	/**
+	 * Add help tabs to explain field configuration options
+	 */
+	public function add_help_tabs() {
+		$screen = get_current_screen();
+		
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_weight',
+			'title'   => __('Weight', 'wp-loupe'),
+			'content' => sprintf(
+				'<h2>%s</h2><p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul>',
+				__('Field Weight', 'wp-loupe'),
+				__('Weight determines how important a field is in search results:', 'wp-loupe'),
+				__('Higher weight (e.g., 2.0) makes matches in this field more important', 'wp-loupe'),
+				__('Default weight is 1.0', 'wp-loupe'),
+				__('Lower weight (e.g., 0.5) makes matches less important', 'wp-loupe')
+			)
+		]);
+
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_filterable',
+			'title'   => __('Filterable', 'wp-loupe'),
+			'content' => sprintf(
+				'<h2>%s</h2><p>%s</p><ul><li>%s</li><li>%s</li></ul>',
+				__('Filterable Fields', 'wp-loupe'),
+				__('Filterable fields can be used to refine search results:', 'wp-loupe'),
+				__('Enable this option to allow filtering search results by this field\'s values', 'wp-loupe'),
+				__('Useful for categories, tags, and other taxonomies or metadata that you want users to filter by', 'wp-loupe')
+			)
+		]);
+
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_sortable',
+			'title'   => __('Sortable', 'wp-loupe'),
+			'content' => sprintf(
+				'<h2>%s</h2><p>%s</p><ul><li>%s</li><li>%s</li></ul>',
+				__('Sortable Fields', 'wp-loupe'),
+				__('Sortable fields can be used to order search results:', 'wp-loupe'),
+				__('Enable this option to allow sorting search results by this field\'s values', 'wp-loupe'),
+				__('Useful for dates, prices, or other numerical values that make sense to sort by', 'wp-loupe')
+			)
+		]);
+
+		$screen->set_help_sidebar(
+			sprintf(
+				'<p><strong>%s</strong></p><p>%s</p>',
+				__('For more information:', 'wp-loupe'),
+				sprintf(
+					'<a href="%s" target="_blank">%s</a>',
+					'https://github.com/soderlind/wp-loupe',
+					__('WP Loupe Documentation', 'wp-loupe')
+				)
+			)
+		);
+	}
 }
 new WPLoupe_Settings_Page();

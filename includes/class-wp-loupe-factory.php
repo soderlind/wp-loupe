@@ -23,7 +23,7 @@ class WP_Loupe_Factory {
 	 */
 	public static function create_loupe_instance( string $post_type, string $lang, WP_Loupe_DB $db ): \Loupe\Loupe\Loupe {
 		$schema_manager = WP_Loupe_Schema_Manager::get_instance();
-		$schema         = $schema_manager->get_schema_for_post_type( $post_type );
+		$schema = $schema_manager->get_schema_for_post_type( $post_type );
 
 		// Get all fields in one pass and extract what we need
 		$fields = [ 
@@ -38,22 +38,25 @@ class WP_Loupe_Factory {
 				continue;
 			}
 
+			 // Remove table aliases from field name (e.g., "d.post_title" becomes "post_title")
+			$clean_field_name = preg_replace('/^[a-zA-Z]+\./', '', $field_name);
+
 			// Handle indexable fields with weights
 			if ( isset( $settings[ 'weight' ] ) ) {
 				$fields[ 'indexable' ][] = [ 
-					'field'  => $field_name,
+					'field'  => $clean_field_name,
 					'weight' => $settings[ 'weight' ],
 				];
 			}
 
 			// Handle filterable fields
 			if ( ! empty( $settings[ 'filterable' ] ) ) {
-				$fields[ 'filterable' ][] = $field_name;
+				$fields[ 'filterable' ][] = $clean_field_name;
 			}
 
 			// Handle sortable fields
 			if ( ! empty( $settings[ 'sortable' ] ) ) {
-				$fields[ 'sortable' ][] = $field_name;
+				$fields[ 'sortable' ][] = $clean_field_name;
 			}
 		}
 
