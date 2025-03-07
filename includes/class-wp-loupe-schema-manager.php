@@ -26,12 +26,19 @@ class WP_Loupe_Schema_Manager {
 	 */
 	public function get_schema_for_post_type( string $post_type ): array {
 		if ( ! isset( $this->schema_cache[ $post_type ] ) ) {
-			$this->schema_cache[ $post_type ] = apply_filters(
+			$default_schema = $this->get_default_schema();
+			$custom_fields = $this->get_custom_field_settings($post_type);
+			
+			// Merge default schema with custom field settings
+			$schema = array_merge($default_schema, $custom_fields);
+			
+			// Allow further customization through filter
+			$this->schema_cache[$post_type] = apply_filters(
 				"wp_loupe_schema_{$post_type}",
-				$this->get_default_schema()
+				$schema
 			);
 		}
-		return $this->schema_cache[ $post_type ];
+		return $this->schema_cache[$post_type];
 	}
 
 	/**
@@ -144,5 +151,38 @@ class WP_Loupe_Schema_Manager {
 			default:
 				return null;
 		}
+	}
+
+	/**
+	 * Retrieves the custom field settings for a specific post type.
+	 *
+	 * @param string $post_type The post type to retrieve the custom field settings for.
+	 * @return array The custom field settings.
+	 */
+	private function get_custom_field_settings(string $post_type): array {
+		$fields = [];
+		$saved_fields = get_option('wp_loupe_fields', []);
+		
+		if (isset($saved_fields[$post_type])) {
+			foreach ($saved_fields[$post_type] as $field_key => $settings) {
+				$fields[$field_key] = [
+					'weight' => isset($settings['weight']) ? (float)$settings['weight'] : self::$default_weight,
+					'filterable' => !empty($settings['filterable']),
+					'sortable' => !empty($settings['sortable']) ? [
+						'direction' => $settings['sort_direction'] ?? self::$default_direction
+					] : false
+				];
+			}
+		}
+		
+		return $fields;
+	}
+
+	/**
+	 * Clears the schema and fields cache.
+	 */
+	public function clear_cache(): void {
+		$this->schema_cache = [];
+		$this->fields_cache = [];
 	}
 }
