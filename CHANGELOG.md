@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2025-03-07
+
+### Added
+
+- Added translation support for admin interface
+- Updated translation files with new strings
+
 ## [0.2.0] - 2025-03-07
 
 ### Added
@@ -236,3 +243,4 @@ All notable changes to this project will be documented in this file.
 [0.1.6]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.6
 [0.1.7]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.7
 [0.2.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.0
+[0.2.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.1
