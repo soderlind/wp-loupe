@@ -59,36 +59,96 @@ class WPLoupe_Settings_Page {
 		return rest_ensure_response($fields);
 	}
 
-	private function get_available_fields($post_type) {
-		$fields = [];
-		
-		// Get post type fields
-		$post_type_fields = get_post_type_object($post_type);
-		
-		// Core fields
-		$fields['post_title'] = __('Title', 'wp-loupe');
-		$fields['post_content'] = __('Content', 'wp-loupe');
-		$fields['post_excerpt'] = __('Excerpt', 'wp-loupe');
-		
-		// Get custom fields
-		$meta_keys = $this->get_post_type_meta_keys($post_type);
-		foreach ($meta_keys as $meta_key) {
-			$fields[$meta_key] = $meta_key;
-		}
-		
-		return $fields;
-	}
+	public function get_available_fields($post_type) {
+        // Always include core fields
+        $fields = [
+            'post_title' => __('Title', 'wp-loupe'),
+            'post_content' => __('Content', 'wp-loupe'),
+            'post_excerpt' => __('Excerpt', 'wp-loupe'),
+            'post_date' => __('Date', 'wp-loupe'),
+            'post_author' => __('Author', 'wp-loupe')
+        ];
+        
+        // Add taxonomy fields
+        $taxonomies = get_object_taxonomies($post_type, 'objects');
+        foreach ($taxonomies as $tax_name => $tax_object) {
+            if ($tax_object->show_ui) {
+                $fields['taxonomy_' . $tax_name] = $tax_object->label;
+            }
+        }
+        
+        // Get custom fields with values
+        $meta_keys = $this->get_post_type_meta_keys_with_values($post_type);
+        foreach ($meta_keys as $meta_key => $has_value) {
+            $registered_meta = get_registered_meta_keys('post', $post_type);
+            $meta_label = isset($registered_meta[$meta_key]['description']) ? 
+                $registered_meta[$meta_key]['description'] : 
+                $this->prettify_meta_key($meta_key);
+            
+            $fields[$meta_key] = [
+                'label' => $meta_label,
+                'hasValue' => $has_value
+            ];
+        }
+        
+        return apply_filters('wp_loupe_available_fields', $fields, $post_type);
+    }
+
+    private function get_post_type_meta_keys_with_values($post_type) {
+        global $wpdb;
+        
+        // Get all meta keys regardless of value
+        $query = $wpdb->prepare(
+            "SELECT DISTINCT pm.meta_key
+             FROM {$wpdb->postmeta} pm
+             JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+             WHERE p.post_type = %s
+                AND pm.meta_key NOT REGEXP '^_oembed|^_wp'
+                AND pm.meta_key NOT IN ('_edit_last', '_edit_lock', '_thumbnail_id', '_wp_old_slug', '_wp_page_template')
+             ORDER BY pm.meta_key",
+            $post_type
+        );
+        
+        $results = $wpdb->get_col($query);
+        $meta_keys = [];
+        
+        foreach ($results as $meta_key) {
+            if (!is_protected_meta($meta_key, 'post')) {
+                $meta_keys[$meta_key] = true;
+            }
+        }
+        
+        return $meta_keys;
+    }
+
+	private function prettify_meta_key($key) {
+        return ucwords(str_replace(['_', '-'], ' ', $key));
+    }
 
 	private function get_post_type_meta_keys($post_type) {
 		global $wpdb;
-		$query = "
-			SELECT DISTINCT meta_key 
-			FROM $wpdb->postmeta pm 
-			JOIN $wpdb->posts p ON p.ID = pm.post_id 
-			WHERE p.post_type = %s 
-			AND meta_key NOT LIKE '\_%'
-		";
-		return $wpdb->get_col($wpdb->prepare($query, $post_type));
+		
+		// Get both hidden and visible meta keys
+        $query = $wpdb->prepare("
+            SELECT DISTINCT pm.meta_key
+            FROM {$wpdb->postmeta} pm
+            JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+            WHERE p.post_type = %s
+            AND pm.meta_key NOT REGEXP '^_oembed|^_wp'
+        ", $post_type);
+        
+        $meta_keys = $wpdb->get_col($query);
+        
+        // Filter out system meta keys
+        return array_filter($meta_keys, function($key) {
+            return !in_array($key, [
+                '_edit_last',
+                '_edit_lock',
+                '_thumbnail_id',
+                '_wp_old_slug',
+                '_wp_page_template'
+            ]);
+        });
 	}
 
 	/**
@@ -230,6 +290,7 @@ class WPLoupe_Settings_Page {
 
 			foreach ($fields as $field_key => $settings) {
 				$sanitized[$post_type][$field_key] = [
+					 'indexable' => !empty($settings['indexable']),
 					'weight' => isset($settings['weight']) ? 
 						floatval($settings['weight']) : 1.0,
 					'filterable' => !empty($settings['filterable']),
@@ -253,72 +314,83 @@ class WPLoupe_Settings_Page {
 	 * @return void
 	 */
 	public function enqueue_admin_assets($hook) {
-		if ('settings_page_wp-loupe' !== $hook) {
+		// Check if we're on the WP Loupe settings page
+		if (!in_array($hook, ['settings_page_wp-loupe', 'tools_page_wp-loupe'])) {
 			return;
 		}
 
-		wp_enqueue_style('select2css');
-		wp_enqueue_script('select2');
-		
-		// Enqueue admin CSS
-		wp_enqueue_style(
-			'wp-loupe-admin',
-			WP_LOUPE_URL . '/lib/css/admin.css',
+		// Register and enqueue Select2
+		wp_register_style(
+			'select2css',
+			WP_LOUPE_URL . 'lib/css/select2.min.css',
 			[],
+			'4.0.13'
+		);
+
+		wp_register_script(
+			'select2',
+			WP_LOUPE_URL . 'lib/js/select2.min.js',
+			['jquery'],
+			'4.0.13',
+			true
+		);
+
+		// Register and enqueue admin assets
+		wp_register_style(
+			'wp-loupe-admin',
+			WP_LOUPE_URL . 'lib/css/admin.css',
+			['select2css'],
 			WP_LOUPE_VERSION
 		);
-		
-		wp_enqueue_script(
+
+		wp_register_script(
 			'wp-loupe-admin',
-			WP_LOUPE_URL . '/lib/js/admin.js',
+			WP_LOUPE_URL . 'lib/js/admin.js',
 			['jquery', 'select2', 'wp-api-fetch'],
 			WP_LOUPE_VERSION,
 			true
 		);
 
-		wp_localize_script('wp-loupe-admin', 'wpLoupeAdmin', [
-			'restUrl' => rest_url('wp-loupe/v1'),
-			'nonce' => wp_create_nonce('wp_rest'),
-			'savedFields' => get_option('wp_loupe_fields', [])
-		]);
+		// Enqueue all assets
+		wp_enqueue_style('select2css');
+		wp_enqueue_style('wp-loupe-admin');
+		wp_enqueue_script('select2');
+		wp_enqueue_script('wp-loupe-admin');
 
-		// Code to initialize the select2 dropdown. Connects the dropdown to the select2 library.
-		$locale_script = <<<EOT
-jQuery(document).ready(function($) {
-    $('#wp_loupe_custom_post_types,#wp_loupe_network_sites,#wp_loupe_network_search_site').select2({
-		placeholder: 'Select post types',
-		width: '200px',
-	});
-});
-EOT;
+		// Add Select2 initialization
+		wp_add_inline_script('select2', '
+			jQuery(document).ready(function($) {
+				$("#wp_loupe_custom_post_types").select2({
+					placeholder: "Select post types",
+					width: "400px"
+				});
+			});
+		');
 
-		\wp_add_inline_script( 'select2', $locale_script );
-
-		// Add custom styles for the select2 dropdown. Ads a down arrow to the dropdown.
-		$locale_style = <<<EOT
-.select2-container--default .select2-selection--multiple {
-    position: relative;
-    padding-right: 20px;
-}
-
-.select2-container--default .select2-selection--multiple:after {
-    content: '';
-    border-color: #888 transparent transparent transparent;
-    border-style: solid;
-    border-width: 5px 4px 0 4px;
-    position: absolute;
-    top: 50%;
-    right: 5px;
-    transform: translateY(-50%);
-    pointer-events: none;
-}
-
-.select2-container--default.select2-container--open .select2-selection--multiple:after {
-    border-color: transparent transparent #888 transparent;
-    border-width: 0 4px 5px 4px;
-}
-EOT;
-		\wp_add_inline_style( 'select2css', $locale_style );
+		// Localize script with enhanced field data
+        wp_localize_script('wp-loupe-admin', 'wpLoupeAdmin', [
+            'restUrl' => rest_url('wp-loupe/v1'),
+            'nonce' => wp_create_nonce('wp_rest'),
+            'savedFields' => $this->prepare_fields_for_js()
+        ]);
 	}
+
+	private function prepare_fields_for_js() {
+        $saved_fields = get_option('wp_loupe_fields', []);
+        $enhanced_fields = [];
+
+        foreach ($saved_fields as $post_type => $fields) {
+            $available_fields = $this->get_available_fields($post_type);
+            
+            $enhanced_fields[$post_type] = [];
+            foreach ($fields as $field_key => $settings) {
+                if (isset($available_fields[$field_key])) {
+                    $enhanced_fields[$post_type][$field_key] = $settings;
+                }
+            }
+        }
+        
+        return $enhanced_fields;
+    }
 }
 new WPLoupe_Settings_Page();

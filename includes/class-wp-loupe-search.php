@@ -112,66 +112,76 @@ class WP_Loupe_Search {
 	 * @param string $query Search query.
 	 * @return array
 	 */
-	public function search( $query ) {
-		$cache_key = md5( $query . serialize( $this->post_types ) );
+	public function search($query) {
+        $cache_key = md5($query . serialize($this->post_types));
 
-		// Check transient cache first
-		$cached_result = get_transient( "wp_loupe_search_$cache_key" );
-		if ( false !== $cached_result ) {
-			$this->log = sprintf( 'WP Loupe cache hit: %s ms', 0 );
-			return $cached_result;
-		}
+        // Check transient cache first
+        $cached_result = get_transient("wp_loupe_search_$cache_key");
+        if (false !== $cached_result) {
+            $this->log = sprintf('WP Loupe cache hit: %s ms', 0);
+            return $cached_result;
+        }
 
-		$hits       = [];
-		$stats      = [];
-		$start_time = microtime( true );
+        $hits = [];
+        $stats = [];
+        $start_time = microtime(true);
 
-		foreach ( $this->post_types as $post_type ) {
-			$schema = $this->schema_manager->get_schema_for_post_type( $post_type );
+        foreach ($this->post_types as $post_type) {
+            // Get schema and fields for this specific post type
+            $schema = $this->schema_manager->get_schema_for_post_type($post_type);
+            
+            // Get indexable fields with weights for search
+            $indexable_fields = $this->schema_manager->get_indexable_fields($schema);
 
-			// Get indexable fields with weights for search
-			$indexable_fields = $this->schema_manager->get_indexable_fields( $schema );
+            // Get saved field settings for this post type
+            $saved_fields = get_option('wp_loupe_fields', []);
+            $post_type_fields = $saved_fields[$post_type] ?? [];
 
-			// Get sortable fields with their directions
-			$sort_fields = array_map( function ($field) {
-				return "{$field[ 'field' ]}:{$field[ 'direction' ]}";
-			}, $this->schema_manager->get_sortable_fields( $schema ) );
+            // Get sortable fields, but only those that are marked as sortable in settings
+            $sort_fields = [];
+            $schema_sortable_fields = $this->schema_manager->get_sortable_fields($schema);
+            foreach ($schema_sortable_fields as $field) {
+                $field_name = $field['field'];
+                if (isset($post_type_fields[$field_name]) && 
+                    !empty($post_type_fields[$field_name]['sortable'])) {
+                    $sort_direction = $post_type_fields[$field_name]['sort_direction'] ?? 'desc';
+                    $sort_fields[] = "{$field_name}:{$sort_direction}";
+                }
+            }
 
+            // Get all fields that should be retrieved
+            $retrievable_fields = array_unique(array_merge(
+                ['id'],
+                array_map(function($field) {
+                    return $field['field'];
+                }, $indexable_fields),
+                $this->schema_manager->get_filterable_fields($schema)
+            ));
 
-			// Get all fields that should be retrieved
-			$retrievable_fields = array_unique( array_merge(
-				[ 'id' ],
-				array_map( function ($field) {
-					return $field[ 'field' ];
-				}, $indexable_fields ),
-				$this->schema_manager->get_filterable_fields( $schema )
-			)
-			);
+            $loupe = $this->loupe[$post_type];
+            $result = $loupe->search(
+                SearchParameters::create()
+                    ->withQuery($query)
+                    ->withAttributesToRetrieve($retrievable_fields)
+                    ->withSort($sort_fields)
+            );
 
-			$loupe  = $this->loupe[ $post_type ];
-			$result = $loupe->search(
-				SearchParameters::create()
-					->withQuery( $query )
-					->withAttributesToRetrieve( $retrievable_fields )
-					->withSort( $sort_fields )
-			);
+            // Merge stats and add post type to hits
+            $stats = array_merge_recursive($stats, (array)$result->toArray()['processingTimeMs']);
+            $tmp_hits = $result->toArray()['hits'];
+            foreach ($tmp_hits as $key => $hit) {
+                $tmp_hits[$key]['post_type'] = $post_type;
+            }
+            $hits = array_merge_recursive($hits, $tmp_hits);
+        }
 
-			// Merge stats and add post type to hits
-			$stats    = array_merge_recursive( $stats, (array) $result->toArray()[ 'processingTimeMs' ] );
-			$tmp_hits = $result->toArray()[ 'hits' ];
-			foreach ( $tmp_hits as $key => $hit ) {
-				$tmp_hits[ $key ][ 'post_type' ] = $post_type;
-			}
-			$hits = array_merge_recursive( $hits, $tmp_hits );
-		}
+        $this->log = sprintf('WP Loupe processing time: %s ms', (string)array_sum($stats));
 
-		$this->log = sprintf( 'WP Loupe processing time: %s ms', (string) array_sum( $stats ) );
+        // Cache the results
+        set_transient("wp_loupe_search_$cache_key", $hits, self::CACHE_TTL);
 
-		// Cache the results
-		set_transient( "wp_loupe_search_$cache_key", $hits, self::CACHE_TTL );
-
-		return $hits;
-	}
+        return $hits;
+    }
 
 	/**
 	 * Create post objects with schema-based fields
@@ -179,31 +189,108 @@ class WP_Loupe_Search {
 	 * @param array $hits Array of hits.
 	 * @return array
 	 */
-	private function create_post_objects( $hits ) {
-		if ( empty( $hits ) ) {
-			return [];
-		}
+	private function create_post_objects($hits) {
+        if (empty($hits)) {
+            return [];
+        }
 
-		// Get all post IDs
-		$post_ids = array_column( $hits, 'id' );
+        // Get all post IDs and organize hits by post type
+        $post_ids = array_column($hits, 'id');
+        $hits_by_type = [];
+        foreach ($hits as $hit) {
+            $hits_by_type[$hit['post_type']][] = $hit;
+        }
 
-		// Fetch all posts in one query
-		$posts = get_posts( [ 
-			'post__in'       => $post_ids,
-			'posts_per_page' => -1,
-			'post_type'      => $this->post_types,
-			'orderby'        => 'post__in', // Maintain search result order
-			'no_found_rows'  => true,
-		] );
+        // Fetch all posts grouped by post type
+        $all_posts = [];
+        foreach ($hits_by_type as $post_type => $type_hits) {
+            $type_posts = get_posts([
+                'post_type' => $post_type,
+                'post__in' => array_column($type_hits, 'id'),
+                'posts_per_page' => -1,
+                'orderby' => 'post__in', // Preserve Loupe's ordering
+                'suppress_filters' => true
+            ]);
 
-		// Create a lookup table
-		$posts_lookup = array_column( $posts, null, 'ID' );
+            // Get schema for field loading
+            $schema = $this->schema_manager->get_schema_for_post_type($post_type);
+            $fields = array_merge(
+                $this->schema_manager->get_filterable_fields($schema),
+                array_column($this->schema_manager->get_sortable_fields($schema), 'field')
+            );
 
-		// Map results maintaining original order
-		return array_map( function ($hit) use ($posts_lookup) {
-			return isset( $posts_lookup[ $hit[ 'id' ] ] ) ? $posts_lookup[ $hit[ 'id' ] ] : null;
-		}, $hits );
-	}
+            // Enhance posts with schema fields
+            foreach ($type_posts as $post) {
+                foreach ($fields as $field) {
+                    if (strpos($field, 'taxonomy_') === 0) {
+                        // Load taxonomy terms
+                        $taxonomy = substr($field, 9);
+                        $terms = wp_get_post_terms($post->ID, $taxonomy);
+                        if (!is_wp_error($terms)) {
+                            $post->{$field} = $terms;
+                        }
+                    } elseif (!property_exists($post, $field)) {
+                        // Load custom field value
+                        $post->{$field} = get_post_meta($post->ID, $field, true);
+                    }
+                }
+            }
+
+            $all_posts = array_merge($all_posts, $type_posts);
+        }
+
+        // Create a lookup table for quick access
+        $posts_lookup = array_column($all_posts, null, 'ID');
+
+        // Map results maintaining original order from hits
+        return array_map(function($hit) use ($posts_lookup) {
+            return isset($posts_lookup[$hit['id']]) ? $posts_lookup[$hit['id']] : null;
+        }, $hits);
+    }
+
+    private function apply_filters($query, $schema) {
+        $params = [];
+        
+        // Get filterable fields from schema
+        $filterable_fields = $this->schema_manager->get_filterable_fields($schema);
+        
+        foreach ($filterable_fields as $field) {
+            // Check if filter is present in query vars
+            $filter_value = $query->get($field);
+            if (!empty($filter_value)) {
+                if (strpos($field, 'taxonomy_') === 0) {
+                    // Handle taxonomy filters
+                    $taxonomy = substr($field, 9);
+                    $terms = explode(',', $filter_value);
+                    $params['filter'][$field] = array_map('trim', $terms);
+                } else {
+                    // Handle regular field filters
+                    $params['filter'][$field] = $filter_value;
+                }
+            }
+        }
+        
+        return $params;
+    }
+
+    private function apply_sorting($query, $schema) {
+        $params = [];
+        $orderby = $query->get('orderby', 'relevance');
+        $order = strtolower($query->get('order', 'desc'));
+        
+        // Get sortable fields from schema
+        $sortable_fields = $this->schema_manager->get_sortable_fields($schema);
+        $sortable_field_names = array_column($sortable_fields, 'field');
+        
+        if ($orderby !== 'relevance' && in_array($orderby, $sortable_field_names)) {
+            $params['sort'] = [
+                'field' => $orderby,
+                'direction' => in_array($order, ['asc', 'desc']) ? $order : 'desc'
+            ];
+        }
+        
+        return $params;
+    }
 
 	/**
 	 * Write log to footer

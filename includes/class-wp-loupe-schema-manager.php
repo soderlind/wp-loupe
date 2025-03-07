@@ -24,22 +24,32 @@ class WP_Loupe_Schema_Manager {
 	 * @param string $post_type The post type to retrieve the schema for.
 	 * @return array The schema for the specified post type.
 	 */
-	public function get_schema_for_post_type( string $post_type ): array {
-		if ( ! isset( $this->schema_cache[ $post_type ] ) ) {
-			$default_schema = $this->get_default_schema();
-			$custom_fields = $this->get_custom_field_settings($post_type);
-			
-			// Merge default schema with custom field settings
-			$schema = array_merge($default_schema, $custom_fields);
-			
-			// Allow further customization through filter
-			$this->schema_cache[$post_type] = apply_filters(
-				"wp_loupe_schema_{$post_type}",
-				$schema
-			);
-		}
-		return $this->schema_cache[$post_type];
-	}
+	public function get_schema_for_post_type(string $post_type): array {
+        if (!isset($this->schema_cache[$post_type])) {
+            $schema = $this->get_default_schema();
+            $saved_fields = get_option('wp_loupe_fields', []);
+            
+            // Override with post type specific settings
+            if (isset($saved_fields[$post_type])) {
+                foreach ($saved_fields[$post_type] as $field_key => $settings) {
+                    $schema[$field_key] = [
+                        'weight' => (float)($settings['weight'] ?? 1.0),
+                        'indexable' => !empty($settings['indexable']),
+                        'filterable' => !empty($settings['filterable']),
+                        'sortable' => !empty($settings['sortable']),
+                        'sort_direction' => $settings['sort_direction'] ?? 'desc'
+                    ];
+                }
+            }
+            
+            // Allow further customization through filter
+            $this->schema_cache[$post_type] = apply_filters(
+                "wp_loupe_schema_{$post_type}",
+                $schema
+            );
+        }
+        return $this->schema_cache[$post_type];
+    }
 
 	/**
 	 * Retrieves the indexable fields for a specific post type.
@@ -77,27 +87,37 @@ class WP_Loupe_Schema_Manager {
 	 * @return array The default schema.
 	 */
 	private function get_default_schema(): array {
-		return [ 
-			'post_title'   => [ 
-				'weight'     => 2,
-				'filterable' => true,
-				'sortable'   => [ 'direction' => 'asc' ],
-			],
-			'post_content' => [ 'weight' => self::$default_weight ],
-			'post_excerpt' => [ 'weight' => 1.5 ],
-			'post_date'    => [ 
-				'weight'     => self::$default_weight,
-				'filterable' => true,
-				'sortable'   => [ 'direction' => self::$default_direction ],
-			],
-			'post_author'  => [ 
-				'weight'     => self::$default_weight,
-				'filterable' => true,
-				'sortable'   => [ 'direction' => 'asc' ],
-			],
-			'permalink'    => [ 'weight' => self::$default_weight ],
-		];
-	}
+        $schema = [];
+        
+        // Default fields are controlled by saved settings
+        $saved_fields = get_option('wp_loupe_fields', []);
+        
+        // Core fields will be added based on saved settings
+        $core_fields = [
+            'post_title',
+            'post_content',
+            'post_excerpt',
+            'post_date',
+            'post_author'
+        ];
+        
+        foreach ($core_fields as $field) {
+            if (isset($saved_fields[$field])) {
+                $schema[$field] = $saved_fields[$field];
+            } else {
+                // Default settings if not saved
+                $schema[$field] = [
+                    'weight' => ($field === 'post_title') ? 2.0 : 1.0,
+                    'indexable' => true,
+                    'filterable' => true,
+                    'sortable' => true,
+                    'sort_direction' => 'desc'
+                ];
+            }
+        }
+        
+        return $schema;
+    }
 
 	/**
 	 * Retrieves the fields of a specific type from a schema.
@@ -135,6 +155,14 @@ class WP_Loupe_Schema_Manager {
 	 * @return mixed The processed field.
 	 */
 	private function process_field( string $field, array $settings, string $type ) {
+		// Special handling for taxonomy fields
+		if ($this->is_taxonomy_field($field)) {
+			$taxonomy = $this->get_taxonomy_name($field);
+			if (!taxonomy_exists($taxonomy)) {
+				return null;
+			}
+		}
+
 		switch ( $type ) {
 			case 'indexable':
 				return [ 
@@ -185,4 +213,26 @@ class WP_Loupe_Schema_Manager {
 		$this->schema_cache = [];
 		$this->fields_cache = [];
 	}
+
+	/**
+	 * Check if field is a taxonomy field
+	 */
+	private function is_taxonomy_field(string $field): bool {
+		return strpos($field, 'taxonomy_') === 0;
+	}
+
+	/**
+	 * Get taxonomy name from field
+	 */
+	private function get_taxonomy_name(string $field): string {
+		return substr($field, 9); // Remove 'taxonomy_' prefix
+	}
+
+    private function get_settings_page() {
+        static $settings_page = null;
+        if ($settings_page === null) {
+            $settings_page = new \Soderlind\Plugin\WPLoupe\WPLoupe_Settings_Page();
+        }
+        return $settings_page;
+    }
 }
