@@ -21,12 +21,17 @@ class WP_Loupe_Indexer {
 	private $schema_manager;
 
 	public function __construct( $post_types ) {
-		$this->post_types     = $post_types;
-		$this->db             = WP_Loupe_DB::get_instance();
-		$this->schema_manager = new WP_Loupe_Schema_Manager();
-		$this->init();
-		$this->register_hooks();
-	}
+        // Get currently selected post types from settings
+        $options = get_option('wp_loupe_custom_post_types', []);
+        $this->post_types = !empty($options) && isset($options['wp_loupe_post_type_field']) 
+            ? (array)$options['wp_loupe_post_type_field']
+            : ['post', 'page']; // Default to post and page if no selection
+
+        $this->db = WP_Loupe_DB::get_instance();
+        $this->schema_manager = new WP_Loupe_Schema_Manager();
+        $this->init();
+        $this->register_hooks();
+    }
 
 	/**
 	 * Register hooks
@@ -47,11 +52,11 @@ class WP_Loupe_Indexer {
 	 * @return void
 	 */
 	public function init() {
-		$iso6391_lang = ( '' === get_locale() ) ? 'en' : strtolower( substr( get_locale(), 0, 2 ) );
-		foreach ( $this->post_types as $post_type ) {
-			$this->loupe[$post_type] = WP_Loupe_Factory::create_loupe_instance($post_type, $iso6391_lang, $this->db);
-		}
-	}
+        $iso6391_lang = ('' === get_locale()) ? 'en' : strtolower(substr(get_locale(), 0, 2));
+        foreach ($this->post_types as $post_type) {
+            $this->loupe[$post_type] = WP_Loupe_Factory::create_loupe_instance($post_type, $iso6391_lang, $this->db);
+        }
+    }
 
 	/**
 	 * Add post to the loupe index
@@ -142,27 +147,39 @@ class WP_Loupe_Indexer {
 	 * @return void
 	 */
 	public function reindex_all() {
-		$this->delete_index();
-		WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
-		$this->init();
+        $this->delete_index();
+        WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
+        
+        // Get currently selected post types from settings
+        $options = get_option('wp_loupe_custom_post_types', []);
+        $selected_post_types = !empty($options) && isset($options['wp_loupe_post_type_field']) 
+            ? (array)$options['wp_loupe_post_type_field']
+            : ['post', 'page']; // Default to post and page if no selection
+        
+        // Re-initialize Loupe instances only for selected post types
+        $iso6391_lang = ('' === get_locale()) ? 'en' : strtolower(substr(get_locale(), 0, 2));
+        foreach ($selected_post_types as $post_type) {
+            $this->loupe[$post_type] = WP_Loupe_Factory::create_loupe_instance($post_type, $iso6391_lang, $this->db);
+        }
 
-		foreach ( $this->post_types as $post_type ) {
-			$posts = \get_posts( [ 
-				'post_type'      => $post_type,
-				'posts_per_page' => -1,
-				'post_status'    => 'publish',
-			] );
+        // Only reindex selected post types
+        foreach ($selected_post_types as $post_type) {
+            $posts = \get_posts([
+                'post_type' => $post_type,
+                'posts_per_page' => -1,
+                'post_status' => 'publish',
+            ]);
 
-			$documents = array_map(
-				[ $this, 'prepare_document' ],
-				$posts
-			);
+            $documents = array_map(
+                [$this, 'prepare_document'],
+                $posts
+            );
 
-			if ( ! empty( $documents ) ) {
-				$this->loupe[ $post_type ]->addDocuments( $documents );
-			}
-		}
-	}
+            if (!empty($documents)) {
+                $this->loupe[$post_type]->addDocuments($documents);
+            }
+        }
+    }
 
 	/**
 	 * Delete the index.
@@ -240,28 +257,39 @@ class WP_Loupe_Indexer {
 	 * @return array
 	 */
 	private function prepare_document( \WP_Post $post ): array {
-		$schema           = $this->schema_manager->get_schema_for_post_type( $post->post_type );
-		$indexable_fields = $this->schema_manager->get_indexable_fields( $schema );
+        $schema           = $this->schema_manager->get_schema_for_post_type( $post->post_type );
+        $indexable_fields = $this->schema_manager->get_indexable_fields( $schema );
 
-		$document = [ 'id' => $post->ID ];
+        $document = [ 'id' => $post->ID, 'post_type' => $post->post_type ];
 
-		foreach ( $indexable_fields as $field ) {
-			if ( property_exists( $post, $field[ 'field' ] ) ) {
-				$document[ $field[ 'field' ] ] = $post->{$field[ 'field' ]};
-			} else {
-				// Handle custom fields
-				$document[ $field[ 'field' ] ] = get_post_meta( $post->ID, $field[ 'field' ], true );
-			}
-		}
+        foreach ( $indexable_fields as $field ) {
+            // Remove any table aliases from field name (e.g., 'd.post_title' becomes 'post_title')
+            $field_name = str_contains($field['field'], '.') ? substr($field['field'], strpos($field['field'], '.') + 1) : $field['field'];
 
-		// Apply content filter
-		if ( isset( $document[ 'post_content' ] ) ) {
-			$document[ 'post_content' ] = apply_filters( 'wp_loupe_schema_content',
-				preg_replace( '~<!--(.*?)-->~s', '', $document[ 'post_content' ] )
-			);
-		}
+            // Skip if this field isn't selected for indexing in the settings
+            $saved_fields = get_option('wp_loupe_fields', []);
+            if (isset($saved_fields[$post->post_type][$field_name]) && 
+                !$saved_fields[$post->post_type][$field_name]['indexable']) {
+                continue;
+            }
 
-		return $document;
-	}
+            if ( property_exists( $post, $field_name ) ) {
+                $document[ $field_name ] = $post->{$field_name};
+            } elseif ( strpos( $field_name, 'taxonomy_' ) === 0 ) {
+                $taxonomy = substr( $field_name, 9 );
+                $terms    = wp_get_post_terms( $post->ID, $taxonomy, array( 'fields' => 'names' ) );
+                if ( ! is_wp_error( $terms ) ) {
+                    $document[ $field_name ] = implode( ' ', $terms );
+                }
+            } else {
+                $meta_value = get_post_meta( $post->ID, $field_name, true );
+                if ( ! empty( $meta_value ) ) {
+                    $document[ $field_name ] = $meta_value;
+                }
+            }
+        }
+
+        return $document;
+    }
 
 }

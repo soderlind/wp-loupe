@@ -1,4 +1,6 @@
 <?php
+namespace Soderlind\Plugin\WPLoupe;
+
 /**
  * Settings page.
  *
@@ -30,7 +32,124 @@ class WPLoupe_Settings_Page {
 		add_action( 'admin_menu', [ $this, 'wp_loupe_create_settings' ] );
 		add_action( 'admin_init', [ $this, 'wp_loupe_setup_sections' ] );
 		add_action( 'admin_init', [ $this, 'wp_loupe_setup_fields' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_select2_jquery' ] );
+		add_action( 'admin_init', [ $this, 'register_settings' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
+		add_action('rest_api_init', [$this, 'register_rest_routes']);
+		add_action('load-settings_page_wp-loupe', [$this, 'add_help_tabs']);
+	}
+
+	public function register_rest_routes() {
+		register_rest_route('wp-loupe/v1', '/post-type-fields/(?P<post_type>[a-zA-Z0-9_-]+)', [
+			'methods' => 'GET',
+			'callback' => [$this, 'get_post_type_fields'],
+			'permission_callback' => function() {
+				return current_user_can('manage_options');
+			}
+		]);
+	}
+
+	public function get_post_type_fields($request) {
+		$post_type = $request->get_param('post_type');
+		$post_type_object = get_post_type_object($post_type);
+		
+		if (!$post_type_object) {
+			return new WP_Error('invalid_post_type', 'Invalid post type', ['status' => 404]);
+		}
+
+		$fields = $this->get_available_fields($post_type);
+		return rest_ensure_response($fields);
+	}
+
+	public function get_available_fields($post_type) {
+        // Always include core fields
+        $fields = [
+            'post_title' => __('Title', 'wp-loupe'),
+            'post_content' => __('Content', 'wp-loupe'),
+            'post_excerpt' => __('Excerpt', 'wp-loupe'),
+            'post_date' => __('Date', 'wp-loupe'),
+            'post_author' => __('Author', 'wp-loupe')
+        ];
+        
+        // Add taxonomy fields
+        $taxonomies = get_object_taxonomies($post_type, 'objects');
+        foreach ($taxonomies as $tax_name => $tax_object) {
+            if ($tax_object->show_ui) {
+                $fields['taxonomy_' . $tax_name] = $tax_object->label;
+            }
+        }
+        
+        // Get custom fields with values
+        $meta_keys = $this->get_post_type_meta_keys_with_values($post_type);
+        foreach ($meta_keys as $meta_key => $has_value) {
+            $registered_meta = get_registered_meta_keys('post', $post_type);
+            $meta_label = isset($registered_meta[$meta_key]['description']) ? 
+                $registered_meta[$meta_key]['description'] : 
+                $this->prettify_meta_key($meta_key);
+            
+            $fields[$meta_key] = [
+                'label' => $meta_label,
+                'hasValue' => $has_value
+            ];
+        }
+        
+        return apply_filters('wp_loupe_available_fields', $fields, $post_type);
+    }
+
+    private function get_post_type_meta_keys_with_values($post_type) {
+        global $wpdb;
+        
+        // Get all meta keys regardless of value
+        $query = $wpdb->prepare(
+            "SELECT DISTINCT pm.meta_key
+             FROM {$wpdb->postmeta} pm
+             JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+             WHERE p.post_type = %s
+                AND pm.meta_key NOT REGEXP '^_oembed|^_wp'
+                AND pm.meta_key NOT IN ('_edit_last', '_edit_lock', '_thumbnail_id', '_wp_old_slug', '_wp_page_template')
+             ORDER BY pm.meta_key",
+            $post_type
+        );
+        
+        $results = $wpdb->get_col($query);
+        $meta_keys = [];
+        
+        foreach ($results as $meta_key) {
+            if (!is_protected_meta($meta_key, 'post')) {
+                $meta_keys[$meta_key] = true;
+            }
+        }
+        
+        return $meta_keys;
+    }
+
+	private function prettify_meta_key($key) {
+        return ucwords(str_replace(['_', '-'], ' ', $key));
+    }
+
+	private function get_post_type_meta_keys($post_type) {
+		global $wpdb;
+		
+		// Get both hidden and visible meta keys
+        $query = $wpdb->prepare("
+            SELECT DISTINCT pm.meta_key
+            FROM {$wpdb->postmeta} pm
+            JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+            WHERE p.post_type = %s
+            AND pm.meta_key NOT REGEXP '^_oembed|^_wp'
+        ", $post_type);
+        
+        $meta_keys = $wpdb->get_col($query);
+        
+        // Filter out system meta keys
+        return array_filter($meta_keys, function($key) {
+            return !in_array($key, [
+                '_edit_last',
+                '_edit_lock',
+                '_thumbnail_id',
+                '_wp_old_slug',
+                '_wp_page_template'
+            ]);
+        });
 	}
 
 	/**
@@ -48,7 +167,16 @@ class WPLoupe_Settings_Page {
 	 * @return void
 	 */
 	public function wp_loupe_setup_sections() {
-		add_settings_section( 'wp_loupe_section', 'WP Loupe Settings', [], 'wp-loupe', );
+		add_settings_section( 'wp_loupe_section', 'WP Loupe Settings', [ $this, 'section_callback' ], 'wp-loupe' );
+		add_settings_section('wp_loupe_fields_section', 'Field Settings', [$this, 'fields_section_callback'], 'wp-loupe');
+	}
+
+	public function section_callback() {
+		echo '<p>' . __('Select which post types and fields to include in the search index.', 'wp-loupe') . '</p>';
+	}
+
+	public function fields_section_callback() {
+		echo '<div id="wp-loupe-fields-config"></div>';
 	}
 
 	/**
@@ -143,57 +271,183 @@ class WPLoupe_Settings_Page {
 		</div><?php
 	}
 
+	public function register_settings() {
+		register_setting('wp-loupe', 'wp_loupe_custom_post_types');
+		register_setting('wp-loupe', 'wp_loupe_fields', [
+			'type' => 'array',
+			'description' => 'Field configuration for each post type',
+			'sanitize_callback' => [$this, 'sanitize_fields_settings']
+		]);
+	}
+
+	public function sanitize_fields_settings($input) {
+		if (!is_array($input)) {
+			return [];
+		}
+
+		$sanitized = [];
+		foreach ($input as $post_type => $fields) {
+			if (!is_array($fields)) continue;
+
+			foreach ($fields as $field_key => $settings) {
+				$sanitized[$post_type][$field_key] = [
+					 'indexable' => !empty($settings['indexable']),
+					'weight' => isset($settings['weight']) ? 
+						floatval($settings['weight']) : 1.0,
+					'filterable' => !empty($settings['filterable']),
+					'sortable' => !empty($settings['sortable']),
+					'sort_direction' => isset($settings['sort_direction']) && 
+						in_array($settings['sort_direction'], ['asc', 'desc']) ? 
+						$settings['sort_direction'] : 'desc'
+				];
+			}
+		}
+
+		// Clear schema cache when settings are updated
+		WP_Loupe_Schema_Manager::get_instance()->clear_cache();
+		
+		return $sanitized;
+	}
 
 	/**
 	 * Enqueue Select2.
 	 *
 	 * @return void
 	 */
-	public static function enqueue_select2_jquery() {
+	public function enqueue_admin_assets($hook) {
+		// Check if we're on the WP Loupe settings page
+		if (!in_array($hook, ['settings_page_wp-loupe', 'tools_page_wp-loupe'])) {
+			return;
+		}
 
-		\wp_register_style( 'select2css', WP_LOUPE_URL . '/lib/css/select2.min.css', [], '4.0.13', 'all' );
-		\wp_enqueue_style( 'select2css' );
+		// Register and enqueue Select2
+		wp_register_style(
+			'select2css',
+			WP_LOUPE_URL . 'lib/css/select2.min.css',
+			[],
+			'4.0.13'
+		);
 
-		\wp_register_script( 'select2', WP_LOUPE_URL . '/lib/js/select2.min.js', [ 'jquery' ], '4.0.13', true );
-		\wp_enqueue_script( 'select2' );
+		wp_register_script(
+			'select2',
+			WP_LOUPE_URL . 'lib/js/select2.min.js',
+			['jquery'],
+			'4.0.13',
+			true
+		);
 
-		// Code to initialize the select2 dropdown. Connects the dropdown to the select2 library.
-		$locale_script = <<<EOT
-jQuery(document).ready(function($) {
-    $('#wp_loupe_custom_post_types,#wp_loupe_network_sites,#wp_loupe_network_search_site').select2({
-		placeholder: 'Select post types',
-		width: '200px',
-	});
-});
-EOT;
+		// Register and enqueue admin assets
+		wp_register_style(
+			'wp-loupe-admin',
+			WP_LOUPE_URL . 'lib/css/admin.css',
+			['select2css'],
+			WP_LOUPE_VERSION
+		);
 
-		\wp_add_inline_script( 'select2', $locale_script );
+		wp_register_script(
+			'wp-loupe-admin',
+			WP_LOUPE_URL . 'lib/js/admin.js',
+			['jquery', 'select2', 'wp-api-fetch'],
+			WP_LOUPE_VERSION,
+			true
+		);
 
-		// Add custom styles for the select2 dropdown. Ads a down arrow to the dropdown.
-		$locale_style = <<<EOT
-.select2-container--default .select2-selection--multiple {
-    position: relative;
-    padding-right: 20px;
-}
+		// Enqueue all assets
+		wp_enqueue_style('select2css');
+		wp_enqueue_style('wp-loupe-admin');
+		wp_enqueue_script('select2');
+		wp_enqueue_script('wp-loupe-admin');
 
-.select2-container--default .select2-selection--multiple:after {
-    content: '';
-    border-color: #888 transparent transparent transparent;
-    border-style: solid;
-    border-width: 5px 4px 0 4px;
-    position: absolute;
-    top: 50%;
-    right: 5px;
-    transform: translateY(-50%);
-    pointer-events: none;
-}
+		// Add Select2 initialization
+		wp_add_inline_script('select2', '
+			jQuery(document).ready(function($) {
+				$("#wp_loupe_custom_post_types").select2({
+					placeholder: "Select post types",
+					width: "400px"
+				});
+			});
+		');
 
-.select2-container--default.select2-container--open .select2-selection--multiple:after {
-    border-color: transparent transparent #888 transparent;
-    border-width: 0 4px 5px 4px;
-}
-EOT;
-		\wp_add_inline_style( 'select2css', $locale_style );
+		// Localize script with enhanced field data
+        wp_localize_script('wp-loupe-admin', 'wpLoupeAdmin', [
+            'restUrl' => rest_url('wp-loupe/v1'),
+            'nonce' => wp_create_nonce('wp_rest'),
+            'savedFields' => $this->prepare_fields_for_js()
+        ]);
+	}
+
+	private function prepare_fields_for_js() {
+        $saved_fields = get_option('wp_loupe_fields', []);
+        $enhanced_fields = [];
+
+        foreach ($saved_fields as $post_type => $fields) {
+            $available_fields = $this->get_available_fields($post_type);
+            
+            $enhanced_fields[$post_type] = [];
+            foreach ($fields as $field_key => $settings) {
+                if (isset($available_fields[$field_key])) {
+                    $enhanced_fields[$post_type][$field_key] = $settings;
+                }
+            }
+        }
+        
+        return $enhanced_fields;
+    }
+
+	/**
+	 * Add help tabs to explain field configuration options
+	 */
+	public function add_help_tabs() {
+		$screen = get_current_screen();
+		
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_weight',
+			'title'   => __('Weight', 'wp-loupe'),
+			'content' => sprintf(
+				'<h2>%s</h2><p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul>',
+				__('Field Weight', 'wp-loupe'),
+				__('Weight determines how important a field is in search results:', 'wp-loupe'),
+				__('Higher weight (e.g., 2.0) makes matches in this field more important', 'wp-loupe'),
+				__('Default weight is 1.0', 'wp-loupe'),
+				__('Lower weight (e.g., 0.5) makes matches less important', 'wp-loupe')
+			)
+		]);
+
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_filterable',
+			'title'   => __('Filterable', 'wp-loupe'),
+			'content' => sprintf(
+				'<h2>%s</h2><p>%s</p><ul><li>%s</li><li>%s</li></ul>',
+				__('Filterable Fields', 'wp-loupe'),
+				__('Filterable fields can be used to refine search results:', 'wp-loupe'),
+				__('Enable this option to allow filtering search results by this field\'s values', 'wp-loupe'),
+				__('Useful for categories, tags, and other taxonomies or metadata that you want users to filter by', 'wp-loupe')
+			)
+		]);
+
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_sortable',
+			'title'   => __('Sortable', 'wp-loupe'),
+			'content' => sprintf(
+				'<h2>%s</h2><p>%s</p><ul><li>%s</li><li>%s</li></ul>',
+				__('Sortable Fields', 'wp-loupe'),
+				__('Sortable fields can be used to order search results:', 'wp-loupe'),
+				__('Enable this option to allow sorting search results by this field\'s values', 'wp-loupe'),
+				__('Useful for dates, prices, or other numerical values that make sense to sort by', 'wp-loupe')
+			)
+		]);
+
+		$screen->set_help_sidebar(
+			sprintf(
+				'<p><strong>%s</strong></p><p>%s</p>',
+				__('For more information:', 'wp-loupe'),
+				sprintf(
+					'<a href="%s" target="_blank">%s</a>',
+					'https://github.com/soderlind/wp-loupe',
+					__('WP Loupe Documentation', 'wp-loupe')
+				)
+			)
+		);
 	}
 }
 new WPLoupe_Settings_Page();

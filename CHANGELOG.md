@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2025-03-07
+
+### Added
+
+- Added new field settings management interface in the settings page
+	- Added ability to configure Weight, Filterable, and Sortable options per field
+- Added help tabs to explain field configuration options
+	- Added detailed explanations for Weight, Filterable, and Sortable fields
+	- Added help sidebar with documentation link
+
+
 ## [0.1.7] - 2025-03-06
 
 ### Changed
@@ -224,3 +235,4 @@ All notable changes to this project will be documented in this file.
 [0.1.5]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.5
 [0.1.6]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.6
 [0.1.7]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.7
+[0.2.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.0

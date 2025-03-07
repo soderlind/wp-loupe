@@ -4,7 +4,7 @@ Tags: search, loupe, posts, pages, custom post types, typo-tolerant, fast search
 Requires at least: 6.3
 Requires PHP: 8.1
 Tested up to: 6.7
-Stable tag: 0.1.7
+Stable tag: 0.2.0
 Donate link: https://paypal.me/PerSoderlind
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -105,6 +105,13 @@ For usage examples, see the plugin's README.md file.
 
 == Changelog ==
 
+= 0.2.0 =
+* Added new field settings management interface in the settings page
+	* Added ability to configure Weight, Filterable, and Sortable options per field
+* Added help tabs to explain field configuration options
+	* Added detailed explanations for Weight, Filterable, and Sortable fields
+	* Added help sidebar with documentation link
+
 = 0.1.7 =
 * Refactored code: Replaced WP_Loupe_Shared trait with WP_Loupe_Factory class
 * Improved code organization and maintainability
@@ -117,7 +124,6 @@ For usage examples, see the plugin's README.md file.
 * Fixed: GitHub API authentication errors in updater class
 * Fixed: Added proper token-based authentication for GitHub API requests
 * Fixed: Resolved 403 errors when checking for plugin updates
-
 
 = 0.1.4 =
 * Fixed issue with plugin update notification not showing in some cases
