@@ -29,16 +29,18 @@ class WP_Loupe_Schema_Manager {
             $schema = $this->get_default_schema();
             $saved_fields = get_option('wp_loupe_fields', []);
             
-            // Override with post type specific settings
+            // Override or add post type specific settings, but only for fields marked as indexable
             if (isset($saved_fields[$post_type])) {
                 foreach ($saved_fields[$post_type] as $field_key => $settings) {
-                    $schema[$field_key] = [
-                        'weight' => (float)($settings['weight'] ?? 1.0),
-                        'indexable' => !empty($settings['indexable']),
-                        'filterable' => !empty($settings['filterable']),
-                        'sortable' => !empty($settings['sortable']),
-                        'sort_direction' => $settings['sort_direction'] ?? 'desc'
-                    ];
+                    if (!empty($settings['indexable'])) {
+                        $schema[$field_key] = [
+                            'weight' => (float)($settings['weight'] ?? 1.0),
+                            'indexable' => true,
+                            'filterable' => !empty($settings['filterable']),
+                            'sortable' => !empty($settings['sortable']),
+                            'sort_direction' => $settings['sort_direction'] ?? 'desc'
+                        ];
+                    }
                 }
             }
             
@@ -89,10 +91,10 @@ class WP_Loupe_Schema_Manager {
 	private function get_default_schema(): array {
         $schema = [];
         
-        // Default fields are controlled by saved settings
+        // Core fields will only be added if they are in saved settings
         $saved_fields = get_option('wp_loupe_fields', []);
         
-        // Core fields will be added based on saved settings
+        // Core fields that can be configured
         $core_fields = [
             'post_title',
             'post_content',
@@ -102,12 +104,12 @@ class WP_Loupe_Schema_Manager {
         ];
         
         foreach ($core_fields as $field) {
-            if (isset($saved_fields[$field])) {
+            if (isset($saved_fields[$field]) && !empty($saved_fields[$field]['indexable'])) {
                 $schema[$field] = $saved_fields[$field];
-            } else {
-                // Default settings if not saved
+            } elseif ($field === 'post_date') {
+                // Special case: post_date is always included with default settings
                 $schema[$field] = [
-                    'weight' => ($field === 'post_title') ? 2.0 : 1.0,
+                    'weight' => 1.0,
                     'indexable' => true,
                     'filterable' => true,
                     'sortable' => true,
@@ -155,31 +157,36 @@ class WP_Loupe_Schema_Manager {
 	 * @return mixed The processed field.
 	 */
 	private function process_field( string $field, array $settings, string $type ) {
-		// Special handling for taxonomy fields
-		if ($this->is_taxonomy_field($field)) {
-			$taxonomy = $this->get_taxonomy_name($field);
-			if (!taxonomy_exists($taxonomy)) {
-				return null;
-			}
-		}
+        // Special handling for taxonomy fields
+        if ($this->is_taxonomy_field($field)) {
+            $taxonomy = $this->get_taxonomy_name($field);
+            if (!taxonomy_exists($taxonomy)) {
+                return null;
+            }
+        }
 
-		switch ( $type ) {
-			case 'indexable':
-				return [ 
-					'field'  => $field,
-					'weight' => $settings[ 'weight' ] ?? self::$default_weight
-				];
-			case 'filterable':
-				return ( $settings[ 'filterable' ] ?? false ) ? $field : null;
-			case 'sortable':
-				return isset( $settings[ 'sortable' ] ) ? [ 
-					'field'     => $field,
-					'direction' => $settings[ 'sortable' ][ 'direction' ] ?? self::$default_direction
-				] : null;
-			default:
-				return null;
-		}
-	}
+        // First check if the field is indexable at all
+        if (!($settings['indexable'] ?? false)) {
+            return null;
+        }
+
+        switch ( $type ) {
+            case 'indexable':
+                return [ 
+                    'field'  => $field,
+                    'weight' => $settings['weight'] ?? self::$default_weight
+                ];
+            case 'filterable':
+                return ($settings['filterable'] ?? false) ? $field : null;
+            case 'sortable':
+                return isset($settings['sortable']) ? [ 
+                    'field'     => $field,
+                    'direction' => $settings['sortable']['direction'] ?? self::$default_direction
+                ] : null;
+            default:
+                return null;
+        }
+    }
 
 	/**
 	 * Retrieves the custom field settings for a specific post type.

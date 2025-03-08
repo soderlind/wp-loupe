@@ -281,33 +281,36 @@ class WPLoupe_Settings_Page {
 	}
 
 	public function sanitize_fields_settings($input) {
-		if (!is_array($input)) {
-			return [];
-		}
+        if (!is_array($input)) {
+            return [];
+        }
 
-		$sanitized = [];
-		foreach ($input as $post_type => $fields) {
-			if (!is_array($fields)) continue;
+        $sanitized = [];
+        foreach ($input as $post_type => $fields) {
+            if (!is_array($fields)) continue;
 
-			foreach ($fields as $field_key => $settings) {
-				$sanitized[$post_type][$field_key] = [
-					 'indexable' => !empty($settings['indexable']),
-					'weight' => isset($settings['weight']) ? 
-						floatval($settings['weight']) : 1.0,
-					'filterable' => !empty($settings['filterable']),
-					'sortable' => !empty($settings['sortable']),
-					'sort_direction' => isset($settings['sort_direction']) && 
-						in_array($settings['sort_direction'], ['asc', 'desc']) ? 
-						$settings['sort_direction'] : 'desc'
-				];
-			}
-		}
+            foreach ($fields as $field_key => $settings) {
+                // Only include the field if it's explicitly marked as indexable
+                if (!empty($settings['indexable'])) {
+                    $sanitized[$post_type][$field_key] = [
+                        'indexable' => true,
+                        'weight' => isset($settings['weight']) ? 
+                            floatval($settings['weight']) : 1.0,
+                        'filterable' => !empty($settings['filterable']),
+                        'sortable' => !empty($settings['sortable']),
+                        'sort_direction' => isset($settings['sort_direction']) && 
+                            in_array($settings['sort_direction'], ['asc', 'desc']) ? 
+                            $settings['sort_direction'] : 'desc'
+                    ];
+                }
+            }
+        }
 
-		// Clear schema cache when settings are updated
-		WP_Loupe_Schema_Manager::get_instance()->clear_cache();
-		
-		return $sanitized;
-	}
+        // Clear schema cache when settings are updated
+        WP_Loupe_Schema_Manager::get_instance()->clear_cache();
+        
+        return $sanitized;
+    }
 
 	/**
 	 * Enqueue Select2.

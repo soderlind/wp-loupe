@@ -4,7 +4,7 @@ Tags: search, loupe, posts, pages, custom post types, typo-tolerant, fast search
 Requires at least: 6.3
 Requires PHP: 8.1
 Tested up to: 6.7
-Stable tag: 0.2.1
+Stable tag: 0.2.2
 Donate link: https://paypal.me/PerSoderlind
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -104,6 +104,11 @@ Default: Removes HTML comments
 For usage examples, see the plugin's README.md file.
 
 == Changelog ==
+
+= 0.2.2 =
+* Changed: Modified field indexing to only include explicitly selected fields in settings
+* Changed: Updated schema manager to respect indexable field settings
+* Changed: Improved field selection behavior in admin interface
 
 = 0.2.1 =
 * Added translation support for admin interface
