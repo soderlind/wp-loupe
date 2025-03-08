@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.2] - 2025-03-08
+
+### Changed
+
+- Modified field indexing to only include explicitly selected fields in settings
+- Updated schema manager to respect indexable field settings
+- Improved field selection behavior in admin interface
+
 ## [0.2.1] - 2025-03-07
 
 ### Added
@@ -244,3 +252,4 @@ All notable changes to this project will be documented in this file.
 [0.1.7]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.7
 [0.2.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.0
 [0.2.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.1
+[0.2.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.2

@@ -34,29 +34,28 @@ class WP_Loupe_Factory {
 
 		// Process all fields in a single loop instead of multiple calls
 		foreach ( $schema as $field_name => $settings ) {
-			if ( ! is_array( $settings ) ) {
+			// Skip fields not marked as indexable
+			if ( ! is_array( $settings ) || empty( $settings['indexable'] ) ) {
 				continue;
 			}
 
 			 // Remove table aliases from field name (e.g., "d.post_title" becomes "post_title")
 			$clean_field_name = preg_replace('/^[a-zA-Z]+\./', '', $field_name);
 
-			// Handle indexable fields with weights
-			if ( isset( $settings[ 'weight' ] ) ) {
-				$fields[ 'indexable' ][] = [ 
-					'field'  => $clean_field_name,
-					'weight' => $settings[ 'weight' ],
-				];
+			 // Add to indexable fields with weight
+			$fields['indexable'][] = [ 
+				'field'  => $clean_field_name,
+				'weight' => $settings['weight'] ?? 1.0,
+			];
+
+			 // Add to filterable if explicitly set
+			if ( ! empty( $settings['filterable'] ) ) {
+				$fields['filterable'][] = $clean_field_name;
 			}
 
-			// Handle filterable fields
-			if ( ! empty( $settings[ 'filterable' ] ) ) {
-				$fields[ 'filterable' ][] = $clean_field_name;
-			}
-
-			// Handle sortable fields
-			if ( ! empty( $settings[ 'sortable' ] ) ) {
-				$fields[ 'sortable' ][] = $clean_field_name;
+			 // Add to sortable if explicitly set
+			if ( ! empty( $settings['sortable'] ) ) {
+				$fields['sortable'][] = $clean_field_name;
 			}
 		}
 
@@ -65,6 +64,9 @@ class WP_Loupe_Factory {
 			usort( $fields[ 'indexable' ], fn( $a, $b ) => $b[ 'weight' ] <=> $a[ 'weight' ] );
 			$fields[ 'indexable' ] = array_column( $fields[ 'indexable' ], 'field' );
 		}
+
+		// Note: We maintain this dump for debugging purposes
+		WP_Loupe_Utils::dump( [ 'post type' => $post_type, 'fields' =>	 $fields ] );
 
 		$configuration = Configuration::create()
 				->withPrimaryKey( 'id' )
