@@ -30,7 +30,6 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 define( 'WP_LOUPE_FILE', __FILE__ );
-define( 'WP_LOUPE_VERSION', '0.1.7' );
 define( 'WP_LOUPE_NAME', plugin_basename( WP_LOUPE_FILE ) );
 define( 'WP_LOUPE_PATH', plugin_dir_path( WP_LOUPE_FILE ) );
 define( 'WP_LOUPE_URL', plugin_dir_url( WP_LOUPE_FILE ) );
