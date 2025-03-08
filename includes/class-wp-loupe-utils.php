@@ -95,6 +95,18 @@ class WP_Loupe_Utils {
 		}
 	}
 
+	// return version number based upon plugin file version
+	/**
+	 * Get version number based upon plugin version
+	 *
+	 * @since 0.0.1
+	 * @return string Version number
+	 */
+	public static function get_version_number() {
+		$plugin_data = get_plugin_data( WP_LOUPE_FILE );
+		$version     = $plugin_data[ 'Version' ];
+		return $version;
+	}
 
 	/**
 	 * Remove transients from the database

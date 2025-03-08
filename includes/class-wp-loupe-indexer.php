@@ -29,8 +29,8 @@ class WP_Loupe_Indexer {
 
         $this->db = WP_Loupe_DB::get_instance();
         $this->schema_manager = new WP_Loupe_Schema_Manager();
-        $this->init();
         $this->register_hooks();
+        $this->init();
     }
 
 	/**
@@ -44,6 +44,7 @@ class WP_Loupe_Indexer {
 		}
 		add_action( 'wp_trash_post', array( $this, 'trash_post' ), 10, 2 );
 		add_action( 'admin_init', array( $this, 'handle_reindex' ) );
+		add_filter( 'wp_loupe_field_post_content', 'wp_strip_all_tags' );
 	}
 
 	/**
@@ -274,7 +275,7 @@ class WP_Loupe_Indexer {
             }
 
             if ( property_exists( $post, $field_name ) ) {
-                $document[ $field_name ] = $post->{$field_name};
+				$document[ $field_name ] = apply_filters( "wp_loupe_field_{$field_name}", $post->{$field_name} );
             } elseif ( strpos( $field_name, 'taxonomy_' ) === 0 ) {
                 $taxonomy = substr( $field_name, 9 );
                 $terms    = wp_get_post_terms( $post->ID, $taxonomy, array( 'fields' => 'names' ) );

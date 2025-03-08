@@ -453,4 +453,3 @@ class WPLoupe_Settings_Page {
 		);
 	}
 }
-new WPLoupe_Settings_Page();

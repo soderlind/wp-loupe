@@ -129,16 +129,14 @@ This filter allows you to index posts and pages that are protected by a password
 add_filter( 'wp_loupe_index_protected','__return_true' );
 ```
 
-### `wp_loupe_schema_content`
+### `wp_loupe_field_{$field_name}`
 
-This filter allows you to modify the content before it's indexed. By default, removes HTML comments from content (i.e. remove WordPress block comments).
+This filter allows you to change the field content before it is indexed. 
+
+By default, the following is used to remove HTML tags and comments from `post_content`. Among others, it removes the WordPress block comments.
 
 ```php
-add_filter('wp_loupe_schema_content', function($content) {
-	// Modify content before indexing
-	$content = preg_replace('/<!--(.*?)-->/s', '', $content);
-	return $content;
-});
+add_filter( 'wp_loupe_field_post_content', 'wp_strip_all_tags' );
 ```
 
 ### `wp_loupe_schema_{$post_type}`

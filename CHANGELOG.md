@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3] - 2025-03-09
+
+### Changed
+
+- Enhanced field indexing to strictly respect settings configuration
+- Improved schema manager to only include explicitly selected fields
+- Refined factory class to ensure proper field filtering from settings
+- Added filter `wp_loupe_field_{$field_name}` to allow field modification.
+
 ## [0.2.2] - 2025-03-08
 
 ### Changed
@@ -253,3 +262,4 @@ All notable changes to this project will be documented in this file.
 [0.2.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.0
 [0.2.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.1
 [0.2.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.2
+[0.2.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.3
