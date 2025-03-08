@@ -29,16 +29,18 @@ class WP_Loupe_Schema_Manager {
             $schema = $this->get_default_schema();
             $saved_fields = get_option('wp_loupe_fields', []);
             
-            // Override with post type specific settings
+            // Override or add post type specific settings, but only for fields marked as indexable
             if (isset($saved_fields[$post_type])) {
                 foreach ($saved_fields[$post_type] as $field_key => $settings) {
-                    $schema[$field_key] = [
-                        'weight' => (float)($settings['weight'] ?? 1.0),
-                        'indexable' => !empty($settings['indexable']),
-                        'filterable' => !empty($settings['filterable']),
-                        'sortable' => !empty($settings['sortable']),
-                        'sort_direction' => $settings['sort_direction'] ?? 'desc'
-                    ];
+                    if (!empty($settings['indexable'])) {
+                        $schema[$field_key] = [
+                            'weight' => (float)($settings['weight'] ?? 1.0),
+                            'indexable' => true,
+                            'filterable' => !empty($settings['filterable']),
+                            'sortable' => !empty($settings['sortable']),
+                            'sort_direction' => $settings['sort_direction'] ?? 'desc'
+                        ];
+                    }
                 }
             }
             
@@ -89,10 +91,10 @@ class WP_Loupe_Schema_Manager {
 	private function get_default_schema(): array {
         $schema = [];
         
-        // Default fields are controlled by saved settings
+        // Core fields will only be added if they are in saved settings
         $saved_fields = get_option('wp_loupe_fields', []);
         
-        // Core fields will be added based on saved settings
+        // Core fields that can be configured
         $core_fields = [
             'post_title',
             'post_content',
@@ -102,15 +104,15 @@ class WP_Loupe_Schema_Manager {
         ];
         
         foreach ($core_fields as $field) {
-            if (isset($saved_fields[$field])) {
+            if (isset($saved_fields[$field]) && !empty($saved_fields[$field]['indexable'])) {
                 $schema[$field] = $saved_fields[$field];
-            } else {
-                // Default settings if not saved - only post_title and post_content indexable by default
+            } elseif ($field === 'post_date') {
+                // Special case: post_date is always included with default settings
                 $schema[$field] = [
-                    'weight' => ($field === 'post_title') ? 2.0 : 1.0,
-                    'indexable' => in_array($field, ['post_title', 'post_content']),
-                    'filterable' => in_array($field, ['post_date', 'post_author']),
-                    'sortable' => in_array($field, ['post_date']),
+                    'weight' => 1.0,
+                    'indexable' => true,
+                    'filterable' => true,
+                    'sortable' => true,
                     'sort_direction' => 'desc'
                 ];
             }
