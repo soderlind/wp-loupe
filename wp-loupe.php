@@ -10,7 +10,7 @@
  * Plugin Name:       WP Loupe
  * Plugin URI:        https://github.com/soderlind/wp-loupe
  * Description:       Enhance the search functionality of your WordPress site with WP Loupe.
- * Version:           0.2.2
+ * Version:           0.2.3
  * Author:            Per Soderlind
  * Author URI:        https://soderlind.no
  * License:           GPL-2.0+
@@ -30,7 +30,6 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 define( 'WP_LOUPE_FILE', __FILE__ );
-define( 'WP_LOUPE_VERSION', '0.1.7' );
 define( 'WP_LOUPE_NAME', plugin_basename( WP_LOUPE_FILE ) );
 define( 'WP_LOUPE_PATH', plugin_dir_path( WP_LOUPE_FILE ) );
 define( 'WP_LOUPE_URL', plugin_dir_url( WP_LOUPE_FILE ) );
@@ -41,6 +40,21 @@ require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-loader.php';
  * Initialize plugin
  */
 function init() {
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+	// 	return;
+	// }
+	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		return;
+	}
+	// don't run the setup on heartbeat requests
+	if ( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_SERVER['HTTP_X_WP_NONCE'] ) ) {
+		return;
+	}
+
 	WP_Loupe_Loader::get_instance();
 	if ( ! WP_Loupe_Utils::has_sqlite() ) {
 		return;

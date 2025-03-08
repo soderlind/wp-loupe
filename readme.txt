@@ -4,7 +4,7 @@ Tags: search, loupe, posts, pages, custom post types, typo-tolerant, fast search
 Requires at least: 6.3
 Requires PHP: 8.1
 Tested up to: 6.7
-Stable tag: 0.2.2
+Stable tag: 0.2.3
 Donate link: https://paypal.me/PerSoderlind
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -85,10 +85,6 @@ Default: WP_CONTENT_DIR . '/wp-loupe-db'
 Modifies which post types are included in search.
 Default: ['post', 'page']
 
-= wp_loupe_filterable_attribute_{$post_type} =
-Customizes searchable attributes per post type.
-Default: ['post_title', 'post_date', 'post_content']
-
 = wp_loupe_posts_per_page =
 Controls search results per page.
 Default: WordPress "Blog pages show at most" setting
@@ -97,13 +93,22 @@ Default: WordPress "Blog pages show at most" setting
 Controls indexing of password-protected posts.
 Default: false
 
-= wp_loupe_schema_content =
-Modifies content before indexing.
-Default: Removes HTML comments
+= wp_loupe_field_{$field_name} =
+Modifies a field before indexing.
+Default: Removes HTML comments from `post_content`
 
-For usage examples, see the plugin's README.md file.
+= wp_loupe_schema_{$post_type} =
+Customizes the schema for a post type.
+
+For usage examples, see the [filter documentation at GitHub](https://github.com/soderlind/wp-loupe?tab=readme-ov-file#filters).
 
 == Changelog ==
+
+= 0.2.3 =
+* Enhanced field indexing to strictly respect settings configuration
+* Improved schema manager to only include explicitly selected fields
+* Refined factory class to ensure proper field filtering from settings
+* Added filter `wp_loupe_field_{$field_name}` to allow field modification.
 
 = 0.2.2 =
 * Changed: Modified field indexing to only include explicitly selected fields in settings

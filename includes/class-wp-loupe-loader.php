@@ -61,7 +61,10 @@ class WP_Loupe_Loader {
 	 * @return void
 	 */
 	private function init_components() {
+		
 		new WP_Loupe_Updater();
+		new WPLoupe_Settings_Page();
+
 		$this->search  = new WP_Loupe_Search( $this->post_types );
 		$this->indexer = new WP_Loupe_Indexer( $this->post_types );
 	}

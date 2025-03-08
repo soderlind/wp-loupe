@@ -323,35 +323,36 @@ class WPLoupe_Settings_Page {
 			return;
 		}
 
+		$version = WP_Loupe_Utils::get_version_number();
+
 		// Register and enqueue Select2
 		wp_register_style(
 			'select2css',
 			WP_LOUPE_URL . 'lib/css/select2.min.css',
 			[],
-			'4.0.13'
+			$version
 		);
 
 		wp_register_script(
 			'select2',
 			WP_LOUPE_URL . 'lib/js/select2.min.js',
 			['jquery'],
-			'4.0.13',
+			$version,
 			true
 		);
-
 		// Register and enqueue admin assets
 		wp_register_style(
 			'wp-loupe-admin',
 			WP_LOUPE_URL . 'lib/css/admin.css',
 			['select2css'],
-			WP_LOUPE_VERSION
+			$version
 		);
 
 		wp_register_script(
 			'wp-loupe-admin',
 			WP_LOUPE_URL . 'lib/js/admin.js',
 			['jquery', 'select2', 'wp-api-fetch'],
-			WP_LOUPE_VERSION,
+			$version,
 			true
 		);
 
@@ -453,4 +454,3 @@ class WPLoupe_Settings_Page {
 		);
 	}
 }
-new WPLoupe_Settings_Page();
