@@ -96,61 +96,64 @@ class WPLoupe_Settings_Page {
     }
 
     private function get_post_type_meta_keys_with_values($post_type) {
+        $meta_keys = $this->get_filtered_meta_keys($post_type);
+        return array_fill_keys($meta_keys, true);
+    }
+
+    private function get_post_type_meta_keys($post_type) {
+        return $this->get_filtered_meta_keys($post_type);
+    }
+
+    /**
+     * Get filtered meta keys for a post type, removing system and protected meta
+     *
+     * @param string $post_type Post type to get meta keys for
+     * @return array Filtered meta keys
+     */
+    private function get_filtered_meta_keys($post_type) {
         global $wpdb;
+        static $cache = array();
         
-        // Get all meta keys regardless of value
+        // Check cache first
+        $cache_key = 'wp_loupe_meta_keys_' . $post_type;
+        if (isset($cache[$cache_key])) {
+            return $cache[$cache_key];
+        }
+
+        // Get all meta keys in a single query
         $query = $wpdb->prepare(
-            "SELECT DISTINCT pm.meta_key
-             FROM {$wpdb->postmeta} pm
-             JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-             WHERE p.post_type = %s
-                AND pm.meta_key NOT REGEXP '^_oembed|^_wp'
-                AND pm.meta_key NOT IN ('_edit_last', '_edit_lock', '_thumbnail_id', '_wp_old_slug', '_wp_page_template')
-             ORDER BY pm.meta_key",
+            "SELECT DISTINCT meta_key 
+            FROM $wpdb->postmeta pm 
+            JOIN $wpdb->posts p ON p.ID = pm.post_id 
+            WHERE p.post_type = %s 
+            AND pm.meta_key NOT LIKE '\_%'",
             $post_type
         );
+
+        $meta_keys = $wpdb->get_col($query);
         
-        $results = $wpdb->get_col($query);
-        $meta_keys = [];
+        // Remove system meta keys and make unique
+        $filtered_keys = array_unique(array_filter($meta_keys, function($key) {
+            return !is_protected_meta($key, 'post') 
+                && !preg_match('/^_oembed|^_wp/', $key)
+                && !in_array($key, [
+                    '_edit_last',
+                    '_edit_lock',
+                    '_thumbnail_id',
+                    '_wp_old_slug',
+                    '_wp_page_template'
+                ]);
+        }));
         
-        foreach ($results as $meta_key) {
-            if (!is_protected_meta($meta_key, 'post')) {
-                $meta_keys[$meta_key] = true;
-            }
-        }
+        sort($filtered_keys);
+        $cache[$cache_key] = $filtered_keys;
         
-        return $meta_keys;
+        return $filtered_keys;
     }
 
 	private function prettify_meta_key($key) {
         return ucwords(str_replace(['_', '-'], ' ', $key));
     }
-
-	private function get_post_type_meta_keys($post_type) {
-		global $wpdb;
-		
-		// Get both hidden and visible meta keys
-        $query = $wpdb->prepare("
-            SELECT DISTINCT pm.meta_key
-            FROM {$wpdb->postmeta} pm
-            JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-            WHERE p.post_type = %s
-            AND pm.meta_key NOT REGEXP '^_oembed|^_wp'
-        ", $post_type);
-        
-        $meta_keys = $wpdb->get_col($query);
-        
-        // Filter out system meta keys
-        return array_filter($meta_keys, function($key) {
-            return !in_array($key, [
-                '_edit_last',
-                '_edit_lock',
-                '_thumbnail_id',
-                '_wp_old_slug',
-                '_wp_page_template'
-            ]);
-        });
-	}
 
 	/**
 	 * Create the settings page.

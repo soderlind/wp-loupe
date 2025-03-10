@@ -15,22 +15,49 @@ use Loupe\Loupe\SearchParameters;
  */
 class WP_Loupe_Indexer {
 
-	private $post_types;
-	private $loupe = [];
-	private $db;
-	private $schema_manager;
+    private $post_types;
+    private $loupe = [];
+    private $db;
+    private $schema_manager;
+    private $iso6391_lang;
 
-	public function __construct( $post_types ) {
-        // Get currently selected post types from settings
-        $options = get_option('wp_loupe_custom_post_types', []);
-        $this->post_types = !empty($options) && isset($options['wp_loupe_post_type_field']) 
-            ? (array)$options['wp_loupe_post_type_field']
-            : ['post', 'page']; // Default to post and page if no selection
-
+    public function __construct($post_types = null) {
         $this->db = WP_Loupe_DB::get_instance();
         $this->schema_manager = new WP_Loupe_Schema_Manager();
+        $this->iso6391_lang = ('' === get_locale()) ? 'en' : strtolower(substr(get_locale(), 0, 2));
+        
+        $this->set_post_types($post_types);
         $this->register_hooks();
-        $this->init();
+        $this->init_loupe_instances();
+    }
+
+    /**
+     * Set post types from settings or provided array
+     *
+     * @param array|null $post_types Optional post types array
+     */
+    private function set_post_types($post_types = null) {
+        if ($post_types === null) {
+            $options = get_option('wp_loupe_custom_post_types', []);
+            $this->post_types = !empty($options) && isset($options['wp_loupe_post_type_field']) 
+                ? (array)$options['wp_loupe_post_type_field']
+                : ['post', 'page'];
+        } else {
+            $this->post_types = (array)$post_types;
+        }
+    }
+
+    /**
+     * Initialize Loupe instances for selected post types
+     */
+    private function init_loupe_instances() {
+        foreach ($this->post_types as $post_type) {
+            $this->loupe[$post_type] = WP_Loupe_Factory::create_loupe_instance(
+                $post_type, 
+                $this->iso6391_lang, 
+                $this->db
+            );
+        }
     }
 
 	/**
@@ -46,18 +73,6 @@ class WP_Loupe_Indexer {
 		add_action( 'admin_init', array( $this, 'handle_reindex' ) );
 		add_filter( 'wp_loupe_field_post_content', 'wp_strip_all_tags' );
 	}
-
-	/**
-	 * Initialize the Loupe instances for each post type
-	 *
-	 * @return void
-	 */
-	public function init() {
-        $iso6391_lang = ('' === get_locale()) ? 'en' : strtolower(substr(get_locale(), 0, 2));
-        foreach ($this->post_types as $post_type) {
-            $this->loupe[$post_type] = WP_Loupe_Factory::create_loupe_instance($post_type, $iso6391_lang, $this->db);
-        }
-    }
 
 	/**
 	 * Add post to the loupe index
@@ -137,8 +152,10 @@ class WP_Loupe_Indexer {
 			'update' === $_POST[ 'action' ] && 'on' === $_POST[ 'wp_loupe_reindex' ] &&
 			wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ 'wp_loupe_nonce_field' ] ) ), 'wp_loupe_nonce_action' )
 		) {
-			add_settings_error( 'wp-loupe', 'wp-loupe-reindex', __( 'Reindexing completed successfully!', 'wp-loupe' ), 'updated' );
+			WP_Loupe_Utils::dump( $_POST);
 			$this->reindex_all();
+			// add_settings_error( 'wp-loupe', 'wp-loupe-reindex', __( 'Reindexing completed successfully!', 'wp-loupe' ), 'updated' );
+
 		}
 	}
 
@@ -148,24 +165,21 @@ class WP_Loupe_Indexer {
 	 * @return void
 	 */
 	public function reindex_all() {
+        // First, clear the search cache
+        WP_Loupe_Utils::remove_transient('wp_loupe_search_');
+        
+        // Delete existing indices
         $this->delete_index();
-        WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
         
-        // Get currently selected post types from settings
-        $options = get_option('wp_loupe_custom_post_types', []);
-        $selected_post_types = !empty($options) && isset($options['wp_loupe_post_type_field']) 
-            ? (array)$options['wp_loupe_post_type_field']
-            : ['post', 'page']; // Default to post and page if no selection
+        // Refresh post types from settings
+        $this->set_post_types();
         
-        // Re-initialize Loupe instances only for selected post types
-        $iso6391_lang = ('' === get_locale()) ? 'en' : strtolower(substr(get_locale(), 0, 2));
-        foreach ($selected_post_types as $post_type) {
-            $this->loupe[$post_type] = WP_Loupe_Factory::create_loupe_instance($post_type, $iso6391_lang, $this->db);
-        }
+        // After deleting the index, we need to recreate the Loupe instances
+        $this->init_loupe_instances();
 
-        // Only reindex selected post types
-        foreach ($selected_post_types as $post_type) {
-            $posts = \get_posts([
+        // Now process each post type and index its content
+        foreach ($this->post_types as $post_type) {
+            $posts = get_posts([
                 'post_type' => $post_type,
                 'posts_per_page' => -1,
                 'post_status' => 'publish',
@@ -188,23 +202,29 @@ class WP_Loupe_Indexer {
 	 * @return void
 	 */
 	private function delete_index() {
-		// Include the base filesystem class from WordPress core.
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+        global $wpdb;
 
-		// Include the direct filesystem class from WordPress core.
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+        // Clear schema cache
+        $this->schema_manager->clear_cache();
+        
+        // Clear the Loupe instance cache
+        WP_Loupe_Factory::clear_instance_cache();
 
-		// Create a new instance of the direct filesystem class.
-		$file_system_direct = new \WP_Filesystem_Direct( false );
+        // Include the base filesystem class from WordPress core if not already included
+        if (!class_exists('WP_Filesystem_Direct')) {
+            require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+            require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+        }
 
-		// Apply filter to get cache path, default is 'WP_CONTENT_DIR/cache/a-faster-load-textdomain'.
-		$cache_path = apply_filters( 'wp_loupe_db_path', WP_CONTENT_DIR . '/wp-loupe-db' );
+        $file_system_direct = new \WP_Filesystem_Direct(false);
+        $cache_path = apply_filters('wp_loupe_db_path', WP_CONTENT_DIR . '/wp-loupe-db');
 
-		// If the cache directory exists, remove it and its contents.
-		if ( $file_system_direct->is_dir( $cache_path ) ) {
-			$file_system_direct->rmdir( $cache_path, true );
-		}
-	}
+        if ($file_system_direct->is_dir($cache_path)) {
+            $file_system_direct->rmdir($cache_path, true);
+        }
+
+        $this->loupe = [];
+    }
 
 	/**
 	 * Check if the post should be indexed.
@@ -258,34 +278,35 @@ class WP_Loupe_Indexer {
 	 * @return array
 	 */
 	private function prepare_document( \WP_Post $post ): array {
-        $schema           = $this->schema_manager->get_schema_for_post_type( $post->post_type );
-        $indexable_fields = $this->schema_manager->get_indexable_fields( $schema );
+        $schema = $this->schema_manager->get_schema_for_post_type($post->post_type);
+        $indexable_fields = $this->schema_manager->get_indexable_fields($schema);
+        $saved_fields = get_option('wp_loupe_fields', []);
 
-        $document = [ 'id' => $post->ID, 'post_type' => $post->post_type ];
+        $document = ['id' => $post->ID, 'post_type' => $post->post_type];
 
-        foreach ( $indexable_fields as $field ) {
-            // Remove any table aliases from field name (e.g., 'd.post_title' becomes 'post_title')
-            $field_name = str_contains($field['field'], '.') ? substr($field['field'], strpos($field['field'], '.') + 1) : $field['field'];
+        foreach ($indexable_fields as $field) {
+            $field_name = str_contains($field['field'], '.') 
+                ? substr($field['field'], strpos($field['field'], '.') + 1) 
+                : $field['field'];
 
-            // Skip if this field isn't selected for indexing in the settings
-            $saved_fields = get_option('wp_loupe_fields', []);
+            // Skip if field isn't selected for indexing
             if (isset($saved_fields[$post->post_type][$field_name]) && 
                 !$saved_fields[$post->post_type][$field_name]['indexable']) {
                 continue;
             }
 
-            if ( property_exists( $post, $field_name ) ) {
-				$document[ $field_name ] = apply_filters( "wp_loupe_field_{$field_name}", $post->{$field_name} );
-            } elseif ( strpos( $field_name, 'taxonomy_' ) === 0 ) {
-                $taxonomy = substr( $field_name, 9 );
-                $terms    = wp_get_post_terms( $post->ID, $taxonomy, array( 'fields' => 'names' ) );
-                if ( ! is_wp_error( $terms ) ) {
-                    $document[ $field_name ] = implode( ' ', $terms );
+            if (property_exists($post, $field_name)) {
+                $document[$field_name] = apply_filters("wp_loupe_field_{$field_name}", $post->{$field_name});
+            } elseif (strpos($field_name, 'taxonomy_') === 0) {
+                $taxonomy = substr($field_name, 9);
+                $terms = wp_get_post_terms($post->ID, $taxonomy, ['fields' => 'names']);
+                if (!is_wp_error($terms)) {
+                    $document[$field_name] = implode(' ', $terms);
                 }
             } else {
-                $meta_value = get_post_meta( $post->ID, $field_name, true );
-                if ( ! empty( $meta_value ) ) {
-                    $document[ $field_name ] = $meta_value;
+                $meta_value = get_post_meta($post->ID, $field_name, true);
+                if (!empty($meta_value)) {
+                    $document[$field_name] = $meta_value;
                 }
             }
         }
