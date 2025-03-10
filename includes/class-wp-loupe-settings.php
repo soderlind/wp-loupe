@@ -397,7 +397,7 @@ class WPLoupe_Settings_Page {
                 }
             }
         }
-        
+        WP_Loupe_Utils::dump($enhanced_fields);
         return $enhanced_fields;
     }
 

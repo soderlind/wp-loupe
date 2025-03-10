@@ -27,8 +27,8 @@ class WP_Loupe_Indexer {
         $this->iso6391_lang = ('' === get_locale()) ? 'en' : strtolower(substr(get_locale(), 0, 2));
         
         $this->set_post_types($post_types);
-        $this->register_hooks();
         $this->init_loupe_instances();
+        $this->register_hooks();
     }
 
     /**
@@ -154,7 +154,7 @@ class WP_Loupe_Indexer {
 		) {
 			WP_Loupe_Utils::dump( $_POST);
 			$this->reindex_all();
-			// add_settings_error( 'wp-loupe', 'wp-loupe-reindex', __( 'Reindexing completed successfully!', 'wp-loupe' ), 'updated' );
+			add_settings_error( 'wp-loupe', 'wp-loupe-reindex', __( 'Reindexing completed successfully!', 'wp-loupe' ), 'updated' );
 
 		}
 	}
@@ -167,6 +167,9 @@ class WP_Loupe_Indexer {
 	public function reindex_all() {
         // First, clear the search cache
         WP_Loupe_Utils::remove_transient('wp_loupe_search_');
+        
+        // Save settings before starting the indexing process
+        $this->save_settings();
         
         // Delete existing indices
         $this->delete_index();
@@ -194,6 +197,102 @@ class WP_Loupe_Indexer {
                 $this->loupe[$post_type]->addDocuments($documents);
             }
         }
+    }
+
+    /**
+	 * Save settings before reindexing
+	 *
+	 * @return void
+	 */
+	private function save_settings() {
+        // Ensure the wp_loupe_fields option is properly saved before indexing
+        $saved_fields = get_option('wp_loupe_fields', []);
+        
+        // If no fields are configured yet, create default field configuration for each post type
+        if (empty($saved_fields)) {
+            $default_fields = [];
+            
+            // Create default field settings for each post type
+            foreach ($this->post_types as $post_type) {
+                $default_fields[$post_type] = [
+                    'post_title' => [
+                        'indexable' => true,
+                        'weight' => 2.0,
+                        'filterable' => true,
+                        'sortable' => true,
+                        'sort_direction' => 'desc'
+                    ],
+                    'post_content' => [
+                        'indexable' => true,
+                        'weight' => 1.0,
+                        'filterable' => true,
+                        'sortable' => false
+                    ],
+                    'post_date' => [
+                        'indexable' => true,
+                        'weight' => 1.0,
+                        'filterable' => true,
+                        'sortable' => true,
+                        'sort_direction' => 'desc'
+                    ]
+                ];
+                
+                // Add taxonomy fields if available
+                $taxonomies = get_object_taxonomies($post_type, 'objects');
+                foreach ($taxonomies as $tax_name => $tax_obj) {
+                    if ($tax_obj->show_ui) {
+                        $default_fields[$post_type]['taxonomy_' . $tax_name] = [
+                            'indexable' => true,
+                            'weight' => 1.5,
+                            'filterable' => true,
+                            'sortable' => false
+                        ];
+                    }
+                }
+            }
+            
+            // Save the default fields configuration
+            update_option('wp_loupe_fields', $default_fields);
+        } else {
+            // Ensure all post types have field configurations
+            $updated = false;
+            
+            foreach ($this->post_types as $post_type) {
+                if (!isset($saved_fields[$post_type]) || empty($saved_fields[$post_type])) {
+                    $updated = true;
+                    $saved_fields[$post_type] = [
+                        'post_title' => [
+                            'indexable' => true,
+                            'weight' => 2.0,
+                            'filterable' => true,
+                            'sortable' => true,
+                            'sort_direction' => 'desc'
+                        ],
+                        'post_content' => [
+                            'indexable' => true,
+                            'weight' => 1.0,
+                            'filterable' => true,
+                            'sortable' => false
+                        ],
+                        'post_date' => [
+                            'indexable' => true,
+                            'weight' => 1.0,
+                            'filterable' => true,
+                            'sortable' => true,
+                            'sort_direction' => 'desc'
+                        ]
+                    ];
+                }
+            }
+            
+            // Only update if we added new post types
+            if ($updated) {
+                update_option('wp_loupe_fields', $saved_fields);
+            }
+        }
+        
+        // Clear schema cache to ensure new settings are used
+        $this->schema_manager->clear_cache();
     }
 
 	/**
@@ -295,23 +394,96 @@ class WP_Loupe_Indexer {
                 continue;
             }
 
+            // Get the field value from the appropriate source
+            $field_value = null;
+            
             if (property_exists($post, $field_name)) {
-                $document[$field_name] = apply_filters("wp_loupe_field_{$field_name}", $post->{$field_name});
+                $field_value = apply_filters("wp_loupe_field_{$field_name}", $post->{$field_name});
             } elseif (strpos($field_name, 'taxonomy_') === 0) {
                 $taxonomy = substr($field_name, 9);
                 $terms = wp_get_post_terms($post->ID, $taxonomy, ['fields' => 'names']);
-                if (!is_wp_error($terms)) {
-                    $document[$field_name] = implode(' ', $terms);
+                if (!is_wp_error($terms) && !empty($terms)) {
+                    // For taxonomies, we can store as array of strings
+                    $field_value = $terms;
                 }
             } else {
                 $meta_value = get_post_meta($post->ID, $field_name, true);
                 if (!empty($meta_value)) {
-                    $document[$field_name] = $meta_value;
+                    $field_value = $meta_value;
                 }
+            }
+            
+            // Validate and sanitize the field value
+            if ($field_value !== null) {
+                $field_value = $this->sanitize_field_value($field_value);
+            }
+            
+            // Only add non-null values to the document
+            if ($field_value !== null) {
+                $document[$field_name] = $field_value;
             }
         }
 
         return $document;
+    }
+    
+    /**
+     * Sanitize field value for Loupe indexing
+     * Loupe supports: number, string, array of strings
+     * Empty values must be set to null
+     * 
+     * @param mixed $value Value to sanitize
+     * @return mixed Sanitized value (null, number, string, array of strings)
+     */
+    private function sanitize_field_value($value) {
+        // Return null for empty values
+        if ($value === null || $value === '' || $value === [] || $value === false) {
+            return null;
+        }
+        
+        // Handle numbers
+        if (is_numeric($value)) {
+            return $value;
+        }
+        
+        // Handle strings
+        if (is_string($value)) {
+            $value = trim($value);
+            return !empty($value) ? $value : null;
+        }
+        
+        // Handle arrays
+        if (is_array($value)) {
+            $sanitized = [];
+            
+            foreach ($value as $item) {
+                // Handle arrays of strings
+                if (is_string($item)) {
+                    $item = trim($item);
+                    if (!empty($item)) {
+                        $sanitized[] = $item;
+                    }
+                }
+                // If it's not a string, we don't include it
+            }
+            
+            return !empty($sanitized) ? $sanitized : null;
+        }
+        
+        // Convert objects to strings if possible
+        if (is_object($value) && method_exists($value, '__toString')) {
+            $string_value = (string) $value;
+            return !empty($string_value) ? $string_value : null;
+        }
+        
+        // For other object types, try to convert to string
+        if (is_object($value)) {
+            $string_value = wp_strip_all_tags(strval($value));
+            return !empty($string_value) ? $string_value : null;
+        }
+        
+        // For all other types, return null
+        return null;
     }
 
 }

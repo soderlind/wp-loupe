@@ -1,3 +1,6 @@
+/* Admin Styles for WP Loupe */
+
+/* Field Tables */
 .wp-loupe-post-type-fields {
 	margin-bottom: 2em;
 }
@@ -7,22 +10,28 @@
 }
 
 .wp-loupe-fields-table {
+	width: 100%;
 	border-collapse: collapse;
 	margin-top: 0.5em;
 }
 
-.wp-loupe-fields-table th {
-	text-align: left;
+.wp-loupe-fields-table th,
+.wp-loupe-fields-table td {
 	padding: 8px;
+	text-align: left;
+	vertical-align: middle;
+}
+
+.wp-loupe-fields-table th {
+	font-weight: bold;
+}
+
+.wp-loupe-fields-table td {
+	border-bottom: 1px solid #f0f0f0;
 }
 
 .wp-loupe-fields-table td:first-child {
 	width: 15%;
-}
-
-.wp-loupe-fields-table td {
-	padding: 8px;
-	vertical-align: middle;
 }
 
 .wp-loupe-fields-table input[type="number"] {
@@ -39,4 +48,81 @@
 
 .wp-loupe-fields-table tr:hover {
 	background-color: #f5f5f5;
+}
+
+/* Non-sortable field styling */
+.non-sortable-field {
+	position: relative;
+}
+
+.sortable-wrapper {
+	display: flex;
+	align-items: center;
+}
+
+.non-sortable-field .dashicons {
+	color: #999;
+	cursor: help;
+}
+
+/* Tooltip styling */
+.non-sortable-field {
+	position: relative;
+}
+
+.non-sortable-field:hover::after {
+	content: 'Only scalar fields (strings, numbers) can be sortable. Arrays and complex fields cannot be used for sorting.';
+	position: absolute;
+	bottom: 100%;
+	left: 0;
+	background-color: #333;
+	color: #fff;
+	padding: 5px 10px;
+	border-radius: 3px;
+	font-size: 12px;
+	white-space: nowrap;
+	z-index: 10;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Disabled inputs */
+input[type="checkbox"]:disabled+.dashicons {
+	opacity: 0.7;
+}
+
+/* Select2 customizations */
+.select2-container {
+	min-width: 300px;
+}
+
+/* Reindex button */
+#wp-loupe-reindex-button {
+	margin-left: 10px;
+}
+
+/* Settings sections */
+.wp-loupe-settings-section {
+	margin-bottom: 20px;
+	padding-bottom: 20px;
+	border-bottom: 1px solid #eee;
+}
+
+.wp-loupe-settings-section:last-child {
+	border-bottom: none;
+}
+
+/* Admin form */
+.wp-loupe-form .form-table th {
+	width: 250px;
+}
+
+/* Make disabled checkboxes visually distinct */
+input[type="checkbox"]:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+/* Style for fields that cannot be sortable */
+tr:has(td.non-sortable-field) {
+	background-color: #fcfcfc;
 }

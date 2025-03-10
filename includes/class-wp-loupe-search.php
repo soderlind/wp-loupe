@@ -57,7 +57,7 @@ class WP_Loupe_Search {
 		$hits        = $this->search( $search_term );
 		
 
-		// Get all search results first
+		// Get all search results first	
 		$all_posts               = $this->create_post_objects( $hits );
 		$this->total_found_posts = count( $all_posts );
 
@@ -114,50 +114,71 @@ class WP_Loupe_Search {
 	 */
 	public function search($query) {
         $cache_key = md5($query . serialize($this->post_types));
-
+        
         // Check transient cache first
         $cached_result = get_transient("wp_loupe_search_$cache_key");
         if (false !== $cached_result) {
             $this->log = sprintf('WP Loupe cache hit: %s ms', 0);
             return $cached_result;
         }
-
+        
         $hits = [];
         $stats = [];
         $start_time = microtime(true);
-
+        
+        // Get all saved field settings from wp_loupe_fields
+        $saved_fields = get_option('wp_loupe_fields', []);
+        
         foreach ($this->post_types as $post_type) {
-            // Get schema and fields for this specific post type
-            $schema = $this->schema_manager->get_schema_for_post_type($post_type);
-            
-            // Get indexable fields with weights for search
-            $indexable_fields = $this->schema_manager->get_indexable_fields($schema);
-
-            // Get saved field settings for this post type
-            $saved_fields = get_option('wp_loupe_fields', []);
+            // Get field settings for this post type
             $post_type_fields = $saved_fields[$post_type] ?? [];
-
-            // Get sortable fields, but only those that are marked as sortable in settings
+            
+            if (empty($post_type_fields)) {
+                // Skip if no fields are configured
+                continue;
+            }
+            
+            // Prepare arrays for field configuration
+            $indexable_fields = [];
             $sort_fields = [];
-            $schema_sortable_fields = $this->schema_manager->get_sortable_fields($schema);
-            foreach ($schema_sortable_fields as $field) {
-                $field_name = $field['field'];
-                if (isset($post_type_fields[$field_name]) && 
-                    !empty($post_type_fields[$field_name]['sortable'])) {
-                    $sort_direction = $post_type_fields[$field_name]['sort_direction'] ?? 'desc';
-                    $sort_fields[] = "{$field_name}:{$sort_direction}";
+            $filterable_fields = [];
+            
+            // Process fields for this post type
+            foreach ($post_type_fields as $field_name => $settings) {
+                // Add indexable fields with weights
+                if (!empty($settings['indexable'])) {
+                    $indexable_fields[] = [
+                        'field' => $field_name,
+                        'weight' => $settings['weight'] ?? 1.0
+                    ];
+                }
+                
+                // Add sortable fields with directions
+                if (!empty($settings['sortable'])) {
+                    // Only add sortable fields that are safely sortable
+                    if (WP_Loupe_Factory::check_sortable_field($field_name, $post_type)) {
+                        $sort_direction = $settings['sort_direction'] ?? 'desc';
+                        $sort_fields[] = "{$field_name}:{$sort_direction}";
+                    }
+                }
+                
+                // Add filterable fields
+                if (!empty($settings['filterable'])) {
+                    $filterable_fields[] = $field_name;
                 }
             }
-
+            
             // Get all fields that should be retrieved
             $retrievable_fields = array_unique(array_merge(
                 ['id'],
                 array_map(function($field) {
                     return $field['field'];
                 }, $indexable_fields),
-                $this->schema_manager->get_filterable_fields($schema)
+                $filterable_fields
             ));
-
+            
+            WP_Loupe_Utils::dump(['post_type' => $post_type, 'retrievable_fields' => $retrievable_fields, 'sort_fields' => $sort_fields]);
+            
             $loupe = $this->loupe[$post_type];
             $result = $loupe->search(
                 SearchParameters::create()
@@ -165,21 +186,24 @@ class WP_Loupe_Search {
                     ->withAttributesToRetrieve($retrievable_fields)
                     ->withSort($sort_fields)
             );
-
+            
             // Merge stats and add post type to hits
             $stats = array_merge_recursive($stats, (array)$result->toArray()['processingTimeMs']);
             $tmp_hits = $result->toArray()['hits'];
+            
             foreach ($tmp_hits as $key => $hit) {
                 $tmp_hits[$key]['post_type'] = $post_type;
             }
+            
+            WP_Loupe_Utils::dump(['post_type' => $post_type, 'tmp_hits' => $tmp_hits]);
             $hits = array_merge_recursive($hits, $tmp_hits);
         }
-
+        
         $this->log = sprintf('WP Loupe processing time: %s ms', (string)array_sum($stats));
-
+        
         // Cache the results
         set_transient("wp_loupe_search_$cache_key", $hits, self::CACHE_TTL);
-
+        
         return $hits;
     }
 
@@ -201,6 +225,9 @@ class WP_Loupe_Search {
             $hits_by_type[$hit['post_type']][] = $hit;
         }
 
+        // Get all saved field settings from wp_loupe_fields
+        $saved_fields = get_option('wp_loupe_fields', []);
+
         // Fetch all posts grouped by post type
         $all_posts = [];
         foreach ($hits_by_type as $post_type => $type_hits) {
@@ -212,16 +239,21 @@ class WP_Loupe_Search {
                 'suppress_filters' => true
             ]);
 
-            // Get schema for field loading
-            $schema = $this->schema_manager->get_schema_for_post_type($post_type);
-            $fields = array_merge(
-                $this->schema_manager->get_filterable_fields($schema),
-                array_column($this->schema_manager->get_sortable_fields($schema), 'field')
-            );
+            // Get fields configurations for this post type
+            $post_type_fields = $saved_fields[$post_type] ?? [];
+            $fields_to_load = [];
 
-            // Enhance posts with schema fields
+            // Process the field settings
+            foreach ($post_type_fields as $field_name => $settings) {
+                // Include fields that are filterable or sortable
+                if (!empty($settings['filterable']) || !empty($settings['sortable'])) {
+                    $fields_to_load[] = $field_name;
+                }
+            }
+
+            // Enhance posts with additional fields
             foreach ($type_posts as $post) {
-                foreach ($fields as $field) {
+                foreach ($fields_to_load as $field) {
                     if (strpos($field, 'taxonomy_') === 0) {
                         // Load taxonomy terms
                         $taxonomy = substr($field, 9);
@@ -248,11 +280,20 @@ class WP_Loupe_Search {
         }, $hits);
     }
 
-    private function apply_filters($query, $schema) {
+    private function apply_filters($query, $post_type) {
         $params = [];
         
-        // Get filterable fields from schema
-        $filterable_fields = $this->schema_manager->get_filterable_fields($schema);
+        // Get filterable fields from wp_loupe_fields
+        $saved_fields = get_option('wp_loupe_fields', []);
+        $post_type_fields = $saved_fields[$post_type] ?? [];
+        $filterable_fields = [];
+        
+        // Extract filterable fields
+        foreach ($post_type_fields as $field_name => $settings) {
+            if (!empty($settings['filterable'])) {
+                $filterable_fields[] = $field_name;
+            }
+        }
         
         foreach ($filterable_fields as $field) {
             // Check if filter is present in query vars
@@ -273,14 +314,22 @@ class WP_Loupe_Search {
         return $params;
     }
 
-    private function apply_sorting($query, $schema) {
+    private function apply_sorting($query, $post_type) {
         $params = [];
         $orderby = $query->get('orderby', 'relevance');
         $order = strtolower($query->get('order', 'desc'));
         
-        // Get sortable fields from schema
-        $sortable_fields = $this->schema_manager->get_sortable_fields($schema);
-        $sortable_field_names = array_column($sortable_fields, 'field');
+        // Get sortable fields from wp_loupe_fields
+        $saved_fields = get_option('wp_loupe_fields', []);
+        $post_type_fields = $saved_fields[$post_type] ?? [];
+        $sortable_field_names = [];
+        
+        // Extract sortable fields
+        foreach ($post_type_fields as $field_name => $settings) {
+            if (!empty($settings['sortable'])) {
+                $sortable_field_names[] = $field_name;
+            }
+        }
         
         if ($orderby !== 'relevance' && in_array($orderby, $sortable_field_names)) {
             $params['sort'] = [
