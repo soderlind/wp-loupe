@@ -33,18 +33,23 @@ class WP_Loupe_DB {
 	 * Delete the search index
 	 *
 	 * @since 0.0.1
-	 * @return void
+	 * @return bool True if index was deleted, false otherwise
 	 */
 	public function delete_index() {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
-
-		$file_system = new \WP_Filesystem_Direct( false );
-		$cache_path  = apply_filters( 'wp_loupe_db_path', WP_CONTENT_DIR . '/wp-loupe-db' );
-
-		if ( $file_system->is_dir( $cache_path ) ) {
-			$file_system->rmdir( $cache_path, true );
+		// Only load the filesystem classes if needed
+		if (!class_exists('WP_Filesystem_Direct')) {
+			require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+			require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 		}
+
+		$file_system = new \WP_Filesystem_Direct(false);
+		$cache_path = $this->get_base_path();
+
+		if ($file_system->is_dir($cache_path)) {
+			return $file_system->rmdir($cache_path, true);
+		}
+		
+		return true;
 	}
 
 	/**
@@ -54,8 +59,17 @@ class WP_Loupe_DB {
 	 * @param string $post_type Post type.
 	 * @return string Path to database file
 	 */
-	public function get_db_path( $post_type ) {
-		$base_path = apply_filters( 'wp_loupe_db_path', WP_CONTENT_DIR . '/wp-loupe-db' );
-		return "{$base_path}/{$post_type}";
+	public function get_db_path($post_type) {
+		return $this->get_base_path() . '/' . $post_type;
+	}
+	
+	/**
+	 * Get base path for all Loupe databases
+	 *
+	 * @since 0.0.1
+	 * @return string Base path
+	 */
+	public function get_base_path() {
+		return apply_filters('wp_loupe_db_path', WP_CONTENT_DIR . '/wp-loupe-db');
 	}
 }

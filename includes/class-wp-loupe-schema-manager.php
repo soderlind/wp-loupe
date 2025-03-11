@@ -1,6 +1,12 @@
 <?php
 namespace Soderlind\Plugin\WPLoupe;
 
+/**
+ * Schema manager for WP Loupe
+ * 
+ * @package Soderlind\Plugin\WPLoupe
+ * @since 0.1.0
+ */
 class WP_Loupe_Schema_Manager {
 	private static $instance = null;
 	private static float $default_weight = 1.0;
@@ -137,7 +143,6 @@ class WP_Loupe_Schema_Manager {
 
 		$processed_fields = [];
 		foreach ( $schema as $field => $settings ) {
-			
 			$processed_fields[] = $this->process_field( $field, $settings, $type );
 		}
 
@@ -179,39 +184,14 @@ class WP_Loupe_Schema_Manager {
             case 'filterable':
                 return ($settings['filterable'] ?? false) ? $field : null;
             case 'sortable':
-                return isset($settings['sortable']) ? [ 
+                return ($settings['sortable'] ?? false) ? [ 
                     'field'     => $field,
-                    'direction' => $settings['sortable']['direction'] ?? self::$default_direction
+                    'direction' => $settings['sort_direction'] ?? self::$default_direction
                 ] : null;
             default:
                 return null;
         }
     }
-
-	/**
-	 * Retrieves the custom field settings for a specific post type.
-	 *
-	 * @param string $post_type The post type to retrieve the custom field settings for.
-	 * @return array The custom field settings.
-	 */
-	private function get_custom_field_settings(string $post_type): array {
-		$fields = [];
-		$saved_fields = get_option('wp_loupe_fields', []);
-		
-		if (isset($saved_fields[$post_type])) {
-			foreach ($saved_fields[$post_type] as $field_key => $settings) {
-				$fields[$field_key] = [
-					'weight' => isset($settings['weight']) ? (float)$settings['weight'] : self::$default_weight,
-					'filterable' => !empty($settings['filterable']),
-					'sortable' => !empty($settings['sortable']) ? [
-						'direction' => $settings['sort_direction'] ?? self::$default_direction
-					] : false
-				];
-			}
-		}
-		
-		return $fields;
-	}
 
 	/**
 	 * Clears the schema and fields cache.
@@ -234,12 +214,4 @@ class WP_Loupe_Schema_Manager {
 	private function get_taxonomy_name(string $field): string {
 		return substr($field, 9); // Remove 'taxonomy_' prefix
 	}
-
-    private function get_settings_page() {
-        static $settings_page = null;
-        if ($settings_page === null) {
-            $settings_page = new \Soderlind\Plugin\WPLoupe\WPLoupe_Settings_Page();
-        }
-        return $settings_page;
-    }
 }

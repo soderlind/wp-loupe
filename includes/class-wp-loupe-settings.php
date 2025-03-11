@@ -25,6 +25,7 @@ class WPLoupe_Settings_Page {
 	 * @var array
 	 */
 	private $cpt = [];
+	
 	/**
 	 * WPLoupe_Settings_Page constructor.
 	 */
@@ -34,10 +35,13 @@ class WPLoupe_Settings_Page {
 		add_action( 'admin_init', [ $this, 'wp_loupe_setup_fields' ] );
 		add_action( 'admin_init', [ $this, 'register_settings' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
-		add_action('rest_api_init', [$this, 'register_rest_routes']);
-		add_action('load-settings_page_wp-loupe', [$this, 'add_help_tabs']);
+		add_action( 'rest_api_init', [$this, 'register_rest_routes'] );
+		add_action( 'load-settings_page_wp-loupe', [$this, 'add_help_tabs'] );
 	}
 
+	/**
+	 * Register REST API routes
+	 */
 	public function register_rest_routes() {
 		register_rest_route('wp-loupe/v1', '/post-type-fields/(?P<post_type>[a-zA-Z0-9_-]+)', [
 			'methods' => 'GET',
@@ -48,18 +52,30 @@ class WPLoupe_Settings_Page {
 		]);
 	}
 
+	/**
+	 * Get fields for a post type via REST API
+	 * 
+	 * @param \WP_REST_Request $request
+	 * @return \WP_REST_Response
+	 */
 	public function get_post_type_fields($request) {
 		$post_type = $request->get_param('post_type');
 		$post_type_object = get_post_type_object($post_type);
 		
 		if (!$post_type_object) {
-			return new WP_Error('invalid_post_type', 'Invalid post type', ['status' => 404]);
+			return new \WP_Error('invalid_post_type', 'Invalid post type', ['status' => 404]);
 		}
 
 		$fields = $this->get_available_fields($post_type);
 		return rest_ensure_response($fields);
 	}
 
+	/**
+	 * Get available fields for a post type
+	 * 
+	 * @param string $post_type
+	 * @return array
+	 */
 	public function get_available_fields($post_type) {
         // Always include core fields
         $fields = [
@@ -95,13 +111,15 @@ class WPLoupe_Settings_Page {
         return apply_filters('wp_loupe_available_fields', $fields, $post_type);
     }
 
+    /**
+     * Get meta keys with values for a post type
+     * 
+     * @param string $post_type
+     * @return array
+     */
     private function get_post_type_meta_keys_with_values($post_type) {
         $meta_keys = $this->get_filtered_meta_keys($post_type);
         return array_fill_keys($meta_keys, true);
-    }
-
-    private function get_post_type_meta_keys($post_type) {
-        return $this->get_filtered_meta_keys($post_type);
     }
 
     /**
@@ -151,6 +169,12 @@ class WPLoupe_Settings_Page {
         return $filtered_keys;
     }
 
+	/**
+	 * Convert meta key to readable label
+	 * 
+	 * @param string $key
+	 * @return string
+	 */
 	private function prettify_meta_key($key) {
         return ucwords(str_replace(['_', '-'], ' ', $key));
     }
@@ -171,13 +195,19 @@ class WPLoupe_Settings_Page {
 	 */
 	public function wp_loupe_setup_sections() {
 		add_settings_section( 'wp_loupe_section', 'WP Loupe Settings', [ $this, 'section_callback' ], 'wp-loupe' );
-		add_settings_section('wp_loupe_fields_section', 'Field Settings', [$this, 'fields_section_callback'], 'wp-loupe');
+		add_settings_section( 'wp_loupe_fields_section', 'Field Settings', [$this, 'fields_section_callback'], 'wp-loupe' );
 	}
 
+	/**
+	 * General settings section description
+	 */
 	public function section_callback() {
 		echo '<p>' . __('Select which post types and fields to include in the search index.', 'wp-loupe') . '</p>';
 	}
 
+	/**
+	 * Fields configuration section description
+	 */
 	public function fields_section_callback() {
 		echo '<div id="wp-loupe-fields-config"></div>';
 	}
@@ -231,15 +261,6 @@ class WPLoupe_Settings_Page {
 	}
 
 	/**
-	 * Callback for the reindex field.
-	 *
-	 * @return void
-	 */
-	public function wp_loupe_reindex_field_callback() {
-		echo '<input type="hidden" name="wp_loupe_reindex" id="wp_loupe_reindex" value="1">';
-	}
-
-	/**
 	 * Settings page content.
 	 *
 	 * @return void
@@ -249,13 +270,6 @@ class WPLoupe_Settings_Page {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-
-		// Get custom post types.
-		$args       = [ 
-			'public'   => true,
-			'_builtin' => false,
-		];
-		$post_types = get_post_types( $args, 'names', 'and' );
 
 		?>
 		<div class="wrap">
@@ -274,6 +288,9 @@ class WPLoupe_Settings_Page {
 		</div><?php
 	}
 
+	/**
+	 * Register all settings
+	 */
 	public function register_settings() {
 		register_setting('wp-loupe', 'wp_loupe_custom_post_types');
 		register_setting('wp-loupe', 'wp_loupe_fields', [
@@ -283,6 +300,12 @@ class WPLoupe_Settings_Page {
 		]);
 	}
 
+	/**
+	 * Sanitize and validate field settings
+	 * 
+	 * @param array $input
+	 * @return array
+	 */
 	public function sanitize_fields_settings($input) {
         if (!is_array($input)) {
             return [];
@@ -310,14 +333,16 @@ class WPLoupe_Settings_Page {
         }
 
         // Clear schema cache when settings are updated
-        WP_Loupe_Schema_Manager::get_instance()->clear_cache();
+        $schema_manager = new WP_Loupe_Schema_Manager();
+        $schema_manager->clear_cache();
         
         return $sanitized;
     }
 
 	/**
-	 * Enqueue Select2.
+	 * Enqueue admin scripts and styles.
 	 *
+	 * @param string $hook Current admin page hook
 	 * @return void
 	 */
 	public function enqueue_admin_assets($hook) {
@@ -343,6 +368,7 @@ class WPLoupe_Settings_Page {
 			$version,
 			true
 		);
+
 		// Register and enqueue admin assets
 		wp_register_style(
 			'wp-loupe-admin',
@@ -383,6 +409,11 @@ class WPLoupe_Settings_Page {
         ]);
 	}
 
+	/**
+	 * Prepare field data for JavaScript
+	 * 
+	 * @return array
+	 */
 	private function prepare_fields_for_js() {
         $saved_fields = get_option('wp_loupe_fields', []);
         $enhanced_fields = [];
@@ -397,7 +428,7 @@ class WPLoupe_Settings_Page {
                 }
             }
         }
-        WP_Loupe_Utils::dump($enhanced_fields);
+        
         return $enhanced_fields;
     }
 

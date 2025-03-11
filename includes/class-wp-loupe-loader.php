@@ -50,9 +50,15 @@ class WP_Loupe_Loader {
 	 * @return void
 	 */
 	private function setup_post_types() {
-		add_filter( 'wp_loupe_post_types', array( $this, 'filter_post_types' ) );
-		$this->post_types = apply_filters( 'wp_loupe_post_types', array( 'post', 'page' ) );
+		$options = get_option('wp_loupe_custom_post_types', []);
 		
+		if (!empty($options) && isset($options['wp_loupe_post_type_field'])) {
+			$this->post_types = (array)$options['wp_loupe_post_type_field'];
+		} else {
+			$this->post_types = ['post', 'page'];
+		}
+		
+		$this->post_types = apply_filters('wp_loupe_post_types', $this->post_types);
 	}
 
 	/**
@@ -61,12 +67,11 @@ class WP_Loupe_Loader {
 	 * @return void
 	 */
 	private function init_components() {
-		
 		new WP_Loupe_Updater();
 		new WPLoupe_Settings_Page();
 
-		$this->search  = new WP_Loupe_Search( $this->post_types );
-		$this->indexer = new WP_Loupe_Indexer( $this->post_types );
+		$this->search  = new WP_Loupe_Search($this->post_types);
+		$this->indexer = new WP_Loupe_Indexer($this->post_types);
 	}
 
 	/**
@@ -75,25 +80,7 @@ class WP_Loupe_Loader {
 	 * @return void
 	 */
 	private function register_hooks() {
-		add_action( 'init', array( $this, 'load_textdomain' ) );
-		// Register other global hooks
-	}
-
-	/**
-	 * Filter post types
-	 * 
-	 * @param array $post_types
-	 * @return array
-	 */
-	public function filter_post_types( $post_types ) {
-		$options = get_option( 'wp_loupe_custom_post_types', [] );
-
-		if ( ! empty( $options ) && isset( $options[ 'wp_loupe_post_type_field' ] ) ) {
-			return (array) $options[ 'wp_loupe_post_type_field' ];
-		}
-
-		return $post_types;
-		// return array_merge( $post_types, $custom_post_types );
+		add_action('init', [$this, 'load_textdomain']);
 	}
 
 	/**
@@ -102,6 +89,6 @@ class WP_Loupe_Loader {
 	 * @return void
 	 */
 	public function load_textdomain() {
-		load_plugin_textdomain( 'wp-loupe', false, dirname( plugin_basename( WP_LOUPE_FILE ) ) . '/languages' );
+		load_plugin_textdomain('wp-loupe', false, dirname(plugin_basename(WP_LOUPE_FILE)) . '/languages');
 	}
 }

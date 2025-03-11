@@ -15,32 +15,12 @@ class WP_Loupe_Updater {
 	/**
 	 * @var string GitHub repository URL
 	 */
-	// private $info_json = 'https://raw.githubusercontent.com/soderlind/wp-loupe/refs/heads/main/info.json';
 	private $github_url = 'https://github.com/soderlind/wp-loupe';
 
 	/**
-	 * @var string Main plugin file path
-	 */
-	private $plugin_file = WP_LOUPE_FILE;
-
-	/**
-	 * @var string Plugin slug
-	 */
-	private $plugin_slug = 'wp-loupe';
-
-	/**
 	 * Constructor
-	 * 
-	 * @param string $plugin_file Main plugin file path
 	 */
 	public function __construct() {
-		$this->init();
-	}
-
-	/**
-	 * Initialize the updater
-	 */
-	public function init() {
 		add_action( 'init', array( $this, 'setup_updater' ) );
 	}
 
@@ -50,8 +30,8 @@ class WP_Loupe_Updater {
 	public function setup_updater() {
 		$update_checker = PucFactory::buildUpdateChecker(
 			$this->github_url,
-			$this->plugin_file,
-			$this->plugin_slug
+			WP_LOUPE_FILE,
+			'wp-loupe'
 		);
 
 		$update_checker->setBranch( 'main' );
