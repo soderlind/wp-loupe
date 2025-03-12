@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2025-03-12
+
+### Added
+
+- Added proper handling of database files when selecting/deselecting post types
+- Improved custom field management with better support for sortable fields
+- Enhanced error handling for sortable custom fields like
+- Fixed issue with field display when creating/removing post type databases
+
+### Changed
+
+- Refactored JavaScript admin code for better maintainability
+- Improved user feedback during database operations
+- Separated database creation from content indexing process
+
 ## [0.2.3] - 2025-03-09
 
 ### Changed
@@ -263,3 +278,4 @@ All notable changes to this project will be documented in this file.
 [0.2.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.1
 [0.2.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.2
 [0.2.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.3
+[0.3.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.3.0
