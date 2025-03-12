@@ -1,15 +1,13 @@
-=== WP Loupe ===
-Contributors: PerS
-Tags: search, loupe, posts, pages, custom post types, typo-tolerant, fast search, advanced search
-Requires at least: 6.3
-Requires PHP: 8.1
-Tested up to: 6.7
-Stable tag: 0.3.0
-Donate link: https://paypal.me/PerSoderlind
+=== WP Loupe - Advanced WordPress Search ===
+Contributors: persoderlind
+Tags: search, full-text search, relevance
+Requires at least: 5.6
+Tested up to: 6.2
+Stable tag: 0.3.1
 License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Transform your WordPress search with lightning-fast, typo-tolerant results and advanced search capabilities.
+Advanced search solution for WordPress with better relevance and customizable field weighting.
 
 == Description ==
 
@@ -104,14 +102,16 @@ For usage examples, see the [filter documentation at GitHub](https://github.com/
 
 == Changelog ==
 
+= 0.3.1 =
+* Bug fix: Non-scalar fields no longer get selected by default for sorting when adding a new post type
+* Improved field configuration UI to properly handle non-sortable fields
+* Updated translations for new strings
+
 = 0.3.0 =
-* Added: Proper handling of database files when selecting/deselecting post types
-* Added: Improved custom field management with better support for sortable fields
-* Added: Enhanced error handling for sortable custom fields like date, text, and number fields
-* Fixed: Issue with field display when creating/removing post type databases
-* Changed: Refactored JavaScript admin code for better maintainability
-* Changed: Improved user feedback during database operations
-* Changed: Separated database creation from content indexing process
+* Added support for custom post types
+* Added field configuration interface for indexing, filtering, and sorting
+* Improved search algorithm
+* Performance optimizations
 
 = 0.2.3 =
 * Enhanced field indexing to strictly respect settings configuration
