@@ -107,7 +107,7 @@ For usage examples, see the [filter documentation at GitHub](https://github.com/
 = 0.3.0 =
 * Added: Proper handling of database files when selecting/deselecting post types
 * Added: Improved custom field management with better support for sortable fields
-* Added: Enhanced error handling for sortable custom fields
+* Added: Enhanced error handling for sortable custom fields like date, text, and number fields
 * Fixed: Issue with field display when creating/removing post type databases
 * Changed: Refactored JavaScript admin code for better maintainability
 * Changed: Improved user feedback during database operations

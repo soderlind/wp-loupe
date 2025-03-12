@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Added proper handling of database files when selecting/deselecting post types
 - Improved custom field management with better support for sortable fields
-- Enhanced error handling for sortable custom fields like
+- Enhanced error handling for sortable custom fields like date, text, and number fields
 - Fixed issue with field display when creating/removing post type databases
 
 ### Changed
