@@ -50,6 +50,285 @@ class WPLoupe_Settings_Page {
 				return current_user_can('manage_options');
 			}
 		]);
+
+		// Add new endpoints for database management
+		register_rest_route('wp-loupe/v1', '/create-database', [
+			'methods' => 'POST',
+			'callback' => [$this, 'create_database_for_post_type'],
+			'permission_callback' => function() {
+				return current_user_can('manage_options');
+			},
+			'args' => [
+				'post_type' => [
+					'required' => true,
+					'type' => 'string',
+					'sanitize_callback' => 'sanitize_text_field',
+				]
+			]
+		]);
+
+		register_rest_route('wp-loupe/v1', '/delete-database', [
+			'methods' => 'POST',
+			'callback' => [$this, 'delete_database_for_post_type'],
+			'permission_callback' => function() {
+				return current_user_can('manage_options');
+			},
+			'args' => [
+				'post_type' => [
+					'required' => true,
+					'type' => 'string',
+					'sanitize_callback' => 'sanitize_text_field',
+				]
+			]
+		]);
+
+		register_rest_route('wp-loupe/v1', '/update-database', [
+			'methods' => 'POST',
+			'callback' => [$this, 'update_database_for_post_type'],
+			'permission_callback' => function() {
+				return current_user_can('manage_options');
+			},
+			'args' => [
+				'post_type' => [
+					'required' => true,
+					'type' => 'string',
+					'sanitize_callback' => 'sanitize_text_field',
+				]
+			]
+		]);
+	}
+
+	/**
+	 * Create database for a post type via REST API
+	 * 
+	 * @param \WP_REST_Request $request
+	 * @return \WP_REST_Response
+	 */
+	public function create_database_for_post_type($request) {
+		$post_type = $request->get_param('post_type');
+		
+		if (!post_type_exists($post_type)) {
+			return new \WP_Error('invalid_post_type', 'Invalid post type', ['status' => 404]);
+		}
+		
+		try {
+			// Get DB instance
+			$db = WP_Loupe_DB::get_instance();
+			$iso6391_lang = ('' === get_locale()) ? 'en' : strtolower(substr(get_locale(), 0, 2));
+			
+			// Create Loupe instance - this creates the database structure but doesn't add documents
+			$loupe = WP_Loupe_Factory::create_loupe_instance($post_type, $iso6391_lang, $db);
+			
+			// Force update the post type settings to include this post type
+			$this->force_update_post_type_settings($post_type, true);
+			
+			return rest_ensure_response([
+				'success' => true, 
+				'message' => sprintf(__('Created database structure for post type: %s', 'wp-loupe'), $post_type),
+				'count' => 0 // No documents indexed
+			]);
+		} catch (\Exception $e) {
+			return new \WP_Error('database_creation_failed', $e->getMessage(), ['status' => 500]);
+		}
+	}
+
+	/**
+	 * Delete database for a post type via REST API
+	 * 
+	 * @param \WP_REST_Request $request
+	 * @return \WP_REST_Response
+	 */
+	public function delete_database_for_post_type($request) {
+		$post_type = $request->get_param('post_type');
+		
+		if (!post_type_exists($post_type)) {
+			return new \WP_Error('invalid_post_type', 'Invalid post type', ['status' => 404]);
+		}
+		
+		try {
+			// Get the database path for the post type
+			$db = WP_Loupe_DB::get_instance();
+			$db_path = $db->get_db_path($post_type);
+			
+			// Clear factory cache for this post type
+			WP_Loupe_Factory::clear_instance_cache($post_type);
+			
+			// Force update post type settings to remove this post type
+			$this->force_update_post_type_settings($post_type, false);
+			
+			// Delete the database directory if it exists
+			if (file_exists($db_path)) {
+				// Include the filesystem class if needed
+				if (!class_exists('WP_Filesystem_Direct')) {
+					require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+					require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+				}
+				
+				$file_system_direct = new \WP_Filesystem_Direct(false);
+				
+				if ($file_system_direct->is_dir($db_path)) {
+					// Attempt to delete the directory forcefully
+					$success = $file_system_direct->rmdir($db_path, true);
+					
+					// If failed, try direct PHP functions as a fallback
+					if (!$success) {
+						WP_Loupe_Utils::dump("Filesystem deletion failed, trying PHP functions");
+						$this->delete_directory_recursive($db_path);
+					}
+				}
+			}
+
+			// Clear cache for search results regardless of whether directory existed
+			WP_Loupe_Utils::remove_transient('wp_loupe_search_');
+			
+			// Also remove this post type from the fields configuration
+			$saved_fields = get_option('wp_loupe_fields', []);
+			if (isset($saved_fields[$post_type])) {
+				unset($saved_fields[$post_type]);
+				update_option('wp_loupe_fields', $saved_fields);
+			}
+			
+			// Clear schema cache after removing fields
+			$schema_manager = new WP_Loupe_Schema_Manager();
+			$schema_manager->clear_cache();
+			
+			return rest_ensure_response([
+				'success' => true, 
+				'message' => sprintf(__('Deleted database for post type: %s', 'wp-loupe'), $post_type)
+			]);
+		} catch (\Exception $e) {
+			return new \WP_Error('database_deletion_failed', $e->getMessage(), ['status' => 500]);
+		}
+	}
+	
+	/**
+	 * Force update the post type settings
+	 * 
+	 * @param string $post_type The post type to update
+	 * @param bool $include Whether to include or exclude the post type
+	 */
+	private function force_update_post_type_settings($post_type, $include = true) {
+		$options = get_option('wp_loupe_custom_post_types', []);
+		$selected_post_types = !empty($options) && isset($options['wp_loupe_post_type_field']) 
+			? (array)$options['wp_loupe_post_type_field'] 
+			: ['post', 'page'];
+		
+		if ($include && !in_array($post_type, $selected_post_types)) {
+			// Add the post type to selected types
+			$selected_post_types[] = $post_type;
+		} else if (!$include) {
+			// Remove the post type from selected types
+			$selected_post_types = array_diff($selected_post_types, [$post_type]);
+		}
+		
+		// Update the option
+		$options['wp_loupe_post_type_field'] = $selected_post_types;
+		update_option('wp_loupe_custom_post_types', $options);
+		
+		return true;
+	}
+	
+	/**
+	 * Delete directory recursively using PHP functions
+	 * Fallback when WP_Filesystem_Direct fails
+	 * 
+	 * @param string $dir Directory path
+	 * @return bool Success
+	 */
+	private function delete_directory_recursive($dir) {
+		if (!file_exists($dir)) {
+			return true;
+		}
+		
+		if (!is_dir($dir)) {
+			return unlink($dir);
+		}
+		
+		$files = scandir($dir);
+		foreach ($files as $file) {
+			if ($file !== '.' && $file !== '..') {
+				$path = $dir . '/' . $file;
+				
+				if (is_dir($path)) {
+					$this->delete_directory_recursive($path);
+				} else {
+					unlink($path);
+				}
+			}
+		}
+		
+		return rmdir($dir);
+	}
+
+	/**
+	 * Update database for a post type via REST API
+	 * 
+	 * @param \WP_REST_Request $request
+	 * @return \WP_REST_Response
+	 */
+	public function update_database_for_post_type($request) {
+		$post_type = $request->get_param('post_type');
+		
+		if (!post_type_exists($post_type)) {
+			return new \WP_Error('invalid_post_type', 'Invalid post type', ['status' => 404]);
+		}
+		
+		try {
+			// Get DB instance
+			$db = WP_Loupe_DB::get_instance();
+			$iso6391_lang = ('' === get_locale()) ? 'en' : strtolower(substr(get_locale(), 0, 2));
+			
+			// Clear schema cache to ensure new settings are used
+			$schema_manager = new WP_Loupe_Schema_Manager();
+			$schema_manager->clear_cache();
+			
+			// Clear factory cache for this post type 
+			WP_Loupe_Factory::clear_instance_cache($post_type);
+			
+			// Create new Loupe instance with updated configuration
+			$loupe = WP_Loupe_Factory::create_loupe_instance($post_type, $iso6391_lang, $db);
+			
+			// Get posts of selected type
+			$posts = get_posts([
+				'post_type' => $post_type,
+				'posts_per_page' => -1,
+				'post_status' => 'publish',
+			]);
+			
+			// Create indexer to prepare documents
+			$indexer = new WP_Loupe_Indexer([$post_type]);
+			
+			// Map posts to documents and update the index
+			$documents = array_map(
+				[$indexer, 'prepare_document'],
+				$posts
+			);
+			
+			// Clear existing documents first
+			$post_ids = array_map(function($post) {
+				return $post->ID;
+			}, $posts);
+			
+			if (!empty($post_ids)) {
+				$loupe->deleteDocuments($post_ids);
+			}
+			
+			// Add documents to the index
+			if (!empty($documents)) {
+				$loupe->addDocuments($documents);
+			}
+			
+			// Clear cache for search results
+			WP_Loupe_Utils::remove_transient('wp_loupe_search_');
+			
+			return rest_ensure_response([
+				'success' => true, 
+				'message' => sprintf(__('Updated database for post type: %s', 'wp-loupe'), $post_type),
+				'count' => count($documents)
+			]);
+		} catch (\Exception $e) {
+			return new \WP_Error('database_update_failed', $e->getMessage(), ['status' => 500]);
+		}
 	}
 
 	/**
@@ -471,20 +750,8 @@ class WPLoupe_Settings_Page {
 				__('Sortable Fields', 'wp-loupe'),
 				__('Sortable fields can be used to order search results:', 'wp-loupe'),
 				__('Enable this option to allow sorting search results by this field\'s values', 'wp-loupe'),
-				__('Useful for dates, prices, or other numerical values that make sense to sort by', 'wp-loupe')
+				__('Useful for dates, prices, or other numerical values', 'wp-loupe')
 			)
 		]);
-
-		$screen->set_help_sidebar(
-			sprintf(
-				'<p><strong>%s</strong></p><p>%s</p>',
-				__('For more information:', 'wp-loupe'),
-				sprintf(
-					'<a href="%s" target="_blank">%s</a>',
-					'https://github.com/soderlind/wp-loupe',
-					__('WP Loupe Documentation', 'wp-loupe')
-				)
-			)
-		);
 	}
 }

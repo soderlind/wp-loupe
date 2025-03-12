@@ -60,139 +60,158 @@ class WP_Loupe_Indexer {
         }
     }
 
-	/**
-	 * Register hooks
-	 *
-	 * @return void
-	 */
-	private function register_hooks() {
-		foreach ( $this->post_types as $post_type ) {
-			add_action( "save_post_{$post_type}", array( $this, 'add' ), 10, 3 );
-		}
-		add_action( 'wp_trash_post', array( $this, 'trash_post' ), 10, 2 );
-		add_action( 'admin_init', array( $this, 'handle_reindex' ) );
-		add_filter( 'wp_loupe_field_post_content', 'wp_strip_all_tags' );
-	}
+    /**
+     * Register hooks
+     *
+     * @return void
+     */
+    private function register_hooks() {
+        foreach ( $this->post_types as $post_type ) {
+            add_action( "save_post_{$post_type}", array( $this, 'add' ), 10, 3 );
+        }
+        add_action( 'wp_trash_post', array( $this, 'trash_post' ), 10, 2 );
+        add_action( 'admin_init', array( $this, 'handle_reindex' ) );
+        add_filter( 'wp_loupe_field_post_content', 'wp_strip_all_tags' );
+    }
 
-	/**
-	 * Add post to the loupe index
-	 *
-	 * @param int      $post_id Post ID.
-	 * @param \WP_Post $post    Post object.
-	 * @param bool     $update  Whether this is an existing post being updated or not.
-	 * @return void
-	 */
-	public function add( int $post_id, \WP_Post $post, bool $update ): void {
-		if ( ! $this->is_indexable( $post_id, $post ) ) {
-			return;
-		}
+    /**
+     * Add post to the loupe index
+     *
+     * @param int      $post_id Post ID.
+     * @param \WP_Post $post    Post object.
+     * @param bool     $update  Whether this is an existing post being updated or not.
+     * @return void
+     */
+    public function add( int $post_id, \WP_Post $post, bool $update ): void {
+        if ( ! $this->is_indexable( $post_id, $post ) ) {
+            return;
+        }
 
-		WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
+        WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
 
-		$document = $this->prepare_document( $post );
-		$loupe    = $this->loupe[ $post->post_type ];
-		$loupe->deleteDocument( $post_id );
-		$loupe->addDocument( $document );
-	}
+        $document = $this->prepare_document( $post );
+        $loupe    = $this->loupe[ $post->post_type ];
+        // $loupe->deleteDocument( $post_id );
+        $loupe->addDocument( $document );
+    }
 
-	/**
-	 * Fires before a post is sent to the Trash.
-	 *
-	 * @param int    $post_id         Post ID.
-	 * @param string $previous_status The status of the post about to be trashed.
-	 */
-	public function trash_post( int $post_id, string $previous_status ): void {
-		if ( ! 'publish' === $previous_status ) {
-			return;
-		}
-		WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
-		// Verify if is trashing multiple posts.
-		if ( isset( $_GET[ 'post' ] ) && is_array( $_GET[ 'post' ] ) ) {
-			\check_admin_referer( 'bulk-posts' );
-			// Sanitize the array of post IDs.
-			$post_ids = \map_deep( $_GET[ 'post' ], 'intval' );
-			$this->delete_many( $post_ids );
+    /**
+     * Fires before a post is sent to the Trash.
+     *
+     * @param int    $post_id         Post ID.
+     * @param string $previous_status The status of the post about to be trashed.
+     */
+    public function trash_post( int $post_id, string $previous_status ): void {
+        if ( ! 'publish' === $previous_status ) {
+            return;
+        }
+        WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
+        // Verify if is trashing multiple posts.
+        if ( isset( $_GET[ 'post' ] ) && is_array( $_GET[ 'post' ] ) ) {
+            \check_admin_referer( 'bulk-posts' );
+            // Sanitize the array of post IDs.
+            $post_ids = \map_deep( $_GET[ 'post' ], 'intval' );
+            $this->delete_many( $post_ids );
 
-		} else {
-			$this->delete( $post_id );
-		}
-	}
+        } else {
+            $this->delete( $post_id );
+        }
+    }
 
-	/**
-	 * Delete post from loupe index
-	 *
-	 * @param int $post_id    Post ID.
-	 */
-	private function delete( int $post_id ): void {
-		$post_type = get_post_type( $post_id );
-		$loupe     = $this->loupe[ $post_type ];
-		$loupe->deleteDocument( $post_id );
-	}
+    /**
+     * Delete post from loupe index
+     *
+     * @param int $post_id    Post ID.
+     */
+    private function delete( int $post_id ): void {
+        $post_type = get_post_type( $post_id );
+        $loupe     = $this->loupe[ $post_type ];
+        $loupe->deleteDocument( $post_id );
+    }
 
-	/**
-	 * Delete many posts from loupe index
-	 *
-	 * @param array $post_ids    Array of post IDs.
-	 */
-	private function delete_many( array $post_ids ): void {
-		$post_type = get_post_type( $post_ids[ 0 ] );
-		$loupe     = $this->loupe[ $post_type ];
-		$loupe->deleteDocuments( $post_ids );
-	}
+    /**
+     * Delete many posts from loupe index
+     *
+     * @param array $post_ids    Array of post IDs.
+     */
+    private function delete_many( array $post_ids ): void {
+        $post_type = get_post_type( $post_ids[ 0 ] );
+        $loupe     = $this->loupe[ $post_type ];
+        $loupe->deleteDocuments( $post_ids );
+    }
 
-	/**
-	 * Handle reindexing
-	 *
-	 * @return void
-	 */
-	public function handle_reindex() {
+    /**
+     * Handle reindexing
+     *
+     * @return void
+     */
+    public function handle_reindex() {
 
-		if (
-			isset( $_POST[ 'action' ], $_POST[ 'wp_loupe_nonce_field' ], $_POST[ 'wp_loupe_reindex' ] ) &&
-			'update' === $_POST[ 'action' ] && 'on' === $_POST[ 'wp_loupe_reindex' ] &&
-			wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ 'wp_loupe_nonce_field' ] ) ), 'wp_loupe_nonce_action' )
-		) {
-			WP_Loupe_Utils::dump( $_POST);
-			$this->reindex_all();
-			add_settings_error( 'wp-loupe', 'wp-loupe-reindex', __( 'Reindexing completed successfully!', 'wp-loupe' ), 'updated' );
+        if (
+            isset( $_POST[ 'action' ], $_POST[ 'wp_loupe_nonce_field' ], $_POST[ 'wp_loupe_reindex' ] ) &&
+            'update' === $_POST[ 'action' ] && 'on' === $_POST[ 'wp_loupe_reindex' ] &&
+            wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ 'wp_loupe_nonce_field' ] ) ), 'wp_loupe_nonce_action' )
+        ) {
+            WP_Loupe_Utils::dump( $_POST);
+            $this->reindex_all();
+            add_settings_error( 'wp-loupe', 'wp-loupe-reindex', __( 'Reindexing completed successfully!', 'wp-loupe' ), 'updated' );
 
-		}
-	}
+        }
+    }
 
-	/**
-	 * Reindex all posts
-	 *
-	 * @return void
-	 */
-	public function reindex_all() {
+    /**
+     * Reindex all posts
+     *
+     * @return void
+     */
+    public function reindex_all() {
         // First, clear the search cache
         WP_Loupe_Utils::remove_transient('wp_loupe_search_');
         
         // Save settings before starting the indexing process
         $this->save_settings();
         
-        // Delete existing indices
-        $this->delete_index();
-        
         // Refresh post types from settings
         $this->set_post_types();
         
-        // After deleting the index, we need to recreate the Loupe instances
+        // Clear instance cache to ensure we're using the latest configuration
+        WP_Loupe_Factory::clear_instance_cache();
+        
+        // Clear schema cache
+        $this->schema_manager->clear_cache();
+        
+        // Initialize Loupe instances with the latest settings
         $this->init_loupe_instances();
-
-        // Now process each post type and index its content
+        
+        // Now update each post type's index
         foreach ($this->post_types as $post_type) {
+            // Get all published posts for this post type
             $posts = get_posts([
                 'post_type' => $post_type,
                 'posts_per_page' => -1,
                 'post_status' => 'publish',
             ]);
-
+            
+            if (empty($posts)) {
+                continue;
+            }
+            
+            // Extract post IDs for deletion
+            $post_ids = array_map(function($post) {
+                return $post->ID;
+            }, $posts);
+            
+            // Delete existing documents for these posts
+            if (!empty($post_ids)) {
+                $this->loupe[$post_type]->deleteDocuments($post_ids);
+            }
+            
+            // Prepare documents and add them to the index
             $documents = array_map(
                 [$this, 'prepare_document'],
                 $posts
             );
-
+            
             if (!empty($documents)) {
                 $this->loupe[$post_type]->addDocuments($documents);
             }
@@ -200,94 +219,25 @@ class WP_Loupe_Indexer {
     }
 
     /**
-	 * Save settings before reindexing
-	 *
-	 * @return void
-	 */
-	private function save_settings() {
+     * Save settings before reindexing
+     *
+     * @return void
+     */
+    private function save_settings() {
         // Ensure the wp_loupe_fields option is properly saved before indexing
         $saved_fields = get_option('wp_loupe_fields', []);
         
-        // If no fields are configured yet, create default field configuration for each post type
         if (empty($saved_fields)) {
-            $default_fields = [];
-            
-            // Create default field settings for each post type
-            foreach ($this->post_types as $post_type) {
-                $default_fields[$post_type] = [
-                    'post_title' => [
-                        'indexable' => true,
-                        'weight' => 2.0,
-                        'filterable' => true,
-                        'sortable' => true,
-                        'sort_direction' => 'desc'
-                    ],
-                    'post_content' => [
-                        'indexable' => true,
-                        'weight' => 1.0,
-                        'filterable' => true,
-                        'sortable' => false
-                    ],
-                    'post_date' => [
-                        'indexable' => true,
-                        'weight' => 1.0,
-                        'filterable' => true,
-                        'sortable' => true,
-                        'sort_direction' => 'desc'
-                    ]
-                ];
-                
-                // Add taxonomy fields if available
-                $taxonomies = get_object_taxonomies($post_type, 'objects');
-                foreach ($taxonomies as $tax_name => $tax_obj) {
-                    if ($tax_obj->show_ui) {
-                        $default_fields[$post_type]['taxonomy_' . $tax_name] = [
-                            'indexable' => true,
-                            'weight' => 1.5,
-                            'filterable' => true,
-                            'sortable' => false
-                        ];
-                    }
-                }
-            }
-            
-            // Save the default fields configuration
+            // No fields configured - create and save defaults
+            $default_fields = $this->create_default_fields_configuration();
             update_option('wp_loupe_fields', $default_fields);
         } else {
-            // Ensure all post types have field configurations
-            $updated = false;
+            // Ensure all post types have configurations
+            $updated_fields = $this->ensure_post_types_have_configurations($saved_fields);
             
-            foreach ($this->post_types as $post_type) {
-                if (!isset($saved_fields[$post_type]) || empty($saved_fields[$post_type])) {
-                    $updated = true;
-                    $saved_fields[$post_type] = [
-                        'post_title' => [
-                            'indexable' => true,
-                            'weight' => 2.0,
-                            'filterable' => true,
-                            'sortable' => true,
-                            'sort_direction' => 'desc'
-                        ],
-                        'post_content' => [
-                            'indexable' => true,
-                            'weight' => 1.0,
-                            'filterable' => true,
-                            'sortable' => false
-                        ],
-                        'post_date' => [
-                            'indexable' => true,
-                            'weight' => 1.0,
-                            'filterable' => true,
-                            'sortable' => true,
-                            'sort_direction' => 'desc'
-                        ]
-                    ];
-                }
-            }
-            
-            // Only update if we added new post types
-            if ($updated) {
-                update_option('wp_loupe_fields', $saved_fields);
+            // Only update if changes were made
+            if ($updated_fields !== $saved_fields) {
+                update_option('wp_loupe_fields', $updated_fields);
             }
         }
         
@@ -295,12 +245,114 @@ class WP_Loupe_Indexer {
         $this->schema_manager->clear_cache();
     }
 
-	/**
-	 * Delete the index.
-	 *
-	 * @return void
-	 */
-	private function delete_index() {
+    /**
+     * Create default fields configuration for all post types
+     *
+     * @return array Default fields configuration
+     */
+    private function create_default_fields_configuration() {
+        $default_fields = [];
+        
+        foreach ($this->post_types as $post_type) {
+            // Add core fields first
+            $default_fields[$post_type] = $this->get_default_core_fields();
+            
+            // Add taxonomy fields if available
+            $default_fields[$post_type] = array_merge(
+                $default_fields[$post_type],
+                $this->get_taxonomy_fields_for_post_type($post_type)
+            );
+        }
+        
+        return $default_fields;
+    }
+
+    /**
+     * Get default core fields configuration
+     *
+     * @return array Core fields with default settings
+     */
+    private function get_default_core_fields() {
+        return [
+            'post_title' => [
+                'indexable' => true,
+                'weight' => 2.0,
+                'filterable' => true,
+                'sortable' => true,
+                'sort_direction' => 'desc'
+            ],
+            'post_content' => [
+                'indexable' => true,
+                'weight' => 1.0,
+                'filterable' => true,
+                'sortable' => false
+            ],
+            'post_date' => [
+                'indexable' => true,
+                'weight' => 1.0,
+                'filterable' => true,
+                'sortable' => true,
+                'sort_direction' => 'desc'
+            ]
+        ];
+    }
+
+    /**
+     * Get taxonomy fields configuration for a post type
+     *
+     * @param string $post_type Post type to get taxonomies for
+     * @return array Taxonomy fields configuration
+     */
+    private function get_taxonomy_fields_for_post_type($post_type) {
+        $taxonomy_fields = [];
+        
+        $taxonomies = get_object_taxonomies($post_type, 'objects');
+        foreach ($taxonomies as $tax_name => $tax_obj) {
+            if ($tax_obj->show_ui) {
+                $taxonomy_fields['taxonomy_' . $tax_name] = [
+                    'indexable' => true,
+                    'weight' => 1.5,
+                    'filterable' => true,
+                    'sortable' => false
+                ];
+            }
+        }
+        
+        return $taxonomy_fields;
+    }
+
+    /**
+     * Ensure all post types have field configurations
+     *
+     * @param array $saved_fields Existing field configurations
+     * @return array Updated field configurations
+     */
+    private function ensure_post_types_have_configurations($saved_fields) {
+        $updated = false;
+        
+        foreach ($this->post_types as $post_type) {
+            if (!isset($saved_fields[$post_type]) || empty($saved_fields[$post_type])) {
+                $updated = true;
+                
+                // Add core fields
+                $saved_fields[$post_type] = $this->get_default_core_fields();
+                
+                // Add taxonomy fields
+                $saved_fields[$post_type] = array_merge(
+                    $saved_fields[$post_type],
+                    $this->get_taxonomy_fields_for_post_type($post_type)
+                );
+            }
+        }
+        
+        return $saved_fields;
+    }
+    /**
+     * Delete the index.
+     *
+     * @return void
+     */
+    private function delete_index() {
         global $wpdb;
 
         // Clear schema cache
@@ -325,64 +377,65 @@ class WP_Loupe_Indexer {
         $this->loupe = [];
     }
 
-	/**
-	 * Check if the post should be indexed.
-	 *
-	 * @param int      $post_id Post ID.
-	 * @param \WP_Post $post    Post object.
-	 * @return bool
-	 */
-	private function is_indexable( int $post_id, \WP_Post $post ): bool {
-		// Check if the post is a revision.
-		if ( wp_is_post_revision( $post_id ) ) {
-			return false;
-		}
+    /**
+     * Check if the post should be indexed.
+     *
+     * @param int      $post_id Post ID.
+     * @param \WP_Post $post    Post object.
+     * @return bool
+     */
+    private function is_indexable( int $post_id, \WP_Post $post ): bool {
+        // Check if the post is a revision.
+        if ( wp_is_post_revision( $post_id ) ) {
+            return false;
+        }
 
-		// Check if the post is an autosave.
-		if ( \wp_is_post_autosave( $post_id ) ) {
-			return false;
-		}
+        // Check if the post is an autosave.
+        if ( \wp_is_post_autosave( $post_id ) ) {
+            return false;
+        }
 
-		// Check if the post type is in the list of post types to be indexed.
-		if ( ! \in_array( $post->post_type, $this->post_types, true ) ) {
-			return false;
-		}
+        // Check if the post type is in the list of post types to be indexed.
+        if ( ! \in_array( $post->post_type, $this->post_types, true ) ) {
+            return false;
+        }
 
-		// Check if the post status is 'publish'.
-		if ( 'publish' !== $post->post_status ) {
-			return false;
-		}
+        // Check if the post status is 'publish'.
+        if ( 'publish' !== $post->post_status ) {
+            return false;
+        }
 
-		// Check if the post is password protected.
-		if ( ! \apply_filters( 'wp_loupe_index_protected', empty( $post->post_password ) ) ) {
-			return false;
-		}
+        // Check if the post is password protected.
+        if ( ! \apply_filters( 'wp_loupe_index_protected', empty( $post->post_password ) ) ) {
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	/**
-	 * Add processing time to wp_footer
-	 */
-	public function action_wp_footer(): void {
-		if ( ! is_admin() ) {
-			echo "\n" . '<!--' . $this->log . ' -->' . "\n";
-		}
-	}
+    /**
+     * Add processing time to wp_footer
+     */
+    public function action_wp_footer(): void {
+        if ( ! is_admin() ) {
+            echo "\n" . '<!--' . $this->log . ' -->' . "\n";
+        }
+    }
 
-	/**
-	 * Prepare document
-	 *
-	 * @param \WP_Post $post Post object.
-	 * @return array
-	 */
-	private function prepare_document( \WP_Post $post ): array {
+    /**
+     * Prepare document
+     *
+     * @param \WP_Post $post Post object.
+     * @return array
+     */
+    public function prepare_document( \WP_Post $post ): array {
         $schema = $this->schema_manager->get_schema_for_post_type($post->post_type);
         $indexable_fields = $this->schema_manager->get_indexable_fields($schema);
         $saved_fields = get_option('wp_loupe_fields', []);
 
         $document = ['id' => $post->ID, 'post_type' => $post->post_type];
-
+        
+        // First, process standard fields that we know are indexable
         foreach ($indexable_fields as $field) {
             $field_name = str_contains($field['field'], '.') 
                 ? substr($field['field'], strpos($field['field'], '.') + 1) 
@@ -421,6 +474,32 @@ class WP_Loupe_Indexer {
             // Only add non-null values to the document
             if ($field_value !== null) {
                 $document[$field_name] = $field_value;
+            }
+        }
+        
+        // Now ensure all fields marked as sortable have a value
+        if (isset($saved_fields[$post->post_type])) {
+            foreach ($saved_fields[$post->post_type] as $field_name => $settings) {
+                // If this field is marked as sortable but not already in the document
+                if (!empty($settings['sortable']) && !isset($document[$field_name])) {
+                    $field_value = null;
+                    
+                    // Try to get a value for this field from post meta
+                    if (!property_exists($post, $field_name) && strpos($field_name, 'taxonomy_') !== 0) {
+                        $meta_value = get_post_meta($post->ID, $field_name, true);
+                        if (!empty($meta_value)) {
+                            $field_value = $this->sanitize_field_value($meta_value);
+                            
+                            // Only add non-null values to the document
+                            if ($field_value !== null) {
+                                $document[$field_name] = $field_value;
+                            }
+                        } else {
+                            // Add an empty value to ensure the field exists for sorting
+                            $document[$field_name] = "";
+                        }
+                    }
+                }
             }
         }
 
@@ -485,5 +564,7 @@ class WP_Loupe_Indexer {
         // For all other types, return null
         return null;
     }
+
+    
 
 }

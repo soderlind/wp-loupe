@@ -73,53 +73,89 @@ class WP_Loupe_Search {
             $this->log = sprintf('WP Loupe cache hit: %s ms', 0);
             return $cached_result;
         }
+        
         $hits = [];
         $stats = [];
         $start_time = microtime(true);
+        
         foreach ($this->post_types as $post_type) {
             $post_type_fields = $this->saved_fields[$post_type] ?? [];
             if (empty($post_type_fields)) {
                 continue;
             }
-            $indexable_fields = [];
-            $sort_fields = [];
-            $filterable_fields = [];
-            foreach ($post_type_fields as $field_name => $settings) {
-                if (!empty($settings['indexable'])) {
-                    $indexable_fields[] = [
-                        'field' => $field_name,
-                        'weight' => $settings['weight'] ?? 1.0
-                    ];
+            
+            try {
+                $indexable_fields = [];
+                $sort_fields = [];
+                $filterable_fields = [];
+                
+                // Process field settings
+                foreach ($post_type_fields as $field_name => $settings) {
+                    if (!empty($settings['indexable'])) {
+                        $indexable_fields[] = [
+                            'field' => $field_name,
+                            'weight' => $settings['weight'] ?? 1.0
+                        ];
+                    }
+                    
+                    if (!empty($settings['filterable'])) {
+                        $filterable_fields[] = $field_name;
+                    }
                 }
-                if (!empty($settings['sortable'])) {
-                    $sort_direction = $settings['sort_direction'] ?? 'desc';
-                    $sort_fields[] = "{$field_name}:{$sort_direction}";
-                }
-                if (!empty($settings['filterable'])) {
-                    $filterable_fields[] = $field_name;
-                }
-            }
-            $retrievable_fields = array_unique(array_merge(
-                ['id'],
-                array_map(function ($field) {
-                    return $field['field'];
-                }, $indexable_fields),
-                $filterable_fields
-            ));
-            $loupe = $this->loupe[$post_type];
-            $result = $loupe->search(
-                SearchParameters::create()
+                
+                // Get all retrievable fields
+                $retrievable_fields = array_unique(array_merge(
+                    ['id'],
+                    array_map(function ($field) {
+                        return $field['field'];
+                    }, $indexable_fields),
+                    $filterable_fields
+                ));
+                
+                // Create search parameters
+                $search_params = SearchParameters::create()
                     ->withQuery($query)
-                    ->withAttributesToRetrieve($retrievable_fields)
-                    ->withSort($sort_fields)
-            );
-            $stats = array_merge_recursive($stats, (array)$result->toArray()['processingTimeMs']);
-            $tmp_hits = $result->toArray()['hits'];
-            foreach ($tmp_hits as $key => $hit) {
-                $tmp_hits[$key]['post_type'] = $post_type;
+                    ->withAttributesToRetrieve($retrievable_fields);
+                
+                // Apply sort fields separately to handle possible errors
+                // Only use fields that are explicitly marked as sortable in the schema
+                $valid_sort_fields = [];
+                foreach ($post_type_fields as $field_name => $settings) {
+                    if (!empty($settings['sortable'])) {
+                        $sort_direction = $settings['sort_direction'] ?? 'desc';
+                        $valid_sort_fields[] = "{$field_name}:{$sort_direction}";
+                    }
+                }
+                
+                // Only apply sort if we have valid sort fields
+                if (!empty($valid_sort_fields)) {
+                    try {
+                        $search_params = $search_params->withSort($valid_sort_fields);
+                    } catch (\Exception $e) {
+                        // Log the sort error but continue with search
+                        error_log("WP Loupe sort error for {$post_type}: " . $e->getMessage());
+                    }
+                }
+                
+                // Execute search
+                $loupe = $this->loupe[$post_type];
+                $result = $loupe->search($search_params);
+                
+                $stats = array_merge_recursive($stats, (array)$result->toArray()['processingTimeMs']);
+                $tmp_hits = $result->toArray()['hits'];
+                
+                // Add post type to each hit for identification
+                foreach ($tmp_hits as $key => $hit) {
+                    $tmp_hits[$key]['post_type'] = $post_type;
+                }
+                
+                $hits = array_merge_recursive($hits, $tmp_hits);
+            } catch (\Exception $e) {
+                error_log("WP Loupe search error for {$post_type}: " . $e->getMessage());
+                // Continue with other post types even if one fails
             }
-            $hits = array_merge_recursive($hits, $tmp_hits);
         }
+        
         $this->log = sprintf('WP Loupe processing time: %s ms', (string)array_sum($stats));
         set_transient("wp_loupe_search_$cache_key", $hits, self::CACHE_TTL);
         return $hits;

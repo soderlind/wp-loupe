@@ -104,22 +104,17 @@ class WP_Loupe_Factory {
             }
         }
         
-        // Validate sortable fields to ensure only scalar fields are marked as sortable
-        $all_saved_fields = self::validate_sortable_fields($all_saved_fields);
-        
         $saved_fields = $all_saved_fields;
         
-        WP_Loupe_Utils::dump(['post type' => $post_type, 'saved_fields' => $saved_fields]);
-
         // Get all fields in one pass and extract what we need
         $attributes = [
             'indexable'  => [],
             'filterable' => [],
             'sortable'   => [],
         ];
-
-        // use the $saved_fields to process fields effectively
-        if (isset($saved_fields[$post_type])) {
+        
+        // Traverse saved fields and add to attributes
+        if (isset($all_saved_fields[$post_type])) {
             foreach ($saved_fields[$post_type] as $field_name => $settings) {
                 // Add field to indexable attributes if set
                 if (!empty($settings['indexable'])) {
@@ -131,14 +126,16 @@ class WP_Loupe_Factory {
                     $attributes['filterable'][] = $field_name;
                 }
                 
-                // Add field to sortable attributes if set and safely sortable
-                if (!empty($settings['sortable']) && self::is_safely_sortable($field_name, $post_type)) {
+                // For sortable fields, we'll now include all fields marked as sortable
+                // regardless of whether they are detected as "safely sortable"
+                if (!empty($settings['sortable'])) {
+                    // if (!empty($settings['sortable']) && self::is_safely_sortable($field_name, $post_type)) {
                     $attributes['sortable'][] = $field_name;
                 }
             }
         }
-        WP_Loupe_Utils::dump(['post_type' => $post_type, 'attributes' => $attributes]);
-
+        
+        // Create the configuration with the complete set of attributes
         $configuration = Configuration::create()
             ->withPrimaryKey('id')
             ->withSearchableAttributes($attributes['indexable'])
@@ -148,7 +145,8 @@ class WP_Loupe_Factory {
             ->withTypoTolerance(
                 TypoTolerance::create()->withFirstCharTypoCountsDouble(false)
             );
-
+        
+        // Create and return the Loupe instance
         $loupe_factory = new LoupeFactory();
         $instance = $loupe_factory->create(
             $db->get_db_path($post_type),
@@ -175,55 +173,71 @@ class WP_Loupe_Factory {
         }
     }
     
-    /**
+ 	/**
      * Determine if a field is safe to use as a sortable attribute
      * 
      * @param string $field_name The field name to check
      * @param string $post_type The post type being processed
-     * @return bool True if field can be safely sorted
+     * @return bool Whether the field can be safely sorted
      */
     private static function is_safely_sortable(string $field_name, string $post_type): bool {
-        // Never allow known non-scalar fields
-        if (in_array($field_name, self::$non_scalar_field_types)) {
-            return false;
-        }
-        
-        // Never allow taxonomy fields (they're arrays)
-        if (strpos($field_name, 'taxonomy_') === 0) {
-            return false;
-        }
-        
-        // Always allow core fields from our safelist
+        // Core WP fields we know are safely sortable
         if (in_array($field_name, self::$sortable_field_types)) {
             return true;
         }
         
-        // Check for date fields (naming convention)
-        if (strpos($field_name, '_date') !== false || 
-            strpos($field_name, 'date_') !== false ||
-            strpos($field_name, '_at') !== false) {
-            return true;
+        // Fields we know are not safely sortable
+        if (in_array($field_name, self::$non_scalar_field_types)) {
+            return false;
         }
         
-        // Check for number fields (naming convention)
-        if (strpos($field_name, '_count') !== false ||
-            strpos($field_name, '_number') !== false ||
-            strpos($field_name, '_price') !== false ||
-            strpos($field_name, '_rating') !== false ||
-            strpos($field_name, '_amount') !== false ||
-            strpos($field_name, '_percentage') !== false ||
-            strpos($field_name, '_quantity') !== false) {
-            return true;
+        // Check if it's a taxonomy field (these are arrays and not safely sortable)
+        if (strpos($field_name, 'taxonomy_') === 0) {
+            return false;
         }
         
-        // Get all known sortable fields from custom schema filters
-        $customizable_sortable_fields = apply_filters("wp_loupe_sortable_fields_{$post_type}", []);
-        if (!empty($customizable_sortable_fields) && in_array($field_name, $customizable_sortable_fields)) {
-            return true;
+        // For meta fields, we need to check actual values
+        // First let's determine if it's a core post field
+        $core_fields = [
+            'ID', 'post_author', 'post_date', 'post_date_gmt', 
+            'post_content', 'post_title', 'post_excerpt', 
+            'post_status', 'comment_status', 'ping_status', 
+            'post_password', 'post_name', 'to_ping', 'pinged', 
+            'post_modified', 'post_modified_gmt', 'post_content_filtered', 
+            'post_parent', 'guid', 'menu_order', 'post_type', 'post_mime_type', 'comment_count'
+        ];
+        
+        // If not a core field, treat as a meta field
+        if (!in_array($field_name, $core_fields)) {
+            // It's likely a meta field, let's check a sample value
+            $args = [
+                'post_type' => $post_type,
+                'posts_per_page' => 5, // Check a few posts for better accuracy
+                'meta_key' => $field_name,
+                'meta_value_exists' => true,
+                'fields' => 'ids', // We only need the IDs
+            ];
+            
+            $query = new \WP_Query($args);
+            
+            if ($query->have_posts()) {
+                // Check the meta values from these posts
+                foreach ($query->posts as $post_id) {
+                    $value = get_post_meta($post_id, $field_name, true);
+                    
+                    // If we find a non-scalar value, return false
+                    if (!is_scalar($value) && $value !== null) {
+                        return false;
+                    }
+                }
+                
+                // If we've checked all posts and found only scalar values (or null), it's probably safe to sort
+                return true;
+            }
         }
         
-        // By default, don't mark fields as sortable to prevent errors
-        return false;
+        // Allow plugins to override for custom field types
+        return apply_filters("wp_loupe_is_safely_sortable_{$post_type}", false, $field_name);
     }
 
     /**
