@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.3.1] - 2023-06-30
+## [0.3.1] - 2023-03-12
 
 ### Fixed
 - Bug fix: Non-scalar fields no longer get selected by default for sorting when adding a new post type
