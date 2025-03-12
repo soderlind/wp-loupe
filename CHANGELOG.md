@@ -46,10 +46,10 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Added new field settings management interface in the settings page
-	- Added ability to configure Weight, Filterable, and Sortable options per field
+    - Added ability to configure Weight, Filterable, and Sortable options per field
 - Added help tabs to explain field configuration options
-	- Added detailed explanations for Weight, Filterable, and Sortable fields
-	- Added help sidebar with documentation link
+    - Added detailed explanations for Weight, Filterable, and Sortable fields
+    - Added help sidebar with documentation link
 
 
 ## [0.1.7] - 2025-03-06
