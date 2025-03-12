@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2023-06-30
+
+### Fixed
+- Bug fix: Non-scalar fields no longer get selected by default for sorting when adding a new post type
+- Improved field configuration UI to properly handle non-sortable fields
+
+### Changed
+- Updated translations for new strings
+
 ## [0.3.0] - 2025-03-12
 
 ### Added
