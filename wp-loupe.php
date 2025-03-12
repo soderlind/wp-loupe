@@ -10,7 +10,7 @@
  * Plugin Name:       WP Loupe
  * Plugin URI:        https://github.com/soderlind/wp-loupe
  * Description:       Enhance the search functionality of your WordPress site with WP Loupe.
- * Version:           0.2.3
+ * Version:           0.3.0
  * Author:            Per Soderlind
  * Author URI:        https://soderlind.no
  * License:           GPL-2.0+
@@ -40,18 +40,14 @@ require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-loader.php';
  * Initialize plugin
  */
 function init() {
-	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-		return;
-	}
-
-	// if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
-	// 	return;
-	// }
-	if ( defined( 'WP_CLI' ) && WP_CLI ) {
-		return;
-	}
-	// don't run the setup on heartbeat requests
-	if ( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_SERVER['HTTP_X_WP_NONCE'] ) ) {
+	// Don't run on autosave, WP CLI, Heartbeat or cron requests, and REST API requests (except our own)
+	if ( 
+		( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ||
+		( defined( 'WP_CLI' ) && WP_CLI ) ||
+		( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_REQUEST['action'] ) && 'heartbeat' === $_REQUEST['action'] ) ||
+		( defined( 'REST_REQUEST' ) && REST_REQUEST && ! str_starts_with( $_SERVER['REQUEST_URI'] ?? '', '/wp-json/wp-loupe' ) ) ||
+		( defined( 'DOING_CRON' ) && DOING_CRON )
+	) {
 		return;
 	}
 
