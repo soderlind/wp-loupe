@@ -2,8 +2,8 @@
 Contributors: persoderlind
 Tags: search, full-text search, relevance
 Requires at least: 5.6
-Tested up to: 6.2
-Stable tag: 0.3.1
+Tested up to: 6.7
+Stable tag: 0.3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,9 @@ Customizes the schema for a post type.
 For usage examples, see the [filter documentation at GitHub](https://github.com/soderlind/wp-loupe?tab=readme-ov-file#filters).
 
 == Changelog ==
+
+= 0.3.2 =
+* Fixed: In readme.txt, update the `Tested up to` value to 6.7
 
 = 0.3.1 =
 * Bug fix: Non-scalar fields no longer get selected by default for sorting when adding a new post type
