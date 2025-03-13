@@ -504,7 +504,7 @@ class WPLoupe_Settings_Page {
 	 * Prefix search section description
 	 */
 	public function prefix_section_callback() {
-		echo '<p>' . __('Configure prefix search behavior. Prefix search allows finding terms by typing only the beginning (e.g., "huck" finds "huckleberry").', 'wp-loupe') . '</p>';
+		echo '<p>' . __('Configure prefix search behavior. Prefix search allows finding terms by typing only the beginning (e.g., "huck" finds "huckleberry"). Prefix search is only performed on the last word in a search query. Prior words must be typed out fully to get accurate results. E.g. my friend huck would find documents containing huckleberry - huck is my friend, however, would not.', 'wp-loupe') . '</p>';
 	}
 
 	/**
@@ -1195,7 +1195,7 @@ class WPLoupe_Settings_Page {
 			'content' => sprintf(
 				'<h2>%s</h2><p>%s</p><p>%s</p><h3>%s</h3><p>%s</p><p>%s</p>',
 				__('Prefix Search', 'wp-loupe'),
-				__('Prefix search allows users to find words by typing just the beginning of the term. For example, "huck" will match "huckleberry".', 'wp-loupe'),
+				__('Prefix search allows users to find words by typing just the beginning of the term. For example, "huck" will match "huckleberry. Prefix search is only performed on the last word in a search query. Prior words must be typed out fully to get accurate results. E.g. my friend huck would find documents containing huckleberry - huck is my friend, however, would not.', 'wp-loupe'),
 				__('Only the last word in a query is treated as a prefix. Earlier words must be typed fully.', 'wp-loupe'),
 				__('Minimum Prefix Length', 'wp-loupe'),
 				__('Sets the minimum number of characters before prefix search activates. Default is 3.', 'wp-loupe'),
