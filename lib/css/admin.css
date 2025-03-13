@@ -126,3 +126,16 @@ input[type="checkbox"]:disabled {
 tr:has(td.non-sortable-field) {
 	background-color: #fcfcfc;
 }
+
+/* Tab styling */
+.nav-tab-wrapper {
+	margin-bottom: 20px;
+}
+
+.wp-loupe-tab-content {
+	display: none;
+}
+
+.wp-loupe-tab-content.active {
+	display: block;
+}

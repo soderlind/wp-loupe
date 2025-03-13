@@ -48,18 +48,55 @@ class WP_Loupe_Factory {
      * @return \Loupe\Loupe\Loupe Loupe instance
      */
     public static function create_loupe_instance(string $post_type, string $lang, WP_Loupe_DB $db): \Loupe\Loupe\Loupe {
-        // Check if we already have field settings
-        $all_saved_fields = get_option('wp_loupe_fields');
+        // Generate cache key
+        $cache_key = "{$post_type}:{$lang}";
+        
+        // Return cached instance if available
+        if (isset(self::$instance_cache[$cache_key])) {
+            return self::$instance_cache[$cache_key];
+        }
+        
+        // Get field configuration for this post type
+        $field_config = self::get_field_configuration($post_type);
+        
+        // Extract attributes from field configuration
+        $attributes = self::extract_attributes_from_fields($field_config);
+        
+        // Get advanced configuration
+        $configuration = self::build_configuration($attributes);
+        
+        // Create and cache the Loupe instance
+        $loupe_factory = new LoupeFactory();
+        $instance = $loupe_factory->create(
+            $db->get_db_path($post_type),
+            $configuration
+        );
+        
+        // Cache the instance
+        self::$instance_cache[$cache_key] = $instance;
+        
+        return $instance;
+    }
+    
+    /**
+     * Get field configuration for a post type, creating defaults if needed
+     * 
+     * @param string $post_type Post type to get configuration for
+     * @return array Field configuration
+     */
+    private static function get_field_configuration(string $post_type): array {
+        // Get all saved fields
+        $all_saved_fields = get_option('wp_loupe_fields', []);
         $needs_save = false;
         
-        // If settings don't exist at all or don't exist for this post type, create defaults
-        if (empty($all_saved_fields) || !isset($all_saved_fields[$post_type])) {
+        // If settings don't exist for this post type, create defaults
+        if (!is_array($all_saved_fields)) {
+            $all_saved_fields = [];
             $needs_save = true;
-            
-            // Create default fields for this post type if they don't exist
-            if (!is_array($all_saved_fields)) {
-                $all_saved_fields = [];
-            }
+        }
+        
+        if (!isset($all_saved_fields[$post_type])) {
+            $needs_save = true;
             
             // Set default fields for this post type
             $all_saved_fields[$post_type] = [
@@ -85,75 +122,123 @@ class WP_Loupe_Factory {
                 ],
             ];
             
-            // Add taxonomy fields if available
-            $taxonomies = get_object_taxonomies($post_type, 'objects');
-            foreach ($taxonomies as $tax_name => $tax_obj) {
-                if ($tax_obj->show_ui) {
-                    $all_saved_fields[$post_type]['taxonomy_' . $tax_name] = [
-                        'indexable' => true,
-                        'weight' => 1.5,
-                        'filterable' => true,
-                        'sortable' => false // Taxonomies are arrays, not scalar
-                    ];
-                }
-            }
-            
-            // Save the updated fields
-            if ($needs_save) {
-                update_option('wp_loupe_fields', $all_saved_fields);
-            }
+            // Add taxonomy fields
+            self::add_taxonomy_fields($post_type, $all_saved_fields[$post_type]);
         }
         
-        $saved_fields = $all_saved_fields;
+        // Save if needed
+        if ($needs_save) {
+            update_option('wp_loupe_fields', $all_saved_fields);
+        }
         
-        // Get all fields in one pass and extract what we need
+        return $all_saved_fields[$post_type] ?? [];
+    }
+    
+    /**
+     * Add taxonomy fields to the field configuration
+     * 
+     * @param string $post_type Post type
+     * @param array &$fields Fields array to modify
+     */
+    private static function add_taxonomy_fields(string $post_type, array &$fields): void {
+        $taxonomies = get_object_taxonomies($post_type, 'objects');
+        foreach ($taxonomies as $tax_name => $tax_obj) {
+            if ($tax_obj->show_ui) {
+                $fields['taxonomy_' . $tax_name] = [
+                    'indexable' => true,
+                    'weight' => 1.5,
+                    'filterable' => true,
+                    'sortable' => false // Taxonomies are arrays, not scalar
+                ];
+            }
+        }
+    }
+    
+    /**
+     * Extract searchable, filterable, and sortable attributes from field configuration
+     * 
+     * @param array $fields Field configuration
+     * @return array Attributes for indexable, filterable, and sortable fields
+     */
+    private static function extract_attributes_from_fields(array $fields): array {
         $attributes = [
             'indexable'  => [],
             'filterable' => [],
             'sortable'   => [],
         ];
         
-        // Traverse saved fields and add to attributes
-        if (isset($all_saved_fields[$post_type])) {
-            foreach ($saved_fields[$post_type] as $field_name => $settings) {
-                // Add field to indexable attributes if set
-                if (!empty($settings['indexable'])) {
-                    $attributes['indexable'][] = $field_name;
-                }
-                
-                // Add field to filterable attributes if set
-                if (!empty($settings['filterable'])) {
-                    $attributes['filterable'][] = $field_name;
-                }
-                
-                // For sortable fields, we'll now include all fields marked as sortable
-                // regardless of whether they are detected as "safely sortable"
-                if (!empty($settings['sortable'])) {
-                    // if (!empty($settings['sortable']) && self::is_safely_sortable($field_name, $post_type)) {
-                    $attributes['sortable'][] = $field_name;
-                }
+        foreach ($fields as $field_name => $settings) {
+            if (!empty($settings['indexable'])) {
+                $attributes['indexable'][] = $field_name;
+            }
+            
+            if (!empty($settings['filterable'])) {
+                $attributes['filterable'][] = $field_name;
+            }
+            
+            if (!empty($settings['sortable'])) {
+                $attributes['sortable'][] = $field_name;
             }
         }
         
-        // Create the configuration with the complete set of attributes
+        return $attributes;
+    }
+    
+    /**
+     * Build the Loupe configuration object
+     * 
+     * @param array $attributes Attributes for configuration
+     * @return Configuration Loupe configuration object
+     */
+    private static function build_configuration(array $attributes): Configuration {
+        $advanced_settings = get_option('wp_loupe_advanced', []);
+        
+        // Create the configuration
         $configuration = Configuration::create()
             ->withPrimaryKey('id')
             ->withSearchableAttributes($attributes['indexable'])
             ->withFilterableAttributes($attributes['filterable'])
             ->withSortableAttributes($attributes['sortable'])
-            ->withLanguages([$lang])
-            ->withTypoTolerance(
-                TypoTolerance::create()->withFirstCharTypoCountsDouble(false)
-            );
+            ->withMaxQueryTokens($advanced_settings['max_query_tokens'] ?? 12)
+            ->withMinTokenLengthForPrefixSearch($advanced_settings['min_prefix_length'] ?? 3)
+            ->withLanguages($advanced_settings['languages'] ?? ['en'])
+            ->withTypoTolerance(self::configure_typo_tolerance($advanced_settings));
+            
+        return $configuration;
+    }
+    
+    /**
+     * Configure typo tolerance settings
+     * 
+     * @param array $settings Advanced settings
+     * @return TypoTolerance Configured typo tolerance object
+     */
+    private static function configure_typo_tolerance(array $settings): TypoTolerance {
+        if (empty($settings['typo_enabled'])) {
+            return TypoTolerance::disabled();
+        }
         
-        // Create and return the Loupe instance
-        $loupe_factory = new LoupeFactory();
-        $instance = $loupe_factory->create(
-            $db->get_db_path($post_type),
-            $configuration
-        );
+        $typo = TypoTolerance::create();
         
-        return $instance;
+        // Apply settings if they exist
+        if (!empty($settings['alphabet_size'])) {
+            $typo->withAlphabetSize($settings['alphabet_size']);
+        }
+        
+        if (!empty($settings['index_length'])) {
+            $typo->withIndexLength($settings['index_length']);
+        }
+        
+        // Configure boolean settings
+        $typo->withFirstCharTypoCountsDouble(!empty($settings['first_char_typo_double']));
+        $typo->withEnabledForPrefixSearch(!empty($settings['typo_prefix_search']));
+        
+        // Configure thresholds
+        if (!empty($settings['typo_thresholds']) && is_array($settings['typo_thresholds'])) {
+            $typo->withTypoThresholds($settings['typo_thresholds']);
+        }
+        
+        return $typo;
     }
     
     /**
@@ -196,8 +281,7 @@ class WP_Loupe_Factory {
             return false;
         }
         
-        // For meta fields, we need to check actual values
-        // First let's determine if it's a core post field
+        // Core post fields list
         $core_fields = [
             'ID', 'post_author', 'post_date', 'post_date_gmt', 
             'post_content', 'post_title', 'post_excerpt', 
@@ -209,35 +293,48 @@ class WP_Loupe_Factory {
         
         // If not a core field, treat as a meta field
         if (!in_array($field_name, $core_fields)) {
-            // It's likely a meta field, let's check a sample value
-            $args = [
-                'post_type' => $post_type,
-                'posts_per_page' => 5, // Check a few posts for better accuracy
-                'meta_key' => $field_name,
-                'meta_value_exists' => true,
-                'fields' => 'ids', // We only need the IDs
-            ];
-            
-            $query = new \WP_Query($args);
-            
-            if ($query->have_posts()) {
-                // Check the meta values from these posts
-                foreach ($query->posts as $post_id) {
-                    $value = get_post_meta($post_id, $field_name, true);
-                    
-                    // If we find a non-scalar value, return false
-                    if (!is_scalar($value) && $value !== null) {
-                        return false;
-                    }
-                }
-                
-                // If we've checked all posts and found only scalar values (or null), it's probably safe to sort
-                return true;
-            }
+            return self::check_meta_field_sortability($field_name, $post_type);
         }
         
         // Allow plugins to override for custom field types
         return apply_filters("wp_loupe_is_safely_sortable_{$post_type}", false, $field_name);
+    }
+
+    /**
+     * Check if a meta field contains only scalar values
+     * 
+     * @param string $field_name Meta field name
+     * @param string $post_type Post type
+     * @return bool Whether the field contains only scalar values
+     */
+    private static function check_meta_field_sortability(string $field_name, string $post_type): bool {
+        // Check a sample value
+        $args = [
+            'post_type' => $post_type,
+            'posts_per_page' => 5, // Check a few posts for better accuracy
+            'meta_key' => $field_name,
+            'meta_value_exists' => true,
+            'fields' => 'ids', // We only need the IDs
+        ];
+        
+        $query = new \WP_Query($args);
+        
+        if ($query->have_posts()) {
+            // Check the meta values from these posts
+            foreach ($query->posts as $post_id) {
+                $value = get_post_meta($post_id, $field_name, true);
+                
+                // If we find a non-scalar value, return false
+                if (!is_scalar($value) && $value !== null) {
+                    return false;
+                }
+            }
+            
+            // If we've checked all posts and found only scalar values (or null), it's probably safe to sort
+            return true;
+        }
+        
+        return false;
     }
 
     /**
@@ -246,7 +343,7 @@ class WP_Loupe_Factory {
      * @param array $fields All field settings
      * @return array Validated field settings
      */
-    private static function validate_sortable_fields(array $fields): array {
+    public static function validate_sortable_fields(array $fields): array {
         $updated = false;
         
         foreach ($fields as $post_type => &$post_type_fields) {
@@ -275,6 +372,14 @@ class WP_Loupe_Factory {
      * @return bool True if field can be safely sorted
      */
     public static function check_sortable_field(string $field_name, string $post_type): bool {
-        return self::is_safely_sortable($field_name, $post_type);
+        // Use static cache for frequently checked fields
+        static $field_cache = [];
+        $cache_key = "{$post_type}:{$field_name}";
+        
+        if (!isset($field_cache[$cache_key])) {
+            $field_cache[$cache_key] = self::is_safely_sortable($field_name, $post_type);
+        }
+        
+        return $field_cache[$cache_key];
     }
 }
