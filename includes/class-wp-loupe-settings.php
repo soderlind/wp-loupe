@@ -512,7 +512,10 @@ class WPLoupe_Settings_Page {
 	 */
 	public function typo_section_callback() {
 		echo '<p>' . __('Configure typo tolerance for search queries. Typo tolerance allows finding results even when users make typing mistakes.', 'wp-loupe') . '</p>';
-		echo '<p><small>' . __('Based on the algorithm from "Efficient Similarity Search in Very Large String Sets" (Fenz et al., 2012).', 'wp-loupe') . '</small></p>';
+		echo '<p><small>' . sprintf(
+			__('Based on the algorithm from "Efficient Similarity Search in Very Large String Sets" %s.', 'wp-loupe'),
+			'<a href="https://hpi.de/fileadmin/user_upload/fachgebiete/naumann/publications/PDFs/2012_ICDE_p1586-fenz.pdf" target="_blank">' . __('(read the paper)', 'wp-loupe') . '</a>'
+		) . '</small></p>';
 	}
 
 	/**
@@ -1105,6 +1108,28 @@ class WPLoupe_Settings_Page {
 	public function add_help_tabs() {
 		$screen = get_current_screen();
 		
+		// Add overview help tab that explains the structure
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_help_overview',
+			'title'   => __('Overview', 'wp-loupe'),
+			'content' => sprintf(
+				'<h2>%s</h2><p>%s</p><div class="wp-loupe-help-sections"><div class="wp-loupe-help-section basic"><h3>%s</h3><p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul></div><div class="wp-loupe-help-section advanced"><h3>%s</h3><p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul></div></div>',
+				__('WP Loupe Help', 'wp-loupe'),
+				__('WP Loupe provides powerful search functionality with both basic and advanced configuration options.', 'wp-loupe'),
+				__('Basic Settings', 'wp-loupe'),
+				__('Configure which content is searchable and how:', 'wp-loupe'),
+				__('Select post types to include in search', 'wp-loupe'),
+				__('Configure field weights for relevance', 'wp-loupe'),
+				__('Set filterable and sortable fields', 'wp-loupe'),
+				__('Advanced Settings', 'wp-loupe'),
+				__('Fine-tune search behavior with advanced options:', 'wp-loupe'),
+				__('Tokenization and language settings', 'wp-loupe'),
+				__('Prefix search configuration', 'wp-loupe'),
+				__('Typo tolerance customization', 'wp-loupe')
+			)
+		]);
+		
+		// Basic settings help tabs - remove "BASIC:" prefix
 		$screen->add_help_tab([
 			'id'      => 'wp_loupe_weight',
 			'title'   => __('Weight', 'wp-loupe'),
@@ -1112,9 +1137,9 @@ class WPLoupe_Settings_Page {
 				'<h2>%s</h2><p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul>',
 				__('Field Weight', 'wp-loupe'),
 				__('Weight determines how important a field is in search results:', 'wp-loupe'),
-				__('Higher weight (e.g., 2.0) makes matches in this field more important', 'wp-loupe'),
+				__('Higher weight (e.g., 2.0) makes matches in this field more important in results ranking', 'wp-loupe'),
 				__('Default weight is 1.0', 'wp-loupe'),
-				__('Lower weight (e.g., 0.5) makes matches less important', 'wp-loupe')
+				__('Lower weight (e.g., 0.5) makes matches less important but still searchable', 'wp-loupe')
 			)
 		]);
 
@@ -1122,11 +1147,13 @@ class WPLoupe_Settings_Page {
 			'id'      => 'wp_loupe_filterable',
 			'title'   => __('Filterable', 'wp-loupe'),
 			'content' => sprintf(
-				'<h2>%s</h2><p>%s</p><ul><li>%s</li><li>%s</li></ul>',
+				'<h2>%s</h2><p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul><p>%s</p>',
 				__('Filterable Fields', 'wp-loupe'),
 				__('Filterable fields can be used to refine search results:', 'wp-loupe'),
 				__('Enable this option to allow filtering search results by this field\'s values', 'wp-loupe'),
-				__('Useful for categories, tags, and other taxonomies or metadata that you want users to filter by', 'wp-loupe')
+				 __('Best for fields with consistent, categorized values like taxonomies, status fields, or controlled metadata', 'wp-loupe'),
+				__('Examples: categories, tags, post type, author, or custom taxonomies', 'wp-loupe'),
+				__('Note: Fields with highly variable or unique values (like content) make poor filters as each post would have its own filter value.', 'wp-loupe')
 			)
 		]);
 
@@ -1134,12 +1161,105 @@ class WPLoupe_Settings_Page {
 			'id'      => 'wp_loupe_sortable',
 			'title'   => __('Sortable', 'wp-loupe'),
 			'content' => sprintf(
-				'<h2>%s</h2><p>%s</p><ul><li>%s</li><li>%s</li></ul>',
+				'<h2>%s</h2><p>%s</p><ul><li>%s</li><li>%s</li><li>%s</li></ul><h3>%s</h3><p>%s</p><ul><li>%s</li><li>%s</li></ul>',
 				__('Sortable Fields', 'wp-loupe'),
 				__('Sortable fields can be used to order search results:', 'wp-loupe'),
 				__('Enable this option to allow sorting search results by this field\'s values', 'wp-loupe'),
-				__('Useful for dates, prices, or other numerical values', 'wp-loupe')
+				__('Works best with numerical fields, dates, or short text values', 'wp-loupe'),
+				__('Examples: date, price, rating, title', 'wp-loupe'),
+				__('Why some fields are not sortable', 'wp-loupe'),
+				__('Not all fields make good candidates for sorting:', 'wp-loupe'),
+				__('Long text fields (like content) don\'t provide meaningful sort order', 'wp-loupe'),
+				__('Fields with complex values (like arrays or objects) cannot be directly sorted', 'wp-loupe')
 			)
+		]);
+		
+		// Advanced settings help tabs - remove "ADVANCED:" prefix
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_tokenization',
+			'title'   => __('Tokenization', 'wp-loupe'),
+			'content' => sprintf(
+				'<h2>%s</h2><p>%s</p><h3>%s</h3><p>%s</p><h3>%s</h3><p>%s</p>',
+				__('Tokenization Settings', 'wp-loupe'),
+				__('Tokenization controls how search queries are split into searchable pieces.', 'wp-loupe'),
+				__('Max Query Tokens', 'wp-loupe'),
+				__('Limits the number of words processed in a search query. Higher values allow longer queries but may impact performance.', 'wp-loupe'),
+				__('Languages', 'wp-loupe'),
+				__('Select languages to properly handle word splitting, stemming, and special characters. Include all languages your content uses.', 'wp-loupe')
+			)
+		]);
+		
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_prefix_search',
+			'title'   => __('Prefix Search', 'wp-loupe'),
+			'content' => sprintf(
+				'<h2>%s</h2><p>%s</p><p>%s</p><h3>%s</h3><p>%s</p><p>%s</p>',
+				__('Prefix Search', 'wp-loupe'),
+				__('Prefix search allows users to find words by typing just the beginning of the term. For example, "huck" will match "huckleberry".', 'wp-loupe'),
+				__('Only the last word in a query is treated as a prefix. Earlier words must be typed fully.', 'wp-loupe'),
+				__('Minimum Prefix Length', 'wp-loupe'),
+				__('Sets the minimum number of characters before prefix search activates. Default is 3.', 'wp-loupe'),
+				__('Lower values (1-2) provide more immediate results but may slow searches on large sites. Higher values (4+) improve performance but require more typing.', 'wp-loupe')
+			)
+		]);
+		
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_typo_tolerance',
+			'title'   => __('Typo Tolerance', 'wp-loupe'),
+			'content' => sprintf(
+				'<h2>%s</h2><p>%s</p><p>%s</p><h3>%s</h3><p>%s</p>',
+				__('Typo Tolerance', 'wp-loupe'),
+				__('Typo tolerance allows users to find results even when they make spelling mistakes in their search queries.', 'wp-loupe'),
+				__('For example, searching for "potatos" would still find "potatoes".', 'wp-loupe'),
+				__('Enable Typo Tolerance', 'wp-loupe'),
+				__('Turn typo tolerance on or off. Disabling may increase search speed but reduces forgiveness for spelling errors.', 'wp-loupe')
+			)
+		]);
+		
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_typo_advanced',
+			'title'   => __('Typo Details', 'wp-loupe'),
+			'content' => sprintf(
+				'<h2>%s</h2><h3>%s</h3><p>%s</p><h3>%s</h3><p>%s</p><h3>%s</h3><p>%s</p><h3>%s</h3><p>%s</p>',
+				__('Advanced Typo Settings', 'wp-loupe'),
+				__('Alphabet Size & Index Length', 'wp-loupe'),
+				__('These settings affect index size and search performance. Higher values improve accuracy but increase index size. Default values work well for most sites.', 'wp-loupe'),
+				__('Typo Thresholds', 'wp-loupe'),
+				__('Control how many typos are allowed based on word length. Longer words typically allow more typos than shorter words.', 'wp-loupe'),
+				__('First Character Typo Weight', 'wp-loupe'),
+				__('When enabled, typos at the beginning of a word count as two mistakes. This helps prioritize more relevant results, as most typos occur in the middle of words.', 'wp-loupe'),
+				__('Typo Tolerance for Prefix Search', 'wp-loupe'),
+				__('Allows typos in prefix searches. Not recommended for large sites as it can significantly impact performance.', 'wp-loupe')
+			)
+		]);
+		
+		// Add some custom styling to the help tabs
+		$screen->add_help_tab([
+			'id'      => 'wp_loupe_help_styles',
+			'title'   => __('', 'wp-loupe'),
+			'content' => '<style>
+				.wp-loupe-help-sections {
+					display: flex;
+					gap: 20px;
+					margin-top: 15px;
+				}
+				.wp-loupe-help-section {
+					flex: 1;
+					padding: 15px;
+					border-radius: 5px;
+				}
+				.wp-loupe-help-section.basic {
+					background-color: #e7f5fa;
+					border-left: 4px solid #2271b1;
+				}
+				.wp-loupe-help-section.advanced {
+					background-color: #faf5e7;
+					border-left: 4px solid #b17a22;
+				}
+				.wp-loupe-help-section h3 {
+					margin-top: 0;
+				}
+			</style>'
 		]);
 	}
 

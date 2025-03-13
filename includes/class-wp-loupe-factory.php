@@ -135,16 +135,48 @@ class WP_Loupe_Factory {
             }
         }
         
+		$advanced_settings = get_option('wp_loupe_advanced', []);
+
+		// Configure typo tolerance
+		$typo_tolerance = null;
+		if (!empty($advanced_settings['typo_enabled'])) {
+			$typo_tolerance = TypoTolerance::create();
+			
+			// Set alphabet size and index length if they exist
+			if (isset($advanced_settings['alphabet_size'])) {
+				$typo_tolerance->withAlphabetSize($advanced_settings['alphabet_size']);
+			}
+			
+			if (isset($advanced_settings['index_length'])) {
+				$typo_tolerance->withIndexLength($advanced_settings['index_length']);
+			}
+			
+			// Configure first character double counting
+			$typo_tolerance->withFirstCharTypoCountsDouble(!empty($advanced_settings['first_char_typo_double']));
+			
+			// Configure prefix search typo tolerance
+			$typo_tolerance->withEnabledForPrefixSearch(!empty($advanced_settings['typo_prefix_search']));
+			
+			// Configure typo thresholds
+			if (isset($advanced_settings['typo_thresholds']) && is_array($advanced_settings['typo_thresholds'])) {
+				$typo_tolerance->withTypoThresholds($advanced_settings['typo_thresholds']);
+			}
+		} else {
+			$typo_tolerance = TypoTolerance::disabled();
+		}
+
+
+
         // Create the configuration with the complete set of attributes
         $configuration = Configuration::create()
             ->withPrimaryKey('id')
             ->withSearchableAttributes($attributes['indexable'])
             ->withFilterableAttributes($attributes['filterable'])
             ->withSortableAttributes($attributes['sortable'])
-            ->withLanguages([$lang])
-            ->withTypoTolerance(
-                TypoTolerance::create()->withFirstCharTypoCountsDouble(false)
-            );
+			->withMaxQueryTokens(isset($advanced_settings['max_query_tokens']) ? $advanced_settings['max_query_tokens'] : 12)
+			->withMinTokenLengthForPrefixSearch(isset($advanced_settings['min_prefix_length']) ? $advanced_settings['min_prefix_length'] : 3)
+			->withLanguages(isset($advanced_settings['languages']) ? $advanced_settings['languages'] : ['en'])
+			->withTypoTolerance($typo_tolerance);
         
         // Create and return the Loupe instance
         $loupe_factory = new LoupeFactory();
