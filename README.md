@@ -4,7 +4,7 @@ A powerful search enhancement plugin for WordPress that delivers fast, accurate,
 
 ## Quick Links
 
-[Features](#features) | [Installation](#installation) | [Usage](#usage) | [FAQ](#faq) | [Filters](#filters) | [Behind the scenes](#behind-the-scenes) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
+[Features](#features) | [Installation](#installation) | [Usage](#usage) | [FAQ](#faq) | [Filters](#filters) | [Advanced Settings](#advanced-settings) | [Behind the scenes](#behind-the-scenes) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
 
 ## Overview
 
@@ -202,6 +202,29 @@ Default schema fields:
 ]
 ```
 
+## Advanced Settings
+
+WP Loupe provides advanced configuration options to fine-tune your search experience:
+
+### Typo Tolerance
+
+- **Enable Typo Tolerance**: When enabled, searches will match terms with minor spelling errors.
+- **First Character Double Counting**: When enabled, typos in the first character of a word will count as two errors instead of one.
+- **Typo Tolerance for Prefix Search**: Allows typo tolerance in partial word searches.
+- **Alphabet Size**: Define the size of the alphabet for typo calculations.
+- **Index Length**: Configure the maximum length of indexed terms.
+- **Typo Thresholds**: Set the minimum word length required for allowing different numbers of typos.
+
+### Query Parameters
+
+- **Maximum Query Tokens**: Limits the number of words processed in a search query (default: 12).
+- **Minimum Prefix Length**: Sets the minimum character length before prefix search activates (default: 3).
+
+### Languages
+
+- Configure which languages the search index should optimize for. Default is English ('en').
+
+These advanced settings can be accessed in the WordPress admin under WP Loupe > Settings > Advanced tab.
 
 ## Behind the Scenes
 
