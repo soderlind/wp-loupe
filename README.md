@@ -4,7 +4,7 @@ A powerful search enhancement plugin for WordPress that delivers fast, accurate,
 
 ## Quick Links
 
-[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Advanced Settings](#advanced-settings) | [FAQ](#faq) | [Filters](#filters)  | [Behind the scenes](#behind-the-scenes) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
+[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Settings](#settings) | [FAQ](#faq) | [Filters](#filters)  | [Behind the scenes](#behind-the-scenes) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
 
 ## Overview
 
@@ -77,16 +77,47 @@ WP Loupe transforms WordPress's search functionality by:
 - `"Hello World"` will search for posts containing the phrase `Hello World`.
 - `Hello -World` will search for posts containing `Hello` but not `World`.
 
-## Advanced Settings
+## Settings
+
+### General Settings
+
+#### Post Types 
+Select which post types to include in the search index.
+
+#### Field Weight
+Weight determines how important a field is in search results:
+
+- Higher weight (e.g., 2.0) makes matches in this field more important in results ranking.
+- Default weight is 1.0.
+- Lower weight (e.g., 0.5) makes matches less important but still searchable.
+
+#### Filterable Fields
+Filterable fields can be used to refine search results:
+
+- Enable this option to allow filtering search results by this field's values.  
+- Best for fields with consistent, categorized values like taxonomies, status fields, or controlled metadata.  
+- Examples: categories, tags, post type, author, or custom taxonomies.  
+
+Note: Fields with highly variable or unique values (like content) make poor filters as each post would have its own filter value.
+
+
+#### Sortable Fields
+Sortable fields can be used to order search results:
+
+- Enable this option to allow sorting search results by this field's values
+- Works best with numerical fields, dates, or short text values
+- Examples: date, price, rating, title
+
+### Advanced Settings
 
 WP Loupe provides advanced configuration options to fine-tune your search experience:
 
-### Prefix Search
+#### Prefix Search
 
 - Configure prefix search behavior. Prefix search allows finding terms by typing only the beginning (e.g., "huck" finds "huckleberry"). 
 - Prefix search is only performed on the last word in a search query. Prior words must be typed out fully to get accurate results. E.g. `my friend huck` would find documents containing huckleberry - `huck is my friend`, however, would not.
 
-### Typo Tolerance
+#### Typo Tolerance
 
 - **Enable Typo Tolerance**: When enabled, searches will match terms with minor spelling errors.
 - **First Character Double Counting**: When enabled, typos in the first character of a word will count as two errors instead of one.
@@ -95,12 +126,12 @@ WP Loupe provides advanced configuration options to fine-tune your search experi
 - **Index Length**: Configure the maximum length of indexed terms.
 - **Typo Thresholds**: Set the minimum word length required for allowing different numbers of typos.
 
-### Query Parameters
+#### Query Parameters
 
 - **Maximum Query Tokens**: Limits the number of words processed in a search query (default: 12).
 - **Minimum Prefix Length**: Sets the minimum character length before prefix search activates (default: 3).
 
-### Languages
+#### Languages
 
 - Configure which languages the search index should optimize for. Default is English ('en').
 
