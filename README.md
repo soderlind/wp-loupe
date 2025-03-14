@@ -79,6 +79,9 @@ WP Loupe transforms WordPress's search functionality by:
 
 ## Settings
 
+You can configure WP Loupe's search behavior and performance via the WordPress admin: Settings > WP Loupe.
+
+
 ### General Settings
 
 #### Post Types 
