@@ -104,7 +104,7 @@ WP Loupe provides advanced configuration options to fine-tune your search experi
 
 - Configure which languages the search index should optimize for. Default is English ('en').
 
-These advanced settings can be accessed in the WordPress admin under `Settings > WP Loupe > Advanced`	 tab.
+These advanced settings can be accessed in the WordPress admin under Settings > WP Loupe > Advanced tab.
 
 ## FAQ
 
