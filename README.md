@@ -4,7 +4,7 @@ A powerful search enhancement plugin for WordPress that delivers fast, accurate,
 
 ## Quick Links
 
-[Features](#features) | [Installation](#installation) | [Usage](#usage) | [FAQ](#faq) | [Filters](#filters) | [Advanced Settings](#advanced-settings) | [Behind the scenes](#behind-the-scenes) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
+[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Advanced Settings](#advanced-settings) | [FAQ](#faq) | [Filters](#filters)  | [Behind the scenes](#behind-the-scenes) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
 
 ## Overview
 
@@ -76,6 +76,35 @@ WP Loupe transforms WordPress's search functionality by:
 - `Hello World` will search for posts containing `Hello` **or** `World`.
 - `"Hello World"` will search for posts containing the phrase `Hello World`.
 - `Hello -World` will search for posts containing `Hello` but not `World`.
+
+## Advanced Settings
+
+WP Loupe provides advanced configuration options to fine-tune your search experience:
+
+### Prefix Search
+
+- Configure prefix search behavior. Prefix search allows finding terms by typing only the beginning (e.g., "huck" finds "huckleberry"). 
+- Prefix search is only performed on the last word in a search query. Prior words must be typed out fully to get accurate results. E.g. my friend huck would find documents containing huckleberry - huck is my friend, however, would not.
+
+### Typo Tolerance
+
+- **Enable Typo Tolerance**: When enabled, searches will match terms with minor spelling errors.
+- **First Character Double Counting**: When enabled, typos in the first character of a word will count as two errors instead of one.
+- **Typo Tolerance for Prefix Search**: Allows typo tolerance in partial word searches.
+- **Alphabet Size**: Define the size of the alphabet for typo calculations.
+- **Index Length**: Configure the maximum length of indexed terms.
+- **Typo Thresholds**: Set the minimum word length required for allowing different numbers of typos.
+
+### Query Parameters
+
+- **Maximum Query Tokens**: Limits the number of words processed in a search query (default: 12).
+- **Minimum Prefix Length**: Sets the minimum character length before prefix search activates (default: 3).
+
+### Languages
+
+- Configure which languages the search index should optimize for. Default is English ('en').
+
+These advanced settings can be accessed in the WordPress admin under `Settings > WP Loupe > Advanced`	 tab.
 
 ## FAQ
 
@@ -202,34 +231,6 @@ Default schema fields:
 ]
 ```
 
-## Advanced Settings
-
-WP Loupe provides advanced configuration options to fine-tune your search experience:
-
-### Prefix Search
-
-- Configure prefix search behavior. Prefix search allows finding terms by typing only the beginning (e.g., "huck" finds "huckleberry"). 
-- Prefix search is only performed on the last word in a search query. Prior words must be typed out fully to get accurate results. E.g. my friend huck would find documents containing huckleberry - huck is my friend, however, would not.
-
-### Typo Tolerance
-
-- **Enable Typo Tolerance**: When enabled, searches will match terms with minor spelling errors.
-- **First Character Double Counting**: When enabled, typos in the first character of a word will count as two errors instead of one.
-- **Typo Tolerance for Prefix Search**: Allows typo tolerance in partial word searches.
-- **Alphabet Size**: Define the size of the alphabet for typo calculations.
-- **Index Length**: Configure the maximum length of indexed terms.
-- **Typo Thresholds**: Set the minimum word length required for allowing different numbers of typos.
-
-### Query Parameters
-
-- **Maximum Query Tokens**: Limits the number of words processed in a search query (default: 12).
-- **Minimum Prefix Length**: Sets the minimum character length before prefix search activates (default: 3).
-
-### Languages
-
-- Configure which languages the search index should optimize for. Default is English ('en').
-
-These advanced settings can be accessed in the WordPress admin under `Settings > WP Loupe > Advanced`	 tab.
 
 ## Behind the Scenes
 
