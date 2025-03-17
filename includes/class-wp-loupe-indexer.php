@@ -125,6 +125,9 @@ class WP_Loupe_Indexer {
      */
     private function delete( int $post_id ): void {
         $post_type = get_post_type( $post_id );
+		if ( ! in_array( $post_type, $this->post_types, true ) ) {
+			return;
+		}
         $loupe     = $this->loupe[ $post_type ];
         $loupe->deleteDocument( $post_id );
     }
@@ -136,6 +139,9 @@ class WP_Loupe_Indexer {
      */
     private function delete_many( array $post_ids ): void {
         $post_type = get_post_type( $post_ids[ 0 ] );
+		if ( ! in_array( $post_type, $this->post_types, true ) ) {
+			return;
+		}
         $loupe     = $this->loupe[ $post_type ];
         $loupe->deleteDocuments( $post_ids );
     }
