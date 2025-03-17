@@ -3,7 +3,7 @@ Contributors: persoderlind
 Tags: search, full-text search, relevance
 Requires at least: 5.6
 Tested up to: 6.7
-Stable tag: 0.4.1
+Stable tag: 0.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,9 @@ Customizes the schema for a post type.
 For usage examples, see the [filter documentation at GitHub](https://github.com/soderlind/wp-loupe?tab=readme-ov-file#filters).
 
 == Changelog ==
+
+= 0.4.2 =
+* Customizer settings not being saved
 
 = 0.4.1 =
 * Update advanced settings documentation in README.md
