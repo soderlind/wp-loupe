@@ -1,17 +1,18 @@
 === WP Loupe - Advanced WordPress Search ===
 Contributors: persoderlind
-Tags: search, full-text search, relevance
+Tags: search, full-text search, relevance, typo-tolerant, fast search, search engine
 Requires at least: 5.6
 Tested up to: 6.7
+Requires PHP: 8.2
 Stable tag: 0.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Advanced search solution for WordPress with better relevance and customizable field weighting.
+A powerful search enhancement plugin for WordPress that delivers fast, accurate, and typo-tolerant search results.
 
 == Description ==
 
-WP Loupe enhances WordPress search functionality by providing a powerful, fast, and accurate search experience. Built on the Loupe search engine, it creates and maintains a dedicated search index for optimal performance.
+WP Loupe transforms WordPress's search functionality by creating a dedicated search index for lightning-fast results, supporting typo-tolerant searches, offering phrase matching and advanced search operators, automatically maintaining the search index, and providing customization options for developers.
 
 = Core Features =
 
@@ -23,35 +24,43 @@ WP Loupe enhances WordPress search functionality by providing a powerful, fast, 
 * 📈 Integrated search performance metrics
 * ✅ Seamless compatibility with WordPress default themes
 
-= Advanced Search Capabilities =
+= Search Capabilities =
 
-* Phrase matching using quotation marks: `"exact phrase"`
-* Exclusion operators: `term -excluded`
-* OR search: `term1 term2`
-* Customizable via filters
+* 🔍 Typo-tolerant searching - find results even with misspellings
+* "..." Phrase matching with quotation marks
+* `-` Exclusion operator support (e.g., `term -excluded`)
+* OR search: `term1 term2` finds content with either term
+* 📖 Pagination support
 * Stemming support
 * Stop words recognition
 
-= Developer-Friendly =
+= Developer Features =
 
-* Extensive filter system for customization
-* Performance monitoring and diagnostics
-* Customizable indexing options
+* 🛠️ Extensive filter system for customization
+* 📊 Performance monitoring and diagnostics
+* 🔧 Customizable indexing
+* Field weighting control
 
 = Administration =
 
 * Simple settings interface
 * Post type selection
+* Field configuration options
 * One-click reindexing
 * Processing time monitoring
 
 == Installation ==
 
-1. Upload 'wp-loupe' to the '/wp-content/plugins/' directory
-2. Activate through the 'Plugins' menu in WordPress
-3. Visit Settings > WP Loupe to configure
-4. Click 'Reindex' to build the initial search index
-5. Plugin updates are handled automatically via GitHub. No need to manually download and install updates.
+1. **Quick Install**
+   * Upload the plugin files to the `/wp-content/plugins/wp-loupe` directory, or install the plugin through the WordPress plugins screen directly
+   * Activate through the 'Plugins' menu in WordPress
+
+2. **Post-Installation**
+   * Visit Settings > WP Loupe to configure
+   * Click 'Reindex' to build the initial search index
+
+3. **Updates**
+   * Plugin updates are handled automatically via GitHub. No need to manually download and install updates.
 
 == Frequently Asked Questions ==
 
@@ -70,6 +79,24 @@ Yes, using filters you can control exactly what content gets indexed and how it'
 = Does it work with custom post types? =
 
 Yes, you can select which post types to include in the Settings page or via filters.
+
+= How do I use advanced search operators? =
+
+* `Hello World` will search for posts containing `Hello` **or** `World`.
+* `"Hello World"` will search for posts containing the exact phrase `Hello World`.
+* `Hello -World` will search for posts containing `Hello` but not `World`.
+
+= What are the technical requirements? =
+
+* PHP 8.2 or higher
+* SQLite 3.16.0+ (required by the Loupe library)
+* WordPress 6.3+
+
+== Screenshots ==
+
+1. WP Loupe settings page showing post type selection
+2. Field configuration interface for customizing search behavior
+3. Advanced settings for fine-tuning search capabilities
 
 == Filters ==
 
@@ -93,7 +120,7 @@ Default: false
 
 = wp_loupe_field_{$field_name} =
 Modifies a field before indexing.
-Default: Removes HTML comments from `post_content`
+Example: The plugin uses `wp_loupe_field_post_content` to strip HTML tags from content
 
 = wp_loupe_schema_{$post_type} =
 Customizes the schema for a post type.
