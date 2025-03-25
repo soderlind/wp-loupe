@@ -1,7 +1,7 @@
 === WP Loupe - Advanced WordPress Search ===
 Contributors: persoderlind
 Tags: search, full-text search, relevance, typo-tolerant, fast search, search engine
-Requires at least: 5.6
+Requires at least: 6.3
 Tested up to: 6.7
 Requires PHP: 8.2
 Stable tag: 0.4.2
