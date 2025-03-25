@@ -7,6 +7,7 @@ Requires PHP: 8.2
 Stable tag: 0.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Donate link: https://paypal.me/PerSoderlind
 
 A powerful search enhancement plugin for WordPress that delivers fast, accurate, and typo-tolerant search results.
 
@@ -48,6 +49,42 @@ WP Loupe transforms WordPress's search functionality by creating a dedicated sea
 * Field configuration options
 * One-click reindexing
 * Processing time monitoring
+
+= Filters =
+
+These filters allow developers to customize WP Loupe's behavior:
+
+`wp_loupe_db_path`
+
+Controls where the search index is stored.
+Default: WP_CONTENT_DIR . '/wp-loupe-db'
+
+`wp_loupe_post_types`
+
+Modifies which post types are included in search.
+Default: ['post', 'page']
+
+`wp_loupe_posts_per_page`
+
+Controls search results per page.
+Default: WordPress "Blog pages show at most" setting
+
+`wp_loupe_index_protected`
+
+Controls indexing of password-protected posts.
+Default: false
+
+`wp_loupe_field_{$field_name}`
+
+Modifies a field before indexing.
+Example: The plugin uses `wp_loupe_field_post_content` to strip HTML tags from content
+
+`wp_loupe_schema_{$post_type}`
+
+Customizes the schema for a post type.
+
+For usage examples, see the [filter documentation at GitHub](https://github.com/soderlind/wp-loupe?tab=readme-ov-file#filters).
+
 
 == Installation ==
 
@@ -92,40 +129,6 @@ Yes, you can select which post types to include in the Settings page or via filt
 * SQLite 3.16.0+ (required by the Loupe library)
 * WordPress 6.3+
 
-== Screenshots ==
-
-1. WP Loupe settings page showing post type selection
-2. Field configuration interface for customizing search behavior
-3. Advanced settings for fine-tuning search capabilities
-
-== Filters ==
-
-These filters allow developers to customize WP Loupe's behavior:
-
-= wp_loupe_db_path =
-Controls where the search index is stored.
-Default: WP_CONTENT_DIR . '/wp-loupe-db'
-
-= wp_loupe_post_types =
-Modifies which post types are included in search.
-Default: ['post', 'page']
-
-= wp_loupe_posts_per_page =
-Controls search results per page.
-Default: WordPress "Blog pages show at most" setting
-
-= wp_loupe_index_protected =
-Controls indexing of password-protected posts.
-Default: false
-
-= wp_loupe_field_{$field_name} =
-Modifies a field before indexing.
-Example: The plugin uses `wp_loupe_field_post_content` to strip HTML tags from content
-
-= wp_loupe_schema_{$post_type} =
-Customizes the schema for a post type.
-
-For usage examples, see the [filter documentation at GitHub](https://github.com/soderlind/wp-loupe?tab=readme-ov-file#filters).
 
 == Changelog ==
 
