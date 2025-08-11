@@ -13,7 +13,7 @@
 	],
 	"require": {
 		"ext-PDO": "*",
-		"loupe/loupe": "~0.9.0",
-		"yahnis-elsts/plugin-update-checker": "^5.5"
+		"loupe/loupe": "~0.9.5",
+		"yahnis-elsts/plugin-update-checker": "~5.6"
 	}
 }
