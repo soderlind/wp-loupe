@@ -34,7 +34,10 @@ class WP_Loupe_Loader {
 	 */
 	private function load_dependencies() {
 		require_once WP_LOUPE_PATH . 'vendor/autoload.php';
-		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-updater.php';
+		// Include plugin updater
+		if ( ! class_exists( 'Soderlind\WordPress\GitHub_Plugin_Updater' ) ) {
+			require_once WP_LOUPE_PATH . 'includes/class-github-plugin-updater.php';
+		}
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-schema-manager.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-factory.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-search.php';
@@ -50,15 +53,15 @@ class WP_Loupe_Loader {
 	 * @return void
 	 */
 	private function setup_post_types() {
-		$options = get_option('wp_loupe_custom_post_types', []);
-		
-		if (!empty($options) && isset($options['wp_loupe_post_type_field'])) {
-			$this->post_types = (array)$options['wp_loupe_post_type_field'];
+		$options = get_option( 'wp_loupe_custom_post_types', [] );
+
+		if ( ! empty( $options ) && isset( $options[ 'wp_loupe_post_type_field' ] ) ) {
+			$this->post_types = (array) $options[ 'wp_loupe_post_type_field' ];
 		} else {
-			$this->post_types = ['post', 'page'];
+			$this->post_types = [ 'post', 'page' ];
 		}
-		
-		$this->post_types = apply_filters('wp_loupe_post_types', $this->post_types);
+
+		$this->post_types = apply_filters( 'wp_loupe_post_types', $this->post_types );
 	}
 
 	/**
@@ -67,11 +70,18 @@ class WP_Loupe_Loader {
 	 * @return void
 	 */
 	private function init_components() {
-		new WP_Loupe_Updater();
+		// Initialize the plugin updater.
+		\Soderlind\WordPress\GitHub_Plugin_Updater::create_with_assets(
+			'https://github.com/soderlind/wp-loupe',
+			WP_LOUPE_FILE,
+			'wp-loupe',
+			'/wp-loupe\.zip/',
+			'main'
+		);
 		new WPLoupe_Settings_Page();
 
-		$this->search  = new WP_Loupe_Search($this->post_types);
-		$this->indexer = new WP_Loupe_Indexer($this->post_types);
+		$this->search  = new WP_Loupe_Search( $this->post_types );
+		$this->indexer = new WP_Loupe_Indexer( $this->post_types );
 	}
 
 	/**
@@ -80,7 +90,7 @@ class WP_Loupe_Loader {
 	 * @return void
 	 */
 	private function register_hooks() {
-		add_action('init', [$this, 'load_textdomain']);
+		add_action( 'init', [ $this, 'load_textdomain' ] );
 	}
 
 	/**
@@ -89,6 +99,6 @@ class WP_Loupe_Loader {
 	 * @return void
 	 */
 	public function load_textdomain() {
-		load_plugin_textdomain('wp-loupe', false, dirname(plugin_basename(WP_LOUPE_FILE)) . '/languages');
+		load_plugin_textdomain( 'wp-loupe', false, dirname( plugin_basename( WP_LOUPE_FILE ) ) . '/languages' );
 	}
 }

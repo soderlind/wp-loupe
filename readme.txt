@@ -4,7 +4,7 @@ Tags: search, full-text search, relevance, typo-tolerant, fast search, search en
 Requires at least: 6.3
 Tested up to: 6.7
 Requires PHP: 8.2
-Stable tag: 0.4.2
+Stable tag: 0.4.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
@@ -131,6 +131,10 @@ Yes, you can select which post types to include in the Settings page or via filt
 
 
 == Changelog ==
+
+= 0.4.3 =
+* Fixed: Inline JavaScript using `wp_print_inline_script_tag`.
+* Plugin updates are handled automatically via GitHub. No need to manually download and install updates.
 
 = 0.4.2 =
 * Customizer settings not being saved
