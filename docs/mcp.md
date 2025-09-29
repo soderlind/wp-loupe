@@ -36,6 +36,30 @@ If rewrites fail (multisite edge cases), a raw path fallback is used and a loggi
 `do_action( 'wp_loupe_mcp_raw_wellknown_fallback', $type, $uri )`.
 
 ## Authentication Model
+Before any MCP endpoints are reachable you must explicitly enable the MCP server.
+
+### Enabling the MCP Server
+1. Navigate to: Settings → WP Loupe → MCP tab.
+2. Check “Enable MCP Server” and save. This activates:
+  - `/.well-known/mcp.json`
+  - `/.well-known/oauth-protected-resource`
+  - REST namespace: `/wp-json/wp-loupe-mcp/v1/*`
+3. When disabled these endpoints return 404 (hard fail, not soft-deny) to reduce surface area.
+
+You can toggle this at any time; existing transient tokens become unusable when disabled because command routing stops registering.
+
+### Token Management UI
+On the MCP tab (when enabled):
+* Create a token by providing an optional label, selecting scopes, and setting a TTL (hours). The raw token is shown exactly once – copy it immediately.
+* Scopes: uncheck any to restrict (principle of least privilege). All are pre-selected by default.
+* TTL (hours): `1–168` (7 days) or `0` for a non-expiring (indefinite) token. Use `0` sparingly.
+* List columns: Label, Scopes, Issued, Expires (`Never` if TTL=0), and Actions.
+* Last-used timestamp (if present) is updated on each successful authenticated command.
+* Revoke (single) removes a token immediately. Revoke All removes every issued token.
+* CLI-issued tokens now appear automatically after issuance (registry mirroring). Older tokens from before this feature will not retroactively display.
+
+Previously “future” features (scope selection, adjustable TTL) are now implemented.
+
 Authentication uses **OAuth2 client_credentials** (scaffold-level) with in-memory (transient) token persistence.
 
 - Token endpoint: `POST /wp-json/wp-loupe-mcp/v1/oauth/token`
@@ -48,8 +72,8 @@ Authentication uses **OAuth2 client_credentials** (scaffold-level) with in-memor
 ### Scopes
 | Scope | Description |
 |-------|-------------|
-| `search.read` | Perform search queries (required iff authenticated search) |
-| `post.read` | Retrieve post metadata/content (future expansion) |
+| `search.read` | Perform search queries (higher auth limits) |
+| `post.read` | Retrieve post metadata/content (future restrictions may apply) |
 | `schema.read` | Access schema details |
 | `health.read` | Health check command |
 | `commands.read` | List commands metadata |
@@ -216,20 +240,67 @@ Cursor creation:
 Validation rejects tampered or cross-query cursors.
 
 ## Rate Limiting
-Applied only to `searchPosts` currently.
-- Window: 60s (filterable)
-- Anon default limit: 15 requests / window
-- Auth default limit: 60 requests / window
-- Headers set: `X-RateLimit-Limit`, `X-RateLimit-Remaining`
+Rate limiting currently applies to `searchPosts` and is **configurable via the MCP settings UI** or filter overrides.
 
-Filters:
-| Filter | Purpose | Default |
-|--------|---------|---------|
-| `wp_loupe_mcp_rate_window_seconds` | Window length | 60 |
-| `wp_loupe_mcp_search_rate_limit_anon` | Anonymous requests per window | 15 |
-| `wp_loupe_mcp_search_rate_limit_auth` | Authenticated requests per window | 60 |
-| `wp_loupe_mcp_search_max_limit_anon` | Max hits per search (anon) | 10 |
-| `wp_loupe_mcp_search_max_limit_auth` | Max hits per search (auth) | 100 |
+### Configuration UI (Preferred)
+On the MCP tab you can set:
+| Setting | Anonymous | Authenticated | Notes |
+|---------|-----------|---------------|-------|
+| Requests per window | `anon_limit` | `auth_limit` | Max command invocations in a rolling window |
+| Window (seconds) | `anon_window` | `auth_window` | Shared logical bucket per IP/token fragment |
+| Max search hits per request | `max_search_anon` | `max_search_auth` | Caps the `limit` param requested by clients |
+
+Saved values are stored in the option `wp_loupe_mcp_rate_limits` and immediately applied to future requests.
+
+### Precedence Order
+1. Saved option values (if present)
+2. Filter overrides (allow deployment-specific adjustments without DB changes)
+3. Hard-coded defaults (fallback only)
+
+### HTTP Headers
+Each `searchPosts` response includes:
+* `X-RateLimit-Limit` – window quota in effect (post-filter, after option)
+* `X-RateLimit-Remaining` – remaining allowance in the current window
+* `Retry-After` – only present on 429 responses
+
+### Defaults (If Not Modified)
+| Context | Window | Requests | Max Hits per Search |
+|---------|--------|----------|----------------------|
+| Anonymous | 60s | 15 | 10 |
+| Authenticated | 60s | 60 | 100 |
+
+### Filters (Optional Overrides)
+You can still override any piece via filters (they run after option retrieval):
+| Filter | Purpose | Option-Based Default Passed In |
+|--------|---------|--------------------------------|
+| `wp_loupe_mcp_rate_window_seconds` | Effective window length (seconds) | `anon_window` or `auth_window` selected based on auth | 
+| `wp_loupe_mcp_search_rate_limit_anon` | Anonymous requests per window | Saved `anon_limit` |
+| `wp_loupe_mcp_search_rate_limit_auth` | Auth requests per window | Saved `auth_limit` |
+| `wp_loupe_mcp_search_max_limit_anon` | Max hits per search (anon) | Saved `max_search_anon` |
+| `wp_loupe_mcp_search_max_limit_auth` | Max hits per search (auth) | Saved `max_search_auth` |
+
+Example override (increase auth window only):
+```php
+add_filter( 'wp_loupe_mcp_rate_window_seconds', function( $window ) {
+    if ( is_user_logged_in() ) { // or custom condition
+        return 120; // 2 minute window
+    }
+    return $window;
+});
+```
+
+### Implementation Details
+The rate limiter keys buckets by client IP plus a token-fragment (derived from scopes) for authenticated requests. Anonymous traffic is grouped under `anon`. Buckets reset automatically after the configured window.
+
+If a client exceeds the quota a standardized error is returned:
+```json
+{
+  "success": false,
+  "error": { "code": "rate_limited", "message": "Rate limit exceeded" },
+  "data": null
+}
+```
+With HTTP status `429` and `Retry-After` header indicating when to try again.
 
 ## Field Filtering and Heavy Fields
 Clients can request specific fields to minimize payload size. Heavy fields like `content` and `taxonomies` are only included if explicitly requested.
@@ -323,22 +394,151 @@ The command returns (JSON format):
 }
 ```
 
+## Connecting from MCP-Capable Clients
+
+Below are quick-start instructions for integrating the WP Loupe MCP server with popular agent / IDE environments. Always create a scoped token (principle of least privilege) unless you intentionally allow anonymous low‑limit access.
+
+### 1. Claude Desktop (Anthropic) – Local mcp-server Config
+Claude Desktop supports local JSON config listing MCP servers. Add or extend your `claude_desktop_config.json` (path varies by OS). Example entry:
+
+```jsonc
+{
+  "mcpServers": {
+    "wp-loupe": {
+      "type": "http",
+      "url": "https://example.com/.well-known/mcp.json",
+      "headers": {
+        "Authorization": "Bearer REPLACE_WITH_TOKEN"
+      }
+    }
+  }
+}
+```
+
+Steps:
+1. Enable MCP in WP admin and create a token with scopes you need (e.g., `search.read health.read`).
+2. Paste token into the header above.
+3. Restart Claude Desktop; it should list `wp-loupe` as a connected tool. Use natural prompts like: “Search WordPress for posts about performance using wp-loupe.”
+
+Anonymous mode: Remove `headers` object—Claude will still reach the server but hit anonymous limits (can’t run `healthCheck`).
+
+### 2. VS Code – Copilot / MCP Extensions
+If using an MCP-compatible VS Code extension (e.g., experimental MCP bridge), configure a server entry similar to:
+
+```jsonc
+// .vscode/mcp.json (example – actual file name/extension may differ)
+{
+  "servers": [
+    {
+      "name": "wp-loupe",
+      "manifestUrl": "https://example.com/.well-known/mcp.json",
+      "auth": {
+        "type": "bearer",
+        "token": "REPLACE_WITH_TOKEN"
+      }
+    }
+  ]
+}
+```
+
+After reload, trigger the extension’s command palette action (e.g., “MCP: Refresh Servers”) and invoke commands via chat or command listing UI. If the extension supports streaming, search output appears as JSON payloads; you can refine queries by adjusting `limit` or `fields`.
+
+### 3. ChatGPT (OpenAI) – Custom Tool Manifest (Workaround)
+ChatGPT doesn’t (yet) natively load arbitrary MCP manifests, but you can approximate integration by:
+1. Supplying the manifest JSON inline (copy from `/.well-known/mcp.json`).
+2. Instructing ChatGPT to treat `POST https://example.com/wp-json/wp-loupe-mcp/v1/commands` as the primary endpoint with envelope `{command, params}`.
+3. Providing a fixed Bearer token (remove after session if temporary).
+
+Prompt snippet:
+```
+You are an assistant with access to a WordPress MCP search API. To search, POST JSON to:
+https://example.com/wp-json/wp-loupe-mcp/v1/commands
+Body example: {"command":"searchPosts","params":{"query":"performance", "limit":5}}
+Auth header: Authorization: Bearer TOKEN
+Return only the 'hits' array when summarizing unless I ask for raw JSON.
+```
+
+Limitations: No automatic schema refresh; you must paste updated manifest if scopes or commands change.
+
+### 4. cURL / Scripted Agent Reference
+Minimal scriptable invocation (with token):
+```bash
+TOKEN="YOUR_TOKEN"; BASE="https://example.com/wp-json/wp-loupe-mcp/v1"
+curl -s -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"command":"searchPosts","params":{"query":"accessibility","limit":5}}' \
+  "$BASE/commands" | jq '.data.hits'
+```
+
+### 5. Rotating / Revoking Tokens for Clients
+If a workstation is lost or you suspect leakage:
+1. Open MCP tab → “Revoke All Tokens” (immediate invalidation)
+2. Issue replacement tokens and update client configs.
+
+### 6. Field & Payload Optimization Tips
+| Goal | Param Strategy |
+|------|----------------|
+| Minimal metadata | `fields: ["id","title","url"]` |
+| Include taxonomy slugs | Add `taxonomies` to `fields` |
+| Full content fetch | Use small search limit, then `getPost` per ID with `content` |
+
+### 7. Troubleshooting
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| 404 on manifest URL | MCP not enabled | Enable in admin MCP tab |
+| 401 invalid_token | Wrong / expired token | Issue new token, update config |
+| 403 insufficient_scope | Missing scope (e.g., `search.read`) | Reissue token with required scopes |
+| 429 rate_limited | Quota exceeded | Wait for window or raise limits (if appropriate) |
+| Cursor yields no progress | Query text changed | Discard old cursor and restart search |
+
+### 8. Security Best Practices
+* Use separate tokens per client (enables per-client last_used audit).
+* Prefer short TTL tokens; only use indefinite (0) for tightly controlled back-end tasks.
+* Scope-minimize: if client only searches, drop `health.read`.
+* Rotate tokens periodically and after personnel changes.
+* Monitor server logs (add custom logging via filters/actions if needed) to detect abuse patterns.
+
+### 9. Example Manifest Consumption Cache Policy
+MCP clients should honor ETag headers on `/.well-known/mcp.json` to reduce bandwidth and auto-refresh capabilities when changed.
+
+---
+
 ## Security Considerations
 - Transient-backed tokens: ephemeral; not persistent beyond TTL.
 - Token hash storage avoids leaking raw tokens via options table.
 - No refresh tokens implemented (simple rotation model acceptable for server-to-server integrations).
 - Consider adding per-client secret & revocation list for production.
 
+## Indefinite Tokens (TTL = 0)
+Setting TTL to `0` issues a logically non-expiring token (`expires_at = 0`). It is cached for a long duration (currently 1 year in transient storage) and treated as never expiring in validation. Prefer time-bound tokens whenever possible and revoke indefinite tokens if no longer required.
+
+## Last-Used Tracking
+Each authenticated command updates `last_used` for that token. This enables future automation (e.g., pruning stale tokens or alerting on dormant credentials).
+
+## Revoke-All Operation
+The “Revoke All Tokens” action wipes every active token and its transient. Use during incident response or credential rotation.
+
+## Adjustable TTL & Scopes Summary
+| Feature | Supported | Notes |
+|---------|-----------|-------|
+| Scope selection | Yes | All pre-selected; uncheck to restrict |
+| TTL hours | Yes | 1–168 or 0 (never) |
+| Indefinite tokens | Yes (0) | Use sparingly; rotate manually |
+| Last-used tracking | Yes | Updated on success |
+| Bulk revoke | Yes | One-click cleanup |
+
 ## Roadmap (Potential Enhancements)
-- Refresh tokens & revocation
-- Persistent token storage (custom table)
-- Per-command rate limiting & metrics
-- Post mutation / indexing commands (scoped)
-- Expanded schema or introspection command
-- WP-CLI utilities for token issuance & cleanup
-- Hardening: explicit deny-list / allow-list of IPs
+- Refresh tokens & revocation list
+- Persistent token storage (custom table) for durability & querying
+- Per-command rate limiting & usage metrics
+- Write / indexing commands with dedicated scopes
+- Schema introspection expansion
+- WP-CLI: pass TTL + list/revoke tokens natively
+- Hardening: IP allow/deny lists & anomaly detection
+- Automated stale token pruning (using `last_used`)
 
 ## Changelog (MCP Portion)
+- 0.5.2-draft: Added configurable rate limit UI (window, per-window quotas, max search hits) with option + filter precedence; server now consumes saved configuration.
+- 0.5.1-draft: Added scope selection UI, adjustable TTL (0 = indefinite), revoke-all, last-used tracking, indefinite token handling.
 - 0.5.0-draft: Initial hybrid MCP server (discovery, commands, OAuth client_credentials, pagination, rate limiting, scopes, ETag).
 
 ---

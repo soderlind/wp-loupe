@@ -43,7 +43,7 @@ class WPLoupe_Settings_Page {
 	 * Register REST API routes
 	 */
 	public function register_rest_routes() {
-		register_rest_route( 'wp-loupe/v1', '/post-type-fields/(?P<post_type>[a-zA-Z0-9_-]+)', [ 
+		register_rest_route( 'wp-loupe/v1', '/post-type-fields/(?P<post_type>[a-zA-Z0-9_-]+)', [
 			'methods'             => 'GET',
 			'callback'            => [ $this, 'get_post_type_fields' ],
 			'permission_callback' => function () {
@@ -52,14 +52,14 @@ class WPLoupe_Settings_Page {
 		] );
 
 		// Add new endpoints for database management
-		register_rest_route( 'wp-loupe/v1', '/create-database', [ 
+		register_rest_route( 'wp-loupe/v1', '/create-database', [
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'create_database_for_post_type' ],
 			'permission_callback' => function () {
 				return current_user_can( 'manage_options' );
 			},
-			'args'                => [ 
-				'post_type' => [ 
+			'args'                => [
+				'post_type' => [
 					'required'          => true,
 					'type'              => 'string',
 					'sanitize_callback' => 'sanitize_text_field',
@@ -67,14 +67,14 @@ class WPLoupe_Settings_Page {
 			],
 		] );
 
-		register_rest_route( 'wp-loupe/v1', '/delete-database', [ 
+		register_rest_route( 'wp-loupe/v1', '/delete-database', [
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'delete_database_for_post_type' ],
 			'permission_callback' => function () {
 				return current_user_can( 'manage_options' );
 			},
-			'args'                => [ 
-				'post_type' => [ 
+			'args'                => [
+				'post_type' => [
 					'required'          => true,
 					'type'              => 'string',
 					'sanitize_callback' => 'sanitize_text_field',
@@ -82,14 +82,14 @@ class WPLoupe_Settings_Page {
 			],
 		] );
 
-		register_rest_route( 'wp-loupe/v1', '/update-database', [ 
+		register_rest_route( 'wp-loupe/v1', '/update-database', [
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'update_database_for_post_type' ],
 			'permission_callback' => function () {
 				return current_user_can( 'manage_options' );
 			},
-			'args'                => [ 
-				'post_type' => [ 
+			'args'                => [
+				'post_type' => [
 					'required'          => true,
 					'type'              => 'string',
 					'sanitize_callback' => 'sanitize_text_field',
@@ -122,7 +122,7 @@ class WPLoupe_Settings_Page {
 			// Force update the post type settings to include this post type
 			$this->force_update_post_type_settings( $post_type, true );
 
-			return rest_ensure_response( [ 
+			return rest_ensure_response( [
 				'success' => true,
 				'message' => sprintf( __( 'Created database structure for post type: %s', 'wp-loupe' ), $post_type ),
 				'count'   => 0 // No documents indexed
@@ -192,7 +192,7 @@ class WPLoupe_Settings_Page {
 			$schema_manager = new WP_Loupe_Schema_Manager();
 			$schema_manager->clear_cache();
 
-			return rest_ensure_response( [ 
+			return rest_ensure_response( [
 				'success' => true,
 				'message' => sprintf( __( 'Deleted database for post type: %s', 'wp-loupe' ), $post_type ),
 			] );
@@ -289,7 +289,7 @@ class WPLoupe_Settings_Page {
 			$loupe = WP_Loupe_Factory::create_loupe_instance( $post_type, $iso6391_lang, $db );
 
 			// Get posts of selected type
-			$posts = get_posts( [ 
+			$posts = get_posts( [
 				'post_type'      => $post_type,
 				'posts_per_page' => -1,
 				'post_status'    => 'publish',
@@ -305,7 +305,7 @@ class WPLoupe_Settings_Page {
 			);
 
 			// Clear existing documents first
-			$post_ids = array_map( function ($post) {
+			$post_ids = array_map( function ( $post ) {
 				return $post->ID;
 			}, $posts );
 
@@ -321,7 +321,7 @@ class WPLoupe_Settings_Page {
 			// Clear cache for search results
 			WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
 
-			return rest_ensure_response( [ 
+			return rest_ensure_response( [
 				'success' => true,
 				'message' => sprintf( __( 'Updated database for post type: %s', 'wp-loupe' ), $post_type ),
 				'count'   => count( $documents ),
@@ -357,7 +357,7 @@ class WPLoupe_Settings_Page {
 	 */
 	public function get_available_fields( $post_type ) {
 		// Always include core fields
-		$fields = [ 
+		$fields = [
 			'post_title'   => __( 'Title', 'wp-loupe' ),
 			'post_content' => __( 'Content', 'wp-loupe' ),
 			'post_excerpt' => __( 'Excerpt', 'wp-loupe' ),
@@ -381,7 +381,7 @@ class WPLoupe_Settings_Page {
 				$registered_meta[ $meta_key ][ 'description' ] :
 				$this->prettify_meta_key( $meta_key );
 
-			$fields[ $meta_key ] = [ 
+			$fields[ $meta_key ] = [
 				'label'    => $meta_label,
 				'hasValue' => $has_value,
 			];
@@ -430,10 +430,10 @@ class WPLoupe_Settings_Page {
 		$meta_keys = $wpdb->get_col( $query );
 
 		// Remove system meta keys and make unique
-		$filtered_keys = array_unique( array_filter( $meta_keys, function ($key) {
+		$filtered_keys = array_unique( array_filter( $meta_keys, function ( $key ) {
 			return ! is_protected_meta( $key, 'post' )
 				&& ! preg_match( '/^_oembed|^_wp/', $key )
-				&& ! in_array( $key, [ 
+				&& ! in_array( $key, [
 					'_edit_last',
 					'_edit_lock',
 					'_thumbnail_id',
@@ -534,7 +534,7 @@ class WPLoupe_Settings_Page {
 		register_setting( 'wp-loupe', 'wp_loupe_custom_post_types' );
 
 		$this->cpt = array_diff( get_post_types(
-			[ 
+			[
 				'public' => true,
 			],
 			'names',
@@ -556,7 +556,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'number_field_callback' ],
 			'wp-loupe',
 			'wp_loupe_advanced_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[max_query_tokens]',
 				'value'       => $this->get_advanced_option( 'max_query_tokens', 12 ),
 				'description' => __( 'Maximum number of tokens in a search query.', 'wp-loupe' ),
@@ -570,7 +570,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'number_field_callback' ],
 			'wp-loupe',
 			'wp_loupe_advanced_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[min_prefix_length]',
 				'value'       => $this->get_advanced_option( 'min_prefix_length', 3 ),
 				'description' => __( 'Minimum number of characters before prefix search is enabled.', 'wp-loupe' ),
@@ -584,7 +584,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'checkbox_field_callback' ],
 			'wp-loupe',
 			'wp_loupe_advanced_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[typo_enabled]',
 				'value'       => $this->get_advanced_option( 'typo_enabled', true ),
 				'description' => __( 'Enable or disable typo tolerance in search.', 'wp-loupe' ),
@@ -597,7 +597,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'number_field_callback' ],
 			'wp-loupe',
 			'wp_loupe_advanced_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[alphabet_size]',
 				'value'       => $this->get_advanced_option( 'alphabet_size', 4 ),
 				'description' => __( 'Size of the alphabet for typo tolerance (default: 4).', 'wp-loupe' ),
@@ -610,7 +610,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'number_field_callback' ],
 			'wp-loupe',
 			'wp_loupe_advanced_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[index_length]',
 				'value'       => $this->get_advanced_option( 'index_length', 14 ),
 				'description' => __( 'Length of the index for typo tolerance (default: 14).', 'wp-loupe' ),
@@ -623,7 +623,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'checkbox_field_callback' ],
 			'wp-loupe',
 			'wp_loupe_advanced_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[typo_prefix_search]',
 				'value'       => $this->get_advanced_option( 'typo_prefix_search', false ),
 				'description' => __( 'Enable typo tolerance in prefix search (may impact performance).', 'wp-loupe' ),
@@ -636,7 +636,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'checkbox_field_callback' ],
 			'wp-loupe',
 			'wp_loupe_advanced_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[first_char_typo_double]',
 				'value'       => $this->get_advanced_option( 'first_char_typo_double', true ),
 				'description' => __( 'Count a typo at the beginning of a word as two mistakes.', 'wp-loupe' ),
@@ -740,6 +740,89 @@ class WPLoupe_Settings_Page {
 		}
 
 		$current_tab = isset( $_GET[ 'tab' ] ) ? sanitize_key( $_GET[ 'tab' ] ) : 'general';
+
+		// Handle MCP token management actions (nonce protected) before rendering form so list reflects changes.
+		if ( 'mcp' === $current_tab && isset( $_POST[ 'wp_loupe_mcp_action' ] ) ) {
+			check_admin_referer( 'wp_loupe_mcp_tokens_action', 'wp_loupe_mcp_tokens_nonce' );
+			$registry = get_option( 'wp_loupe_mcp_tokens', [] );
+			if ( ! is_array( $registry ) ) {
+				$registry = [];
+			}
+			$action = sanitize_key( wp_unslash( $_POST[ 'wp_loupe_mcp_action' ] ) );
+			if ( 'save_rate_limits' === $action ) {
+				$existing                     = get_option( 'wp_loupe_mcp_rate_limits', [] );
+				$incoming                     = isset( $_POST[ 'wp_loupe_mcp_rate_limits' ] ) ? (array) wp_unslash( $_POST[ 'wp_loupe_mcp_rate_limits' ] ) : [];
+				$sanitized                    = [];
+				$sanitized[ 'anon_window' ]     = max( 10, min( 3600, intval( $incoming[ 'anon_window' ] ?? ( $existing[ 'anon_window' ] ?? 60 ) ) ) );
+				$sanitized[ 'anon_limit' ]      = max( 1, min( 1000, intval( $incoming[ 'anon_limit' ] ?? ( $existing[ 'anon_limit' ] ?? 15 ) ) ) );
+				$sanitized[ 'auth_window' ]     = max( 10, min( 3600, intval( $incoming[ 'auth_window' ] ?? ( $existing[ 'auth_window' ] ?? 60 ) ) ) );
+				$sanitized[ 'auth_limit' ]      = max( 1, min( 5000, intval( $incoming[ 'auth_limit' ] ?? ( $existing[ 'auth_limit' ] ?? 60 ) ) ) );
+				$sanitized[ 'max_search_auth' ] = max( 1, min( 500, intval( $incoming[ 'max_search_auth' ] ?? ( $existing[ 'max_search_auth' ] ?? 100 ) ) ) );
+				$sanitized[ 'max_search_anon' ] = max( 1, min( 100, intval( $incoming[ 'max_search_anon' ] ?? ( $existing[ 'max_search_anon' ] ?? 10 ) ) ) );
+				update_option( 'wp_loupe_mcp_rate_limits', $sanitized );
+				add_settings_error( 'wp_loupe_mcp_tokens', 'rate_limits_saved', __( 'Rate limits updated.', 'wp-loupe' ), 'updated' );
+			}
+			if ( 'revoke_all' === $action ) {
+				// Bulk revoke: delete each transient then clear registry.
+				foreach ( array_keys( $registry ) as $hash ) {
+					delete_transient( 'wp_loupe_mcp_oauth_tok_' . $hash );
+				}
+				$registry = [];
+				update_option( 'wp_loupe_mcp_tokens', $registry );
+				add_settings_error( 'wp_loupe_mcp_tokens', 'tokens_revoked_all', __( 'All tokens revoked.', 'wp-loupe' ), 'updated' );
+			}
+			if ( 'revoke' === $action && ! empty( $_POST[ 'token_hash' ] ) ) {
+				$hash = sanitize_text_field( wp_unslash( $_POST[ 'token_hash' ] ) );
+				// Remove transient & registry entry.
+				if ( isset( $registry[ $hash ] ) ) {
+					delete_transient( 'wp_loupe_mcp_oauth_tok_' . $hash );
+					unset( $registry[ $hash ] );
+					update_option( 'wp_loupe_mcp_tokens', $registry );
+					add_settings_error( 'wp_loupe_mcp_tokens', 'token_revoked', __( 'Token revoked.', 'wp-loupe' ), 'updated' );
+				}
+			}
+			if ( 'create' === $action ) {
+				// Collect scopes from form (fallback to all if none selected) and TTL (hours).
+				$available_scopes = [ 'search.read', 'post.read', 'schema.read', 'health.read', 'commands.read' ];
+				$scopes           = isset( $_POST[ 'token_scopes' ] ) && is_array( $_POST[ 'token_scopes' ] ) ? array_intersect( $available_scopes, array_map( 'sanitize_text_field', wp_unslash( $_POST[ 'token_scopes' ] ) ) ) : [];
+				if ( empty( $scopes ) ) {
+					$scopes = $available_scopes;
+				}
+				$ttl_hours  = isset( $_POST[ 'token_ttl' ] ) ? intval( $_POST[ 'token_ttl' ] ) : 1; // default 1 hour
+				$indefinite = ( 0 === $ttl_hours );
+				if ( $ttl_hours > 168 ) {
+					$ttl_hours = 168; // cap at 7 days unless 0 (forever)
+				}
+				$ttl_seconds = $indefinite ? 0 : ( $ttl_hours * HOUR_IN_SECONDS );
+				try {
+					// Reuse existing MCP server issuance logic if available.
+					if ( class_exists( '\\Soderlind\\Plugin\\WPLoupe\\WP_Loupe_MCP_Server' ) ) {
+						$server = \Soderlind\Plugin\WPLoupe\WP_Loupe_MCP_Server::get_instance();
+						$result = $server->oauth_issue_access_token( defined( 'WP_LOUPE_OAUTH_CLIENT_ID' ) ? WP_LOUPE_OAUTH_CLIENT_ID : 'wp-loupe-local', defined( 'WP_LOUPE_OAUTH_CLIENT_SECRET' ) ? WP_LOUPE_OAUTH_CLIENT_SECRET : '', $scopes, $ttl_seconds );
+						if ( ! is_wp_error( $result ) ) {
+							$raw_token = $result[ 'access_token' ];
+							// Hash the token same way as server for lookup.
+							$hash              = hash_hmac( 'sha256', $raw_token, wp_salt( 'wp_loupe_mcp_oauth' ) );
+							$registry[ $hash ] = [
+								'label'      => sanitize_text_field( $_POST[ 'token_label' ] ?? '' ),
+								'scopes'     => $scopes,
+								'issued_at'  => time(),
+								'expires_at' => $indefinite ? 0 : time() + $ttl_seconds,
+								'last_used'  => null,
+							];
+							update_option( 'wp_loupe_mcp_tokens', $registry );
+							// Store token temporarily in option for display (once) then cleared after render.
+							update_option( 'wp_loupe_mcp_last_created_token', $raw_token, false );
+							add_settings_error( 'wp_loupe_mcp_tokens', 'token_created', __( 'New token created. Copy it now – it will not be shown again.', 'wp-loupe' ), 'updated' );
+						} else {
+							add_settings_error( 'wp_loupe_mcp_tokens', 'token_error', $result->get_error_message(), 'error' );
+						}
+					}
+				} catch (\Exception $e) {
+					add_settings_error( 'wp_loupe_mcp_tokens', 'token_error', $e->getMessage(), 'error' );
+				}
+			}
+		}
 		?>
 		<div class="wrap">
 			<h2><?php echo esc_html( get_admin_page_title() ); ?></h2>
@@ -748,28 +831,323 @@ class WPLoupe_Settings_Page {
 				<a href="?page=wp-loupe" class="nav-tab <?php echo $current_tab === 'general' ? 'nav-tab-active' : ''; ?>">
 					<?php _e( 'General', 'wp-loupe' ); ?>
 				</a>
+				<a href="?page=wp-loupe&tab=mcp" class="nav-tab <?php echo $current_tab === 'mcp' ? 'nav-tab-active' : ''; ?>">
+					<?php _e( 'MCP', 'wp-loupe' ); ?>
+				</a>
 				<a href="?page=wp-loupe&tab=advanced"
 					class="nav-tab <?php echo $current_tab === 'advanced' ? 'nav-tab-active' : ''; ?>">
 					<?php _e( 'Advanced', 'wp-loupe' ); ?>
 				</a>
 			</nav>
 
-			<form action="options.php" method="POST">
-				<?php
-				wp_nonce_field( 'wp_loupe_nonce_action', 'wp_loupe_nonce_field' );
+			<?php settings_errors( 'wp_loupe_mcp_tokens' ); ?>
 
-				if ( $current_tab === 'advanced' ) {
-					settings_fields( 'wp-loupe-advanced' );
-					do_settings_sections( 'wp-loupe-advanced' );
-				} else {
-					echo '<input type="hidden" name="wp_loupe_reindex" id="wp_loupe_reindex" value="on">';
-					settings_fields( 'wp-loupe' );
-					do_settings_sections( 'wp-loupe' );
-				}
+			<?php if ( 'mcp' === $current_tab ) : ?>
+				<?php $enabled = (bool) get_option( 'wp_loupe_mcp_enabled', false ); ?>
+				<form method="post" action="options.php" style="margin-bottom:2rem;">
+					<?php settings_fields( 'wp-loupe-mcp' ); ?>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row"><?php esc_html_e( 'Enable MCP Server', 'wp-loupe' ); ?></th>
+							<td>
+								<label>
+									<input type="checkbox" name="wp_loupe_mcp_enabled" value="1" <?php checked( $enabled, true ); ?> />
+									<?php esc_html_e( 'Expose MCP discovery endpoints and command API', 'wp-loupe' ); ?>
+								</label>
+								<p class="description">
+									<?php esc_html_e( 'When disabled, /.well-known/mcp.json and wp-loupe-mcp endpoints will 404.', 'wp-loupe' ); ?>
+								</p>
+							</td>
+						</tr>
+					</table>
+					<?php submit_button(); ?>
+				</form>
 
-				submit_button( $current_tab === 'general' ? __( 'Reindex', 'wp-loupe' ) : __( 'Save Settings', 'wp-loupe' ) );
-				?>
-			</form>
+				<?php if ( $enabled ) : ?>
+					<h2><?php esc_html_e( 'Access Tokens', 'wp-loupe' ); ?></h2>
+					<h3 style="margin-top:2em;"><?php esc_html_e( 'Rate Limiting', 'wp-loupe' ); ?></h3>
+					<?php $rl = get_option( 'wp_loupe_mcp_rate_limits', [] ); ?>
+					<form method="post" style="margin-bottom:2em;">
+						<?php wp_nonce_field( 'wp_loupe_mcp_tokens_action', 'wp_loupe_mcp_tokens_nonce' ); ?>
+						<input type="hidden" name="tab" value="mcp" />
+						<input type="hidden" name="page" value="wp-loupe" />
+						<input type="hidden" name="wp_loupe_mcp_action" value="save_rate_limits" />
+						<table class="widefat striped" style="max-width:800px;margin-top:10px;">
+							<thead>
+								<tr>
+									<th><?php esc_html_e( 'Context', 'wp-loupe' ); ?></th>
+									<th><?php esc_html_e( 'Window (seconds)', 'wp-loupe' ); ?></th>
+									<th><?php esc_html_e( 'Requests / Window', 'wp-loupe' ); ?></th>
+									<th><?php esc_html_e( 'Max Search Limit', 'wp-loupe' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td><strong><?php esc_html_e( 'Anonymous', 'wp-loupe' ); ?></strong></td>
+									<td><input type="number" min="10" max="3600" name="wp_loupe_mcp_rate_limits[anon_window]"
+											value="<?php echo esc_attr( $rl[ 'anon_window' ] ?? 60 ); ?>" style="width:90px;"></td>
+									<td><input type="number" min="1" max="1000" name="wp_loupe_mcp_rate_limits[anon_limit]"
+											value="<?php echo esc_attr( $rl[ 'anon_limit' ] ?? 15 ); ?>" style="width:90px;"></td>
+									<td><input type="number" min="1" max="100" name="wp_loupe_mcp_rate_limits[max_search_anon]"
+											value="<?php echo esc_attr( $rl[ 'max_search_anon' ] ?? 10 ); ?>" style="width:90px;"></td>
+								</tr>
+								<tr>
+									<td><strong><?php esc_html_e( 'Authenticated (Token)', 'wp-loupe' ); ?></strong></td>
+									<td><input type="number" min="10" max="3600" name="wp_loupe_mcp_rate_limits[auth_window]"
+											value="<?php echo esc_attr( $rl[ 'auth_window' ] ?? 60 ); ?>" style="width:90px;"></td>
+									<td><input type="number" min="1" max="5000" name="wp_loupe_mcp_rate_limits[auth_limit]"
+											value="<?php echo esc_attr( $rl[ 'auth_limit' ] ?? 60 ); ?>" style="width:90px;"></td>
+									<td><input type="number" min="1" max="500" name="wp_loupe_mcp_rate_limits[max_search_auth]"
+											value="<?php echo esc_attr( $rl[ 'max_search_auth' ] ?? 100 ); ?>" style="width:90px;"></td>
+								</tr>
+							</tbody>
+						</table>
+						<p class="description" style="max-width:800px;">
+							<?php esc_html_e( 'Anonymous users are limited separately from authenticated token users. Tokens unlock higher per-request search limits and higher request volume. Leave values at defaults unless you experience abuse or need higher throughput.', 'wp-loupe' ); ?>
+						</p>
+						<?php submit_button( __( 'Save Rate Limits', 'wp-loupe' ), 'secondary', 'submit', false ); ?>
+					</form>
+					<form method="post">
+						<?php wp_nonce_field( 'wp_loupe_mcp_tokens_action', 'wp_loupe_mcp_tokens_nonce' ); ?>
+						<input type="hidden" name="tab" value="mcp" />
+						<input type="hidden" name="page" value="wp-loupe" />
+						<input type="hidden" name="wp_loupe_mcp_action" value="create" />
+						<table class="form-table" role="presentation">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Create New Token', 'wp-loupe' ); ?></th>
+								<td>
+									<label><?php esc_html_e( 'Label (optional)', 'wp-loupe' ); ?> <input type="text"
+											name="token_label" /></label>
+									<fieldset style="margin-top:1em;">
+										<legend><?php esc_html_e( 'Scopes', 'wp-loupe' ); ?></legend>
+										<?php
+										$available_scopes_labels = [
+											'search.read'   => __( 'Search', 'wp-loupe' ),
+											'post.read'     => __( 'Single Post', 'wp-loupe' ),
+											'schema.read'   => __( 'Schema', 'wp-loupe' ),
+											'health.read'   => __( 'Health', 'wp-loupe' ),
+											'commands.read' => __( 'Commands List', 'wp-loupe' ),
+										];
+										foreach ( $available_scopes_labels as $s_key => $s_label ) {
+											printf(
+												'<label style="display:inline-block;margin-right:12px;"><input type="checkbox" name="token_scopes[]" value="%s" checked> %s</label>',
+												esc_attr( $s_key ),
+												esc_html( $s_label )
+											);
+										}
+										?>
+										<p class="description">
+											<?php esc_html_e( 'Uncheck scopes to restrict the token. Leaving all checked grants full read access.', 'wp-loupe' ); ?>
+										</p>
+									</fieldset>
+									<p style="margin-top:1em;">
+										<label><?php esc_html_e( 'TTL (hours)', 'wp-loupe' ); ?> <input type="number" name="token_ttl"
+												min="0" max="168" value="1" style="width:70px;"> </label>
+										<span
+											class="description"><?php esc_html_e( 'How long before the token expires (1–168 hours, or 0 = never expires).', 'wp-loupe' ); ?></span>
+									</p>
+									<?php submit_button( __( 'Generate Token', 'wp-loupe' ), 'secondary', 'submit', false ); ?>
+									<p class="description">
+										<?php esc_html_e( 'Choose scopes and TTL above. Token value shown once.', 'wp-loupe' ); ?>
+									</p>
+									<?php if ( $last = get_option( 'wp_loupe_mcp_last_created_token', '' ) ) : ?>
+										<div class="notice notice-success wp-loupe-new-token-notice">
+											<p><strong><?php esc_html_e( 'Token:', 'wp-loupe' ); ?></strong>
+												<code class="wp-loupe-new-token-value"><?php echo esc_html( $last ); ?></code>
+												<button type="button" class="button button-small wp-loupe-copy-token"
+													data-token="<?php echo esc_attr( $last ); ?>"
+													aria-label="<?php esc_attr_e( 'Copy token to clipboard', 'wp-loupe' ); ?>">&nbsp;<?php esc_html_e( 'Copy', 'wp-loupe' ); ?>&nbsp;</button>
+											</p>
+											<p class="description">
+												<?php esc_html_e( 'Store this token securely; it will not be shown again.', 'wp-loupe' ); ?>
+											</p>
+										</div>
+										<?php delete_option( 'wp_loupe_mcp_last_created_token' ); ?>
+										<?php wp_add_inline_script( 'wp-loupe-admin', "document.addEventListener('click',function(e){if(e.target&&e.target.classList.contains('wp-loupe-copy-token')){const btn=e.target;const token=btn.getAttribute('data-token');if(navigator.clipboard){navigator.clipboard.writeText(token).then(()=>{btn.textContent='" . esc_js( __( 'Copied', 'wp-loupe' ) ) . "';setTimeout(()=>{btn.textContent='" . esc_js( __( 'Copy', 'wp-loupe' ) ) . "';},2000);});}else{const r=document.createRange();const code=btn.closest('.wp-loupe-new-token-notice').querySelector('.wp-loupe-new-token-value');r.selectNode(code);window.getSelection().removeAllRanges();window.getSelection().addRange(r);try{document.execCommand('copy');btn.textContent='" . esc_js( __( 'Copied', 'wp-loupe' ) ) . "';setTimeout(()=>{btn.textContent='" . esc_js( __( 'Copy', 'wp-loupe' ) ) . "';},2000);}catch(err){}window.getSelection().removeAllRanges();}}});" ); ?>
+									<?php endif; ?>
+								</td>
+							</tr>
+						</table>
+					</form>
+
+					<?php
+					$registry = get_option( 'wp_loupe_mcp_tokens', [] );
+					$filter   = isset( $_GET[ 'mcp_token_filter' ] ) ? sanitize_text_field( wp_unslash( $_GET[ 'mcp_token_filter' ] ) ) : 'all';
+					$now      = time();
+					// Transform registry to list for sorting & filtering while retaining hash.
+					$rows = [];
+					if ( is_array( $registry ) ) {
+						foreach ( $registry as $hash => $rec ) {
+							$rec_hashed             = $rec; // copy
+							$rec_hashed[ '__hash' ] = $hash;
+							$rows[]                 = $rec_hashed;
+						}
+					}
+					// Apply filter: active (not expired), expired, never_used.
+					$rows = array_filter( $rows, function ( $r ) use ( $filter, $now ) {
+						if ( 'all' === $filter ) {
+							return true;
+						}
+						$expires = isset( $r[ 'expires_at' ] ) ? (int) $r[ 'expires_at' ] : null;
+						$last    = isset( $r[ 'last_used' ] ) ? (int) $r[ 'last_used' ] : 0;
+						$expired = $expires && $expires !== 0 && $now >= $expires;
+						if ( 'active' === $filter ) {
+							return ! $expired;
+						}
+						if ( 'expired' === $filter ) {
+							return $expired;
+						}
+						if ( 'never_used' === $filter ) {
+							return ! $last;
+						}
+						return true;
+					} );
+					// Sort by last_used desc, then issued_at desc.
+					usort( $rows, function ( $a, $b ) {
+						$luA = isset( $a[ 'last_used' ] ) ? (int) $a[ 'last_used' ] : 0;
+						$luB = isset( $b[ 'last_used' ] ) ? (int) $b[ 'last_used' ] : 0;
+						if ( $luA === $luB ) {
+							$iaA = isset( $a[ 'issued_at' ] ) ? (int) $a[ 'issued_at' ] : 0;
+							$iaB = isset( $b[ 'issued_at' ] ) ? (int) $b[ 'issued_at' ] : 0;
+							return $iaB <=> $iaA; // newer first
+						}
+						return $luB <=> $luA; // most recently used first
+					} );
+					?>
+					<form method="get" style="margin:15px 0;">
+						<input type="hidden" name="page" value="wp-loupe" />
+						<input type="hidden" name="tab" value="mcp" />
+						<label for="mcp_token_filter"
+							style="margin-right:8px;"><strong><?php esc_html_e( 'Filter:', 'wp-loupe' ); ?></strong></label>
+						<select name="mcp_token_filter" id="mcp_token_filter">
+							<option value="all" <?php selected( $filter, 'all' ); ?>><?php esc_html_e( 'All', 'wp-loupe' ); ?></option>
+							<option value="active" <?php selected( $filter, 'active' ); ?>><?php esc_html_e( 'Active', 'wp-loupe' ); ?>
+							</option>
+							<option value="expired" <?php selected( $filter, 'expired' ); ?>>
+								<?php esc_html_e( 'Expired', 'wp-loupe' ); ?>
+							</option>
+							<option value="never_used" <?php selected( $filter, 'never_used' ); ?>>
+								<?php esc_html_e( 'Never Used', 'wp-loupe' ); ?>
+							</option>
+						</select>
+						<?php submit_button( __( 'Apply', 'wp-loupe' ), 'secondary', 'submit', false ); ?>
+					</form>
+					<style>
+						/* MCP token table alignment */
+						#wp-loupe-mcp-token-table td,
+						#wp-loupe-mcp-token-table th {
+							vertical-align: middle;
+						}
+
+						#wp-loupe-mcp-token-table td:not(.wp-loupe-scopes),
+						#wp-loupe-mcp-token-table th:not(.wp-loupe-scopes) {
+							white-space: nowrap;
+						}
+
+						#wp-loupe-mcp-token-table td:not(.wp-loupe-scopes) {
+							overflow: hidden;
+							text-overflow: ellipsis;
+						}
+
+						#wp-loupe-mcp-token-table code {
+							white-space: normal;
+							word-break: break-word;
+						}
+					</style>
+					<table id="wp-loupe-mcp-token-table" class="widefat striped" style="max-width:800px;">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Label', 'wp-loupe' ); ?></th>
+								<th class="wp-loupe-scopes"><?php esc_html_e( 'Scopes', 'wp-loupe' ); ?></th>
+								<th><?php esc_html_e( 'Issued', 'wp-loupe' ); ?></th>
+								<th><?php esc_html_e( 'Expires', 'wp-loupe' ); ?></th>
+								<th><?php esc_html_e( 'Last Used', 'wp-loupe' ); ?></th>
+								<th><?php esc_html_e( 'Actions', 'wp-loupe' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php if ( empty( $rows ) ) : ?>
+								<tr>
+									<td colspan="6"><?php esc_html_e( 'No tokens issued yet.', 'wp-loupe' ); ?></td>
+								</tr>
+							<?php else : ?>
+								<?php foreach ( $rows as $row ) :
+									$rec  = $row;
+									$hash = $row[ '__hash' ]; ?>
+									<tr>
+										<td><?php echo esc_html( $rec[ 'label' ] ?? '' ); ?></td>
+										<td class="wp-loupe-scopes">
+											<code><?php echo esc_html( implode( ' ', $rec[ 'scopes' ] ?? [] ) ); ?></code>
+										</td>
+										<td><?php echo isset( $rec[ 'issued_at' ] ) ? esc_html( date_i18n( 'Y-m-d H:i', $rec[ 'issued_at' ] ) ) : ''; ?>
+										</td>
+										<td>
+											<?php
+											if ( isset( $rec[ 'expires_at' ] ) ) {
+												if ( (int) $rec[ 'expires_at' ] === 0 ) {
+													echo '<span class="dashicons dashicons-infinity" title="' . esc_attr__( 'Never expires', 'wp-loupe' ) . '"></span> ' . esc_html__( 'Never', 'wp-loupe' );
+												} else {
+													echo esc_html( date_i18n( 'Y-m-d H:i', $rec[ 'expires_at' ] ) );
+												}
+											}
+											?>
+										</td>
+										<td>
+											<?php
+											if ( isset( $rec[ 'last_used' ] ) && $rec[ 'last_used' ] ) {
+												echo esc_html( date_i18n( 'Y-m-d H:i', $rec[ 'last_used' ] ) );
+											} else {
+												echo '<span class="description">' . esc_html__( 'Never', 'wp-loupe' ) . '</span>';
+											}
+											?>
+										</td>
+										<td>
+											<form method="post" style="display:inline;">
+												<?php wp_nonce_field( 'wp_loupe_mcp_tokens_action', 'wp_loupe_mcp_tokens_nonce' ); ?>
+												<input type="hidden" name="tab" value="mcp" />
+												<input type="hidden" name="page" value="wp-loupe" />
+												<input type="hidden" name="wp_loupe_mcp_action" value="revoke" />
+												<input type="hidden" name="token_hash" value="<?php echo esc_attr( $hash ); ?>" />
+												<?php submit_button( __( 'Revoke', 'wp-loupe' ), 'delete small', 'submit', false, [ 'onclick' => 'return confirm("' . esc_js( __( 'Revoke this token? This cannot be undone.', 'wp-loupe' ) ) . '");' ] ); ?>
+											</form>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						</tbody>
+					</table>
+					<p class="description" style="max-width:800px;">
+						<?php esc_html_e( 'Tokens generated via WP-CLI will appear here after issuance/use. Last Used updates after a successful request with that token. "Never" indicates no recorded usage yet.', 'wp-loupe' ); ?>
+					</p>
+					<p class="description" style="max-width:800px;">
+						<?php esc_html_e( 'Tokens marked as Never (∞) do not expire. Consider periodically rotating them for security.', 'wp-loupe' ); ?>
+					</p>
+					<form method="post" style="margin-top:1em;">
+						<?php wp_nonce_field( 'wp_loupe_mcp_tokens_action', 'wp_loupe_mcp_tokens_nonce' ); ?>
+						<input type="hidden" name="tab" value="mcp" />
+						<input type="hidden" name="page" value="wp-loupe" />
+						<input type="hidden" name="wp_loupe_mcp_action" value="revoke_all" />
+						<?php submit_button( __( 'Revoke All Tokens', 'wp-loupe' ), 'delete', 'submit', false, [ 'onclick' => 'return confirm("' . esc_js( __( 'Revoke ALL tokens? Clients will immediately lose access.', 'wp-loupe' ) ) . '");' ] ); ?>
+					</form>
+				<?php endif; ?>
+			<?php else : ?>
+				<form action="options.php" method="POST">
+					<?php
+					wp_nonce_field( 'wp_loupe_nonce_action', 'wp_loupe_nonce_field' );
+
+					if ( $current_tab === 'advanced' ) {
+						settings_fields( 'wp-loupe-advanced' );
+						do_settings_sections( 'wp-loupe-advanced' );
+					} else {
+						echo '<input type="hidden" name="wp_loupe_reindex" id="wp_loupe_reindex" value="on">';
+						settings_fields( 'wp-loupe' );
+						do_settings_sections( 'wp-loupe' );
+					}
+
+					submit_button( $current_tab === 'general' ? __( 'Reindex', 'wp-loupe' ) : __( 'Save Settings', 'wp-loupe' ) );
+					?>
+				</form>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
@@ -780,17 +1158,53 @@ class WPLoupe_Settings_Page {
 	public function register_settings() {
 		// General tab settings
 		register_setting( 'wp-loupe', 'wp_loupe_custom_post_types' );
-		register_setting( 'wp-loupe', 'wp_loupe_fields', [ 
+		register_setting( 'wp-loupe', 'wp_loupe_fields', [
 			'type'              => 'array',
 			'description'       => 'Field configuration for each post type',
 			'sanitize_callback' => [ $this, 'sanitize_fields_settings' ],
 		] );
 
 		// Advanced tab settings
-		register_setting( 'wp-loupe-advanced', 'wp_loupe_advanced', [ 
+		register_setting( 'wp-loupe-advanced', 'wp_loupe_advanced', [
 			'type'              => 'array',
 			'description'       => 'Advanced search configuration options',
 			'sanitize_callback' => [ $this, 'sanitize_advanced_settings' ],
+		] );
+
+		// MCP tab settings
+		register_setting( 'wp-loupe-mcp', 'wp_loupe_mcp_enabled', [
+			'type'              => 'boolean',
+			'description'       => 'Enable or disable the MCP server endpoints',
+			'sanitize_callback' => function ( $value ) {
+				return (bool) $value;
+			},
+		] );
+
+		// MCP rate limit settings
+		register_setting( 'wp-loupe-mcp', 'wp_loupe_mcp_rate_limits', [
+			'type'              => 'array',
+			'description'       => 'MCP rate limit configuration',
+			'sanitize_callback' => function ( $value ) {
+				$defaults = [
+					'anon_window'     => 60,
+					'anon_limit'      => 15,
+					'auth_window'     => 60,
+					'auth_limit'      => 60,
+					'max_search_auth' => 100,
+					'max_search_anon' => 10,
+				];
+				if ( ! is_array( $value ) ) {
+					$value = [];
+				}
+				$out                    = [];
+				$out[ 'anon_window' ]     = max( 10, min( 3600, intval( $value[ 'anon_window' ] ?? $defaults[ 'anon_window' ] ) ) );
+				$out[ 'anon_limit' ]      = max( 1, min( 1000, intval( $value[ 'anon_limit' ] ?? $defaults[ 'anon_limit' ] ) ) );
+				$out[ 'auth_window' ]     = max( 10, min( 3600, intval( $value[ 'auth_window' ] ?? $defaults[ 'auth_window' ] ) ) );
+				$out[ 'auth_limit' ]      = max( 1, min( 5000, intval( $value[ 'auth_limit' ] ?? $defaults[ 'auth_limit' ] ) ) );
+				$out[ 'max_search_auth' ] = max( 1, min( 500, intval( $value[ 'max_search_auth' ] ?? $defaults[ 'max_search_auth' ] ) ) );
+				$out[ 'max_search_anon' ] = max( 1, min( 100, intval( $value[ 'max_search_anon' ] ?? $defaults[ 'max_search_anon' ] ) ) );
+				return $out;
+			},
 		] );
 
 		// Setup fields
@@ -803,7 +1217,7 @@ class WPLoupe_Settings_Page {
 	 */
 	public function wp_loupe_setup_general_fields() {
 		$this->cpt = array_diff( get_post_types(
-			[ 
+			[
 				'public' => true,
 			],
 			'names',
@@ -830,7 +1244,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'number_field_callback' ],
 			'wp-loupe-advanced',
 			'wp_loupe_tokenization_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[max_query_tokens]',
 				'value'       => $this->get_advanced_option( 'max_query_tokens', 12 ),
 				'min'         => 1,
@@ -845,7 +1259,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'languages_field_callback' ],
 			'wp-loupe-advanced',
 			'wp_loupe_tokenization_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[languages]',
 				'value'       => $this->get_advanced_option( 'languages', [ 'en' ] ),
 				'description' => __( 'Select languages for tokenization. Uses site language by default.', 'wp-loupe' ),
@@ -859,7 +1273,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'number_field_callback' ],
 			'wp-loupe-advanced',
 			'wp_loupe_prefix_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[min_prefix_length]',
 				'value'       => $this->get_advanced_option( 'min_prefix_length', 3 ),
 				'min'         => 1,
@@ -875,7 +1289,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'checkbox_field_callback' ],
 			'wp-loupe-advanced',
 			'wp_loupe_typo_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[typo_enabled]',
 				'value'       => $this->get_advanced_option( 'typo_enabled', true ),
 				'description' => __( 'Allow search to find results with typos.', 'wp-loupe' ),
@@ -888,7 +1302,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'number_field_callback' ],
 			'wp-loupe-advanced',
 			'wp_loupe_typo_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[alphabet_size]',
 				'value'       => $this->get_advanced_option( 'alphabet_size', 4 ),
 				'min'         => 1,
@@ -903,7 +1317,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'number_field_callback' ],
 			'wp-loupe-advanced',
 			'wp_loupe_typo_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[index_length]',
 				'value'       => $this->get_advanced_option( 'index_length', 14 ),
 				'min'         => 5,
@@ -918,7 +1332,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'checkbox_field_callback' ],
 			'wp-loupe-advanced',
 			'wp_loupe_typo_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[first_char_typo_double]',
 				'value'       => $this->get_advanced_option( 'first_char_typo_double', true ),
 				'description' => __( 'Count a typo at the beginning of a word as two mistakes (recommended).', 'wp-loupe' ),
@@ -931,7 +1345,7 @@ class WPLoupe_Settings_Page {
 			[ $this, 'checkbox_field_callback' ],
 			'wp-loupe-advanced',
 			'wp_loupe_typo_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[typo_prefix_search]',
 				'value'       => $this->get_advanced_option( 'typo_prefix_search', false ),
 				'description' => __( 'Enable typo tolerance in prefix search. Not recommended for large datasets.', 'wp-loupe' ),
@@ -944,9 +1358,9 @@ class WPLoupe_Settings_Page {
 			[ $this, 'typo_thresholds_callback' ],
 			'wp-loupe-advanced',
 			'wp_loupe_typo_section',
-			[ 
+			[
 				'name'        => 'wp_loupe_advanced[typo_thresholds]',
-				'value'       => $this->get_advanced_option( 'typo_thresholds', [ 
+				'value'       => $this->get_advanced_option( 'typo_thresholds', [
 					'9' => 2, // 9 or more characters = 2 typos
 					'5' => 1  // 5-8 characters = 1 typo
 				] ),
@@ -974,7 +1388,7 @@ class WPLoupe_Settings_Page {
 			foreach ( $fields as $field_key => $settings ) {
 				// Only include the field if it's explicitly marked as indexable
 				if ( ! empty( $settings[ 'indexable' ] ) ) {
-					$sanitized[ $post_type ][ $field_key ] = [ 
+					$sanitized[ $post_type ][ $field_key ] = [
 						'indexable'      => true,
 						'weight'         => isset( $settings[ 'weight' ] ) ?
 							floatval( $settings[ 'weight' ] ) : 1.0,
@@ -1074,7 +1488,7 @@ class WPLoupe_Settings_Page {
 		' );
 
 		// Localize script with enhanced field data
-		wp_localize_script( 'wp-loupe-admin', 'wpLoupeAdmin', [ 
+		wp_localize_script( 'wp-loupe-admin', 'wpLoupeAdmin', [
 			'restUrl'     => rest_url( 'wp-loupe/v1' ),
 			'nonce'       => wp_create_nonce( 'wp_rest' ),
 			'savedFields' => $this->prepare_fields_for_js(),
@@ -1111,7 +1525,7 @@ class WPLoupe_Settings_Page {
 		$screen = get_current_screen();
 
 		// Add overview help tab that explains the structure
-		$screen->add_help_tab( [ 
+		$screen->add_help_tab( [
 			'id'      => 'wp_loupe_help_overview',
 			'title'   => __( 'Overview', 'wp-loupe' ),
 			'content' => sprintf(
@@ -1132,7 +1546,7 @@ class WPLoupe_Settings_Page {
 		] );
 
 		// Basic settings help tabs - remove "BASIC:" prefix
-		$screen->add_help_tab( [ 
+		$screen->add_help_tab( [
 			'id'      => 'wp_loupe_weight',
 			'title'   => __( 'Weight', 'wp-loupe' ),
 			'content' => sprintf(
@@ -1145,7 +1559,7 @@ class WPLoupe_Settings_Page {
 			),
 		] );
 
-		$screen->add_help_tab( [ 
+		$screen->add_help_tab( [
 			'id'      => 'wp_loupe_filterable',
 			'title'   => __( 'Filterable', 'wp-loupe' ),
 			'content' => sprintf(
@@ -1159,7 +1573,7 @@ class WPLoupe_Settings_Page {
 			),
 		] );
 
-		$screen->add_help_tab( [ 
+		$screen->add_help_tab( [
 			'id'      => 'wp_loupe_sortable',
 			'title'   => __( 'Sortable', 'wp-loupe' ),
 			'content' => sprintf(
@@ -1177,7 +1591,7 @@ class WPLoupe_Settings_Page {
 		] );
 
 		// Advanced settings help tabs - remove "ADVANCED:" prefix
-		$screen->add_help_tab( [ 
+		$screen->add_help_tab( [
 			'id'      => 'wp_loupe_tokenization',
 			'title'   => __( 'Tokenization', 'wp-loupe' ),
 			'content' => sprintf(
@@ -1191,7 +1605,7 @@ class WPLoupe_Settings_Page {
 			),
 		] );
 
-		$screen->add_help_tab( [ 
+		$screen->add_help_tab( [
 			'id'      => 'wp_loupe_prefix_search',
 			'title'   => __( 'Prefix Search', 'wp-loupe' ),
 			'content' => sprintf(
@@ -1205,7 +1619,7 @@ class WPLoupe_Settings_Page {
 			),
 		] );
 
-		$screen->add_help_tab( [ 
+		$screen->add_help_tab( [
 			'id'      => 'wp_loupe_typo_tolerance',
 			'title'   => __( 'Typo Tolerance', 'wp-loupe' ),
 			'content' => sprintf(
@@ -1218,7 +1632,7 @@ class WPLoupe_Settings_Page {
 			),
 		] );
 
-		$screen->add_help_tab( [ 
+		$screen->add_help_tab( [
 			'id'      => 'wp_loupe_typo_advanced',
 			'title'   => __( 'Typo Details', 'wp-loupe' ),
 			'content' => sprintf(
@@ -1236,7 +1650,7 @@ class WPLoupe_Settings_Page {
 		] );
 
 		// Add some custom styling to the help tabs
-		$screen->add_help_tab( [ 
+		$screen->add_help_tab( [
 			'id'      => 'wp_loupe_help_styles',
 			'title'   => __( '', 'wp-loupe' ),
 			'content' => '<style>
@@ -1269,7 +1683,7 @@ class WPLoupe_Settings_Page {
 	 * Callback for language selection
 	 */
 	public function languages_field_callback( $args ) {
-		$available_languages = [ 
+		$available_languages = [
 			'ar' => __( 'Arabic', 'wp-loupe' ),
 			'hy' => __( 'Armenian', 'wp-loupe' ),
 			'eu' => __( 'Basque', 'wp-loupe' ),

@@ -20,6 +20,21 @@ WP Loupe transforms WordPress's search functionality by:
 
 > Integrating with external agents or automation? See the new **[MCP Integration Documentation](docs/mcp.md)** for discovery, commands, auth & rate limiting (including [WP-CLI token issuance](docs/mcp.md#wp-cli-usage)).
 
+## MCP (Model Context Protocol) Integration (Summary)
+
+WP Loupe ships with an optional MCP server enabling external AI agents or automation tools to discover commands and query your site.
+
+Key points:
+- Discovery endpoints: `/.well-known/mcp.json` & `/.well-known/oauth-protected-resource` (enable in Settings → WP Loupe → MCP)
+- Hybrid access: anonymous users can run limited `searchPosts`; tokens increase limits & unlock `healthCheck`
+- Token UI: create, scope-limit, set TTL (1–168h) or indefinite (0), revoke individually or all
+- Last-used tracking for tokens; copy raw token once on creation
+- Configurable rate limits (window, per-window quotas, max hits) via admin UI + filter overrides
+- WP-CLI command for issuing tokens (mirrors into UI registry)
+- Secure pagination cursors (HMAC) and standardized envelope responses
+
+Full details, filter references, and examples: see [docs/mcp.md](docs/mcp.md).
+
 ## Features
 
 ### Core Features

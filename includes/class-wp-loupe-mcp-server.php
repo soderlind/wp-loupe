@@ -50,6 +50,11 @@ class WP_Loupe_MCP_Server {
 	}
 
 	private function bootstrap(): void {
+		// Respect enable flag; allow CLI context to always load for issuance.
+		$enabled = (bool) get_option( 'wp_loupe_mcp_enabled', false );
+		if ( ! $enabled && ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+			return; // Do not register any routes or rewrites if disabled.
+		}
 		add_action( 'init', [ $this, 'add_rewrite_rules' ] );
 		add_filter( 'query_vars', [ $this, 'register_query_var' ] );
 		add_action( 'template_redirect', [ $this, 'maybe_output_wellknown' ] );
@@ -83,6 +88,9 @@ class WP_Loupe_MCP_Server {
 	}
 
 	public function maybe_output_wellknown(): void {
+		if ( ! (bool) get_option( 'wp_loupe_mcp_enabled', false ) ) {
+			return; // Disabled: pretend endpoints do not exist.
+		}
 		$type = null;
 		// Primary path: query var from rewrite.
 		if ( get_query_var( self::QUERY_VAR ) ) {
@@ -524,12 +532,18 @@ class WP_Loupe_MCP_Server {
 		$post_types = array_map( 'sanitize_key', (array) $post_types );
 
 		$requested_limit = isset( $params[ 'limit' ] ) ? intval( $params[ 'limit' ] ) : 10;
-		$max_auth_limit  = apply_filters( 'wp_loupe_mcp_search_max_limit_auth', 100 );
-		$max_anon_limit  = apply_filters( 'wp_loupe_mcp_search_max_limit_anon', 10 );
-		$limit_cap       = $auth_context[ 'authenticated' ] ? $max_auth_limit : $max_anon_limit;
-		$limit           = min( $limit_cap, max( 1, $requested_limit ) );
-		$cursor          = isset( $params[ 'cursor' ] ) ? sanitize_text_field( $params[ 'cursor' ] ) : null;
-		$offset          = 0;
+		$rl_cfg          = get_option( 'wp_loupe_mcp_rate_limits', [] );
+		if ( ! is_array( $rl_cfg ) ) {
+			$rl_cfg = [];
+		}
+		$opt_max_auth   = isset( $rl_cfg[ 'max_search_auth' ] ) ? (int) $rl_cfg[ 'max_search_auth' ] : 100;
+		$opt_max_anon   = isset( $rl_cfg[ 'max_search_anon' ] ) ? (int) $rl_cfg[ 'max_search_anon' ] : 10;
+		$max_auth_limit = apply_filters( 'wp_loupe_mcp_search_max_limit_auth', $opt_max_auth );
+		$max_anon_limit = apply_filters( 'wp_loupe_mcp_search_max_limit_anon', $opt_max_anon );
+		$limit_cap      = $auth_context[ 'authenticated' ] ? $max_auth_limit : $max_anon_limit;
+		$limit          = min( $limit_cap, max( 1, $requested_limit ) );
+		$cursor         = isset( $params[ 'cursor' ] ) ? sanitize_text_field( $params[ 'cursor' ] ) : null;
+		$offset         = 0;
 		if ( $cursor ) {
 			$decoded = $this->decode_cursor( $cursor );
 			if ( $decoded && $decoded[ 'q' ] === md5( $query ) ) {
@@ -667,10 +681,19 @@ class WP_Loupe_MCP_Server {
 			$data = [ 'count' => 0, 'start' => time() ];
 		}
 		$data[ 'count' ]++;
-		$window = (int) apply_filters( 'wp_loupe_mcp_rate_window_seconds', 60 );
-		$limit  = $auth_context[ 'authenticated' ]
-			? (int) apply_filters( 'wp_loupe_mcp_search_rate_limit_auth', 60 )
-			: (int) apply_filters( 'wp_loupe_mcp_search_rate_limit_anon', 15 );
+		// Load saved rate limit configuration (option) with sane fallbacks.
+		$cfg = get_option( 'wp_loupe_mcp_rate_limits', [] );
+		if ( ! is_array( $cfg ) ) {
+			$cfg = [];
+		}
+		$default_window_auth = isset( $cfg[ 'auth_window' ] ) ? (int) $cfg[ 'auth_window' ] : 60;
+		$default_window_anon = isset( $cfg[ 'anon_window' ] ) ? (int) $cfg[ 'anon_window' ] : 60;
+		$default_limit_auth  = isset( $cfg[ 'auth_limit' ] ) ? (int) $cfg[ 'auth_limit' ] : 60;
+		$default_limit_anon  = isset( $cfg[ 'anon_limit' ] ) ? (int) $cfg[ 'anon_limit' ] : 15;
+		$window              = (int) apply_filters( 'wp_loupe_mcp_rate_window_seconds', $auth_context[ 'authenticated' ] ? $default_window_auth : $default_window_anon );
+		$limit               = $auth_context[ 'authenticated' ]
+			? (int) apply_filters( 'wp_loupe_mcp_search_rate_limit_auth', $default_limit_auth )
+			: (int) apply_filters( 'wp_loupe_mcp_search_rate_limit_anon', $default_limit_anon );
 		if ( ( time() - $data[ 'start' ] ) > $window ) {
 			$data = [ 'count' => 1, 'start' => time() ];
 		}
@@ -717,7 +740,7 @@ class WP_Loupe_MCP_Server {
 	 * @param string[] $scopes Requested scopes.
 	 * @return array|\WP_Error { access_token, token_type, expires_in, scope }
 	 */
-	public function oauth_issue_access_token( string $client_id, string $client_secret, array $scopes ) {
+	public function oauth_issue_access_token( string $client_id, string $client_secret, array $scopes, int $ttl_seconds = null ) {
 		// Optional hard-coded credentials for now (can be replaced with settings page later).
 		$conf_id     = defined( 'WP_LOUPE_OAUTH_CLIENT_ID' ) ? WP_LOUPE_OAUTH_CLIENT_ID : 'wp-loupe-local';
 		$conf_secret = defined( 'WP_LOUPE_OAUTH_CLIENT_SECRET' ) ? WP_LOUPE_OAUTH_CLIENT_SECRET : '';
@@ -738,22 +761,47 @@ class WP_Loupe_MCP_Server {
 		if ( empty( $valid_requested ) ) {
 			return new \WP_Error( 'invalid_scope', 'No valid scopes requested', [ 'status' => 400 ] );
 		}
-		$token      = $this->oauth_generate_token();
-		$hash       = $this->oauth_hash_token( $token );
-		$expires_at = time() + self::OAUTH_ACCESS_TOKEN_TTL;
-		$record     = [
+		$token       = $this->oauth_generate_token();
+		$hash        = $this->oauth_hash_token( $token );
+		$indefinite  = ( isset( $ttl_seconds ) && 0 === $ttl_seconds );
+		$ttl_seconds = $indefinite ? 0 : ( ( $ttl_seconds && $ttl_seconds > 0 ) ? min( $ttl_seconds, 168 * HOUR_IN_SECONDS ) : self::OAUTH_ACCESS_TOKEN_TTL ); // cap at 7 days unless 0
+		$expires_at  = $indefinite ? 0 : time() + $ttl_seconds;
+		$record      = [
 			'hash'       => $hash,
 			'scopes'     => $valid_requested,
 			'client_id'  => $client_id,
 			'expires_at' => $expires_at,
+			'issued_at'  => time(),
 		];
-		$this->oauth_store_token_record( $record );
+		$this->oauth_store_token_record( $record, $ttl_seconds );
+		$this->registry_upsert_token( $record );
 		return [
 			'access_token' => $token,
 			'token_type'   => 'Bearer',
-			'expires_in'   => self::OAUTH_ACCESS_TOKEN_TTL,
+			'expires_in'   => $ttl_seconds,
 			'scope'        => implode( ' ', $valid_requested ),
 		];
+	}
+
+	/**
+	 * Mirror token metadata in persistent option used by settings UI so CLI-issued tokens appear.
+	 */
+	private function registry_upsert_token( array $record ): void {
+		$registry = get_option( 'wp_loupe_mcp_tokens', [] );
+		if ( ! is_array( $registry ) ) {
+			$registry = [];
+		}
+		$hash = $record[ 'hash' ];
+		if ( ! isset( $registry[ $hash ] ) ) {
+			$registry[ $hash ] = [
+				'label'      => '',
+				'scopes'     => $record[ 'scopes' ],
+				'issued_at'  => $record[ 'issued_at' ] ?? time(),
+				'expires_at' => $record[ 'expires_at' ],
+				'last_used'  => null,
+			];
+			update_option( 'wp_loupe_mcp_tokens', $registry );
+		}
 	}
 
 	/** Generate cryptographically secure random token string. */
@@ -768,9 +816,18 @@ class WP_Loupe_MCP_Server {
 	}
 
 	/** Persist token record in transient keyed by its hash. */
-	private function oauth_store_token_record( array $record ): void {
+	private function oauth_store_token_record( array $record, int $ttl_seconds = null ): void {
 		$key = self::OAUTH_TOKEN_TRANSIENT_PREFIX . $record[ 'hash' ];
-		set_transient( $key, $record, self::OAUTH_ACCESS_TOKEN_TTL );
+		if ( 0 === (int) $record[ 'expires_at' ] ) {
+			// Non-expiring token: cache for an extended period (1 year) and treat expires_at=0 logically as indefinite.
+			set_transient( $key, $record, YEAR_IN_SECONDS );
+			return;
+		}
+		$ttl_effect = ( $ttl_seconds && $ttl_seconds > 0 ) ? $ttl_seconds : ( (int) $record[ 'expires_at' ] - time() );
+		if ( $ttl_effect <= 0 ) {
+			$ttl_effect = 60; // fallback minimal cache window
+		}
+		set_transient( $key, $record, $ttl_effect );
 	}
 
 	/** Retrieve token record by raw token value. */
@@ -787,13 +844,22 @@ class WP_Loupe_MCP_Server {
 		if ( ! $rec ) {
 			return new \WP_Error( 'invalid_token', 'Access token not found', [ 'status' => 401 ] );
 		}
-		if ( time() >= (int) $rec[ 'expires_at' ] ) {
+		if ( (int) $rec[ 'expires_at' ] !== 0 && time() >= (int) $rec[ 'expires_at' ] ) {
 			return new \WP_Error( 'invalid_token', 'Access token expired', [ 'status' => 401 ] );
 		}
 		if ( ! empty( $required_scopes ) ) {
 			$missing = array_diff( $required_scopes, $rec[ 'scopes' ] );
 			if ( ! empty( $missing ) ) {
 				return new \WP_Error( 'insufficient_scope', 'Missing required scopes: ' . implode( ',', $missing ), [ 'status' => 403 ] );
+			}
+		}
+		// Update last_used in registry (best-effort; do not block on failure).
+		$registry = get_option( 'wp_loupe_mcp_tokens', [] );
+		if ( is_array( $registry ) ) {
+			$hash = $rec[ 'hash' ] ?? $this->oauth_hash_token( $token );
+			if ( isset( $registry[ $hash ] ) ) {
+				$registry[ $hash ][ 'last_used' ] = time();
+				update_option( 'wp_loupe_mcp_tokens', $registry );
 			}
 		}
 		return $rec;
