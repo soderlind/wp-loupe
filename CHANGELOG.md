@@ -7,13 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.2] - 2025-09-29
 ### Added
-- (Placeholder) Configurable rate limiting UI refinements (anonymous vs authenticated)
+- Rate limiting settings UI polish (clear separation of anonymous vs authenticated buckets)
+- Discovery endpoints surfaced in settings (manifest & protected resource) for easier client setup
 
 ### Changed
-- (Placeholder) Internal adjustments post 0.5.1 token UI
+- Removed POST `/commands` endpoint from the public endpoint list to avoid method confusion
+- Centralized endpoint copy behavior into `admin.js` (removed inline script)
+- Improved accessibility: added aria-live region for copy feedback
+
+### Fixed
+- Ensured `/.well-known/mcp.json` manifest reliably returns JSON once MCP enabled (rewrite + fallback logic)
+- Clipboard copy fallback for browsers or contexts without `navigator.clipboard`
 
 ### Notes
-- Draft section for upcoming improvements
+- Prepares groundwork for broader rate-limit configurability and future manifest expansion
+
+## [0.5.3] - 2025-09-30
+### Added
+- Copy buttons (with accessibility & status feedback) for manifest and protected resource endpoints in MCP settings
+- Screen-reader friendly live region announcing copy success/failure
+
+### Changed
+- Further refined MCP settings layout; ensured no inline JavaScript remains for endpoint copying
+- Minor wording tweaks in endpoint descriptions for clarity
+
+### Fixed
+- Defensive clipboard fallback path using hidden textarea to support insecure contexts / older browsers
+
+### Notes
+- Small UX iteration; next releases will focus on token issuance improvements & dynamic manifest enrichment
 
 ## [0.5.1] - 2025-09-29
 ### Added

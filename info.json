@@ -1,7 +1,7 @@
 {
     "name": "WP Loupe",
     "slug": "wp-loupe",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "download_url": "https://github.com/soderlind/wp-loupe/releases/latest/download/wp-loupe.zip",
     "tested": "6.7",
     "requires": "6.3",
