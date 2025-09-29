@@ -124,6 +124,7 @@ class WPLoupe_Settings_Page {
 
 			return rest_ensure_response( [
 				'success' => true,
+				/* translators: %s: post type slug */
 				'message' => sprintf( __( 'Created database structure for post type: %s', 'wp-loupe' ), $post_type ),
 				'count'   => 0 // No documents indexed
 			] );
@@ -194,6 +195,7 @@ class WPLoupe_Settings_Page {
 
 			return rest_ensure_response( [
 				'success' => true,
+				/* translators: %s: post type slug */
 				'message' => sprintf( __( 'Deleted database for post type: %s', 'wp-loupe' ), $post_type ),
 			] );
 		} catch (\Exception $e) {
@@ -323,6 +325,7 @@ class WPLoupe_Settings_Page {
 
 			return rest_ensure_response( [
 				'success' => true,
+				/* translators: %s: post type slug */
 				'message' => sprintf( __( 'Updated database for post type: %s', 'wp-loupe' ), $post_type ),
 				'count'   => count( $documents ),
 			] );
@@ -513,6 +516,7 @@ class WPLoupe_Settings_Page {
 	public function typo_section_callback() {
 		echo '<p>' . __( 'Configure typo tolerance for search queries. Typo tolerance allows finding results even when users make typing mistakes.', 'wp-loupe' ) . '</p>';
 		echo '<p><small>' . sprintf(
+			/* translators: %s: link to the research paper on efficient similarity search */
 			__( 'Based on the algorithm from "Efficient Similarity Search in Very Large String Sets" %s.', 'wp-loupe' ),
 			'<a href="https://hpi.de/fileadmin/user_upload/fachgebiete/naumann/publications/PDFs/2012_ICDE_p1586-fenz.pdf" target="_blank">' . __( '(read the paper)', 'wp-loupe' ) . '</a>'
 		) . '</small></p>';

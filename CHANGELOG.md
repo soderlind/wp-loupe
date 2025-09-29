@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2025-09-29
+### Added
+- (Placeholder) Configurable rate limiting UI refinements (anonymous vs authenticated)
+
+### Changed
+- (Placeholder) Internal adjustments post 0.5.1 token UI
+
+### Notes
+- Draft section for upcoming improvements
+
 ## [0.5.1] - 2025-09-29
 ### Added
 - MCP token management UI (scope selection, TTL presets including indefinite, revoke-all, last-used tracking, copy-once display)
