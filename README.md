@@ -1,3 +1,5 @@
+> **0.5.0 and later, require PHP 8.3**
+
 # WP Loupe - Enhanced WordPress Search
 
 A powerful search enhancement plugin for WordPress that delivers fast, accurate, and typo-tolerant search results.
