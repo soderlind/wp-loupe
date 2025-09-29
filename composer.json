@@ -3,7 +3,7 @@
 	"type": "wordpress-plugin",
 	"description": "Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.",
 	"homepage": "https://github.com/soderlind/wp-loupe",
-	"version": "0.4.3",
+	"version": "0.5.0",
 	"license": "GPL-2.0+",
 	"authors": [
 		{
@@ -13,7 +13,27 @@
 	],
 	"require": {
 		"ext-PDO": "*",
-		"loupe/loupe": "~0.9.5",
+		"loupe/loupe": "0.12.13",
 		"yahnis-elsts/plugin-update-checker": "~5.6"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^10.5",
+		"brain/monkey": "^2.6"
+	},
+	"autoload": {
+		"psr-4": {
+			"Soderlind\\\\Plugin\\\\WPLoupe\\\\": "includes/"
+		},
+		"classmap": [
+			"includes/"
+		]
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"WPLoupeTests\\\\": "tests/"
+		}
+	},
+	"scripts": {
+		"test": "phpunit"
 	}
 }

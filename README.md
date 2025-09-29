@@ -4,7 +4,35 @@ A powerful search enhancement plugin for WordPress that delivers fast, accurate,
 
 ## Quick Links
 
-[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Settings](#settings) | [FAQ](#faq) | [Filters](#filters)  | [Behind the scenes](#behind-the-scenes) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
+[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Settings](#settings) | [FAQ](#faq) | [Filters](#filters)  | [Behind the scenes](#behind-the-scenes) | [MCP Docs](docs/mcp.md) | [MCP WP-CLI](docs/mcp.md#wp-cli-usage) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
+
+<!-- TOC BEGIN (generated manually; update when headings change) -->
+- [Overview](#overview)
+- [MCP (Model Context Protocol) Integration (Summary)](#mcp-model-context-protocol-integration-summary)
+- [Features](#features)
+	- [Core Features](#core-features)
+	- [Search Capabilities](#search-capabilities)
+	- [Developer Features](#developer-features)
+- [Installation](#installation)
+- [Usage](#usage)
+	- [Basic Search](#basic-search)
+	- [Advanced Search Operators](#advanced-search-operators)
+- [Settings](#settings)
+	- [General Settings](#general-settings)
+	- [Advanced Settings](#advanced-settings)
+- [FAQ](#faq)
+- [Filters](#filters)
+- [Behind the Scenes](#behind-the-scenes)
+	- [Overview](#overview-1)
+	- [Core Components](#core-components)
+	- [Key Technical Features](#key-technical-features)
+	- [Search Flow](#search-flow)
+	- [Index Maintenance](#index-maintenance)
+	- [Admin Interface](#admin-interface)
+	- [Technical Requirements](#technical-requirements)
+- [Acknowledgements](#acknowledgements)
+- [Copyright and License](#copyright-and-license)
+<!-- TOC END -->
 
 ## Overview
 
@@ -17,6 +45,23 @@ WP Loupe transforms WordPress's search functionality by:
 - Providing customization options for developers
 
 > Want to write your own search plugin? Here's a guide to get started: [Create a WordPress custom search](https://gist.github.com/soderlind/cc7283db9290031455c5a79d40e3119b)
+
+> Integrating with external agents or automation? See the new **[MCP Integration Documentation](docs/mcp.md)** for discovery, commands, auth & rate limiting (including [WP-CLI token issuance](docs/mcp.md#wp-cli-usage)).
+
+## MCP (Model Context Protocol) Integration (Summary)
+
+WP Loupe ships with an optional MCP server enabling external AI agents or automation tools to discover commands and query your site.
+
+Key points:
+- Discovery endpoints: `/.well-known/mcp.json` & `/.well-known/oauth-protected-resource` (enable in Settings → WP Loupe → MCP)
+- Hybrid access: anonymous users can run limited `searchPosts`; tokens increase limits & unlock `healthCheck`
+- Token UI: create, scope-limit, set TTL (1–168h) or indefinite (0), revoke individually or all
+- Last-used tracking for tokens; copy raw token once on creation
+- Configurable rate limits (window, per-window quotas, max hits) via admin UI + filter overrides
+- WP-CLI command for issuing tokens (mirrors into UI registry)
+- Secure pagination cursors (HMAC) and standardized envelope responses
+
+Full details, filter references, and examples: see [docs/mcp.md](docs/mcp.md).
 
 ## Features
 
@@ -84,7 +129,7 @@ You can configure WP Loupe's search behavior and performance via the WordPress a
 
 ### General Settings
 
-#### Post Types 
+#### Post Types
 Select which post types to include in the search index.
 
 #### Field Weight
@@ -97,9 +142,9 @@ Weight determines how important a field is in search results:
 #### Filterable Fields
 Filterable fields can be used to refine search results:
 
-- Enable this option to allow filtering search results by this field's values.  
-- Best for fields with consistent, categorized values like taxonomies, status fields, or controlled metadata.  
-- Examples: categories, tags, post type, author, or custom taxonomies.  
+- Enable this option to allow filtering search results by this field's values.
+- Best for fields with consistent, categorized values like taxonomies, status fields, or controlled metadata.
+- Examples: categories, tags, post type, author, or custom taxonomies.
 
 Note: Fields with highly variable or unique values (like content) make poor filters as each post would have its own filter value.
 
@@ -117,7 +162,7 @@ WP Loupe provides advanced configuration options to fine-tune your search experi
 
 #### Prefix Search
 
-- Configure prefix search behavior. Prefix search allows finding terms by typing only the beginning (e.g., "huck" finds "huckleberry"). 
+- Configure prefix search behavior. Prefix search allows finding terms by typing only the beginning (e.g., "huck" finds "huckleberry").
 - Prefix search is only performed on the last word in a search query. Prior words must be typed out fully to get accurate results. E.g. `my friend huck` would find documents containing huckleberry - `huck is my friend`, however, would not.
 
 #### Typo Tolerance
@@ -194,7 +239,7 @@ add_filter( 'wp_loupe_index_protected','__return_true' );
 
 ### `wp_loupe_field_{$field_name}`
 
-This filter allows you to change the field content before it is indexed. 
+This filter allows you to change the field content before it is indexed.
 
 By default, the following is used to remove HTML tags and comments from `post_content`. Among others, it removes the WordPress block comments.
 
@@ -392,3 +437,14 @@ WP Loupe is copyright © 2024 [Per Søderlind](http://github.com/soderlind).
 WP Loupe is open-source software; you can redistribute it and/or modify it under the terms of the GNU General Public License, version 2, as published by the Free Software Foundation.
 
 WP Loupe is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See [LICENSE](LICENSE) for more information.
+
+<!--
+TOC MAINTENANCE
+The Table of Contents near the top of this file is maintained manually (no automated script in build pipeline).
+Update procedure when headings change:
+1. Identify new/renamed/removed headings at levels ## and important ### subsections.
+2. Derive anchors (GitHub algorithm: lowercase, spaces -> dashes, remove most punctuation).
+3. Insert/update list items inside the <!-- TOC BEGIN --> / <!-- TOC END --> block.
+4. Keep indentation with tabs (current style) or convert uniformly if you restyle the list.
+5. Avoid adding very small, single-sentence subsections to keep TOC scannable.
+-->

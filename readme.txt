@@ -3,8 +3,8 @@ Contributors: persoderlind
 Tags: search, full-text search, relevance, typo-tolerant, fast search, search engine
 Requires at least: 6.3
 Tested up to: 6.7
-Requires PHP: 8.2
-Stable tag: 0.4.3
+Requires PHP: 8.3
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
@@ -14,6 +14,32 @@ A powerful search enhancement plugin for WordPress that delivers fast, accurate,
 == Description ==
 
 WP Loupe transforms WordPress's search functionality by creating a dedicated search index for lightning-fast results, supporting typo-tolerant searches, offering phrase matching and advanced search operators, automatically maintaining the search index, and providing customization options for developers.
+
+= MCP (Model Context Protocol) Integration (Preview) =
+An optional MCP server (currently in draft on the development branch) allows external agents / AI tools to:
+* Discover commands (`/.well-known/mcp.json`)
+* Perform anonymous or token-authenticated search (`searchPosts`)
+* Retrieve post data & schema (`getPost`, `getSchema`)
+* Run health diagnostics (token + `health.read` scope)
+
+Administration (when enabled via Settings → WP Loupe → MCP tab):
+* Enable/disable MCP endpoints (hard 404 when disabled)
+* Manage access tokens (scopes, TTL hours 1–168 or 0 = indefinite, revoke single/all)
+* View last-used timestamps for audit hygiene
+* Configure rate limits: separate anonymous vs authenticated window, quota, and max hits per search
+
+Hybrid Access Model:
+* Anonymous search: lower limits (configurable) no token required
+* Authenticated search: requires `search.read` scope; higher limits
+* `healthCheck` always requires token with `health.read`
+
+Security & Extensibility:
+* Tokens hashed in storage (raw value shown once)
+* HMAC-protected pagination cursors
+* Filter hooks allow overriding limits & behavior even after UI config
+* WP-CLI command issues tokens (appearing in admin token list)
+
+Full technical documentation: See the GitHub repo `docs/mcp.md` file.
 
 = Core Features =
 
@@ -125,12 +151,31 @@ Yes, you can select which post types to include in the Settings page or via filt
 
 = What are the technical requirements? =
 
-* PHP 8.2 or higher
+* PHP 8.3 or higher
 * SQLite 3.16.0+ (required by the Loupe library)
 * WordPress 6.3+
 
 
 == Changelog ==
+
+= 0.5.2 (Unreleased / Dev branch) =
+* Added configurable rate limiting UI (anonymous vs authenticated windows, quotas, max hits)
+* Server consumes saved rate limit option with filter override precedence
+
+= 0.5.1 (Unreleased / Dev branch) =
+* Added MCP token management UI: scope selection, adjustable TTL (0 = indefinite), revoke-all, last-used tracking, copy-once display
+* Added hybrid MCP command access model and secure envelope responses
+* Added WP-CLI token issuance mirrored into admin registry
+* Implemented HMAC-protected pagination cursors for `searchPosts`
+
+== Upgrade Notice ==
+
+= 0.5.0 =
+Introduces optional MCP (Model Context Protocol) server (disabled by default). After upgrading:
+1. Go to Settings → WP Loupe → MCP tab and enable the server.
+2. Create a scoped access token (copy it once) for higher search limits or health checks.
+3. (Optional) Adjust rate limits (anonymous vs authenticated) before exposing to external agents.
+This is a developer/automation feature; sites not using MCP can ignore these new settings.
 
 = 0.4.3 =
 * Fixed: Inline JavaScript using `wp_print_inline_script_tag`.

@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-09-29
+### Added
+- Optional MCP (Model Context Protocol) server with discovery manifest and command routing
+- Token-based authentication with scoped access (search.read, post.read, schema.read, health.read, commands.read)
+- Hybrid anonymous + authenticated search access model
+- Secure HMAC-signed cursor pagination for `searchPosts`
+- Configurable rate limiting (separate anonymous vs authenticated windows & quotas)
+- Admin UI for token issuance (TTL with indefinite option), revocation, last-used tracking
+- WP-CLI commands for issuing tokens mirrored into admin registry
+
+### Security
+- Hashed token storage (raw value displayed once on creation)
+- Pagination cursor tamper detection
+
+### Documentation
+- Comprehensive MCP documentation (`docs/mcp.md`) and design notes
+- README and admin help text updates for MCP usage and configuration
+
+### Changed
+- Bumped minimum PHP requirement to 8.3
+- Upgraded `loupe/loupe` dependency to 0.12.13
+
+### Internal
+- Added health check command and schema exposure utilities
+- Refined factory and settings integration to surface MCP options
+
+### Notes
+- MCP feature is disabled by default and must be explicitly enabled in settings
+
 ## [0.4.3] - 2023-08-11
 ### Fixed
 - Inline JavaScript using `wp_print_inline_script_tag`.
