@@ -43,6 +43,10 @@ if ( ! defined( 'WP_LOUPE_MCP_DEV_TOKEN' ) ) {
 }
 
 require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-loader.php';
+// Load CLI commands if in WP-CLI context
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-mcp-cli.php';
+}
 
 /**
  * Initialize plugin
@@ -51,7 +55,7 @@ function init() {
 	// Don't run on autosave, WP CLI, Heartbeat or cron requests, and REST API requests (except our own)
 	if (
 		( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ||
-		( defined( 'WP_CLI' ) && WP_CLI ) ||
+			// Allow WP_CLI to proceed so CLI subcommands can access server components.
 		( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_REQUEST[ 'action' ] ) && 'heartbeat' === $_REQUEST[ 'action' ] ) ||
 		( defined( 'REST_REQUEST' ) && REST_REQUEST && ! str_starts_with( $_SERVER[ 'REQUEST_URI' ] ?? '', '/wp-json/wp-loupe' ) ) ||
 		( defined( 'DOING_CRON' ) && DOING_CRON )

@@ -1,0 +1,289 @@
+###
+# WP Loupe MCP Endpoints
+# Compatible with VS Code REST Client, IntelliJ HTTP Client, and Postman
+# 
+# Usage:
+# 1. Replace {{base_url}} with your WordPress site URL
+# 2. Update client credentials if needed
+# 3. Run requests in sequence (token issuance first)
+###
+
+@base_url = http://plugins.local/loupe
+@api_base = {{base_url}}/wp-json/wp-loupe-mcp/v1
+@client_id = wp-loupe-local
+@client_secret = 
+
+### 1. Discovery: Get MCP Manifest
+GET {{base_url}}/.well-known/mcp.json
+Accept: application/json
+
+### 2. Discovery: Get OAuth Protected Resource Metadata  
+GET {{base_url}}/.well-known/oauth-protected-resource
+Accept: application/json
+
+### 3. Discovery: Manifest Fallback (REST)
+GET {{api_base}}/discovery/manifest
+Accept: application/json
+
+### 4. Discovery: Protected Resource Fallback (REST)
+GET {{api_base}}/discovery/protected-resource
+Accept: application/json
+
+### 5. OAuth: Issue Token (All Scopes)
+# @name issueToken
+POST {{api_base}}/oauth/token
+Content-Type: application/json
+
+{
+  "grant_type": "client_credentials",
+  "client_id": "{{client_id}}",
+  "client_secret": "{{client_secret}}",
+  "scope": "search.read post.read schema.read health.read commands.read"
+}
+
+### 6. OAuth: Issue Token (Limited Scopes)
+POST {{api_base}}/oauth/token
+Content-Type: application/json
+
+{
+  "grant_type": "client_credentials",
+  "client_id": "{{client_id}}",
+  "client_secret": "{{client_secret}}",
+  "scope": "search.read"
+}
+
+### 7. OAuth: Issue Token (Form Encoded)
+POST {{api_base}}/oauth/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&client_id={{client_id}}&client_secret={{client_secret}}&scope=search.read health.read
+
+### Extract token for subsequent requests
+@token = {{issueToken.response.body.access_token}}
+
+### 8. Commands: List Available Commands (Anonymous)
+POST {{api_base}}/commands
+Content-Type: application/json
+
+{
+  "command": "listCommands",
+  "requestId": "list-commands-anon"
+}
+
+### 9. Commands: List Available Commands (Authenticated)
+POST {{api_base}}/commands
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "command": "listCommands",
+  "requestId": "list-commands-auth"
+}
+
+### 10. Commands: Get Schema (Anonymous)
+POST {{api_base}}/commands
+Content-Type: application/json
+
+{
+  "command": "getSchema",
+  "requestId": "get-schema-anon"
+}
+
+### 11. Commands: Search Posts (Anonymous - Limited)
+POST {{api_base}}/commands
+Content-Type: application/json
+
+{
+  "command": "searchPosts",
+  "params": {
+    "query": "hello world",
+    "limit": 15,
+    "fields": ["id", "title", "excerpt", "url"]
+  },
+  "requestId": "search-anon"
+}
+
+### 12. Commands: Search Posts (Authenticated - Higher Limits)
+POST {{api_base}}/commands
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "command": "searchPosts",
+  "params": {
+    "query": "hello world",
+    "limit": 50,
+    "fields": ["id", "title", "excerpt", "url", "content"],
+    "postTypes": ["post", "page"]
+  },
+  "requestId": "search-auth"
+}
+
+### 13. Commands: Search with Pagination
+POST {{api_base}}/commands
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "command": "searchPosts",
+  "params": {
+    "query": "wordpress",
+    "limit": 10,
+    "cursor": "CURSOR_FROM_PREVIOUS_RESPONSE"
+  },
+  "requestId": "search-paginated"
+}
+
+### 14. Commands: Get Single Post
+POST {{api_base}}/commands
+Content-Type: application/json
+
+{
+  "command": "getPost",
+  "params": {
+    "id": 1,
+    "fields": ["id", "title", "content", "url", "taxonomies"]
+  },
+  "requestId": "get-post"
+}
+
+### 15. Commands: Health Check (Should fail without health.read scope)
+POST {{api_base}}/commands
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "command": "healthCheck",
+  "requestId": "health-check"
+}
+
+### 16. Rate Limiting Test: Multiple Rapid Requests (Anonymous)
+POST {{api_base}}/commands
+Content-Type: application/json
+
+{
+  "command": "searchPosts",
+  "params": {
+    "query": "test",
+    "limit": 5
+  },
+  "requestId": "rate-test-1"
+}
+
+### 17. Rate Limiting Test: Check Headers
+POST {{api_base}}/commands
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "command": "searchPosts",
+  "params": {
+    "query": "test",
+    "limit": 5
+  },
+  "requestId": "rate-test-headers"
+}
+
+### 18. Error Test: Invalid Command
+POST {{api_base}}/commands
+Content-Type: application/json
+
+{
+  "command": "invalidCommand",
+  "requestId": "error-test"
+}
+
+### 19. Error Test: Missing Required Param
+POST {{api_base}}/commands
+Content-Type: application/json
+
+{
+  "command": "searchPosts",
+  "params": {},
+  "requestId": "missing-query"
+}
+
+### 20. Error Test: Invalid Token
+POST {{api_base}}/commands
+Content-Type: application/json
+Authorization: Bearer invalid-token-here
+
+{
+  "command": "searchPosts",
+  "params": {
+    "query": "test"
+  },
+  "requestId": "invalid-token-test"
+}
+
+###
+# Advanced Usage Examples
+###
+
+### Complex Search with All Options
+POST {{api_base}}/commands
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+// Complex search demonstrating all parameters
+{
+  "command": "searchPosts",
+  "params": {
+    "query": "\"exact phrase\" -excluded +required",
+    "limit": 25,
+    "fields": ["id", "title", "excerpt", "url", "post_type"],
+    "postTypes": ["post"],
+    "cursor": null
+  },
+  "requestId": "complex-search"
+}
+
+### Bulk Operations Simulation
+POST {{api_base}}/commands
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+// Get multiple posts by searching then fetching details
+{
+  "command": "searchPosts", 
+  "params": {
+    "query": "*",
+    "limit": 5,
+    "fields": ["id"]
+  },
+  "requestId": "bulk-ids"
+}
+
+###
+# Performance Testing
+###
+
+### Large Result Set
+POST {{api_base}}/commands
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "command": "searchPosts",
+  "params": {
+    "query": "a",
+    "limit": 100,
+    "fields": ["id", "title"]
+  },
+  "requestId": "large-results"
+}
+
+### Heavy Fields Test
+POST {{api_base}}/commands  
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "command": "searchPosts",
+  "params": {
+    "query": "wordpress",
+    "limit": 10,
+    "fields": ["id", "title", "content", "taxonomies"]
+  },
+  "requestId": "heavy-fields"
+}
