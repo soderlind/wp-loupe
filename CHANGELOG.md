@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-09-29
+### Added
+- MCP token management UI (scope selection, TTL presets including indefinite, revoke-all, last-used tracking, copy-once display)
+- Hybrid anonymous vs authenticated (scoped token) access model
+- Secure HMAC-signed pagination cursors for `searchPosts`
+- WP-CLI token issuance mirrored in admin registry
+
+### Changed
+- Wrapped MCP token table in panel container with unified max-width (840px)
+- Reordered admin headings and standardized Save button placement
+
+### Notes
+- This is an incremental UI/UX refinement over 0.5.0 preview
+
 ## [0.5.0] - 2025-09-29
 ### Added
 - Optional MCP (Model Context Protocol) server with discovery manifest and command routing

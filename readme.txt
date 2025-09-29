@@ -4,7 +4,7 @@ Tags: search, full-text search, relevance, typo-tolerant, fast search, search en
 Requires at least: 6.3
 Tested up to: 6.7
 Requires PHP: 8.3
-Stable tag: 0.5.0
+Stable tag: 0.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
@@ -158,15 +158,19 @@ Yes, you can select which post types to include in the Settings page or via filt
 
 == Changelog ==
 
-= 0.5.2 (Unreleased / Dev branch) =
-* Added configurable rate limiting UI (anonymous vs authenticated windows, quotas, max hits)
-* Server consumes saved rate limit option with filter override precedence
+== Changelog ==
 
-= 0.5.1 (Unreleased / Dev branch) =
-* Added MCP token management UI: scope selection, adjustable TTL (0 = indefinite), revoke-all, last-used tracking, copy-once display
-* Added hybrid MCP command access model and secure envelope responses
-* Added WP-CLI token issuance mirrored into admin registry
-* Implemented HMAC-protected pagination cursors for `searchPosts`
+= 0.5.1 =
+* UI: Wrapped MCP token table in panel and standardized max-width (840px)
+* UI: Reordered headings and moved Save button for consistency
+* MCP: Token management interface (scopes, TTL presets, revoke all, last-used tracking, copy-once)
+* MCP: Hybrid anonymous/authenticated search access with scoped tokens
+* MCP: Secure HMAC-signed pagination cursors for `searchPosts`
+* MCP: WP-CLI token issuance mirrored in admin interface
+
+= 0.5.0 =
+* Initial MCP integration (preview): discovery manifest, commands, rate limiting, scoped tokens, pagination security
+* Requires PHP 8.3+ and Loupe 0.12.13
 
 == Upgrade Notice ==
 
