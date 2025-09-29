@@ -139,3 +139,64 @@ tr:has(td.non-sortable-field) {
 .wp-loupe-tab-content.active {
 	display: block;
 }
+
+/* MCP Settings UI */
+.wp-loupe-panel-box {
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	border-radius: 4px;
+	padding: 14px 16px;
+	margin: 0 0 18px;
+}
+
+.wp-loupe-panel-box legend,
+.wp-loupe-settings-block-title {
+	font-weight: 600;
+}
+
+.wp-loupe-inline-help {
+	color: #555;
+	line-height: 1.4;
+}
+
+.wp-loupe-scope-badge {
+	display: inline-block;
+	background: #f0f6fc;
+	border: 1px solid #c3d3e4;
+	color: #063c5f;
+	padding: 2px 6px;
+	margin: 0 4px 4px 0;
+	border-radius: 3px;
+	font-size: 11px;
+	line-height: 1.4;
+}
+
+.wp-loupe-expired {
+	color: #b32d2e;
+	font-weight: 600;
+}
+
+.wp-loupe-flex-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+}
+
+.wp-loupe-ttl-presets {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.wp-loupe-token-filter {
+	margin: 15px 0;
+}
+
+.wp-loupe-small-sep {
+	margin-top: 8px;
+}
+
+.wp-loupe-sticky-actions {
+	margin-top: 12px;
+}
