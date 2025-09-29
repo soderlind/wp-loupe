@@ -19,7 +19,7 @@ WP Loupe transforms WordPress's search functionality by:
 - Automatically maintaining the search index
 - Providing customization options for developers
 
-> Want to write your own search plugin? Here's a guide to get started: [Create a WordPress custom search](https://gist.github.com/soderlind/cc7283db9290031455c5a79d40e3119b)
+> Want to write your own search plugin? Here's a guide to get you started: [Create a WordPress custom search](https://gist.github.com/soderlind/cc7283db9290031455c5a79d40e3119b)
 
 > Integrating with external agents or automation? See the new **[MCP Integration Documentation](docs/mcp.md)** for discovery, commands, auth & rate limiting (including [WP-CLI token issuance](docs/mcp.md#wp-cli-usage)).
 
