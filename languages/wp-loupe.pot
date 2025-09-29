@@ -2,16 +2,16 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP Loupe 0.4.0\n"
+"Project-Id-Version: WP Loupe 0.5.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-loupe\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-03-13T21:40:33+00:00\n"
+"POT-Creation-Date: 2025-09-29T18:12:46+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.11.0\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wp-loupe\n"
 
 #. Plugin Name of the plugin
@@ -39,19 +39,22 @@ msgstr ""
 msgid "https://soderlind.no"
 msgstr ""
 
-#: includes/class-wp-loupe-indexer.php:157
+#: includes/class-wp-loupe-indexer.php:163
 msgid "Reindexing completed successfully!"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:127
+#, php-format
 msgid "Created database structure for post type: %s"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:197
+#, php-format
 msgid "Deleted database for post type: %s"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:326
+#, php-format
 msgid "Updated database for post type: %s"
 msgstr ""
 
@@ -76,19 +79,19 @@ msgid "Author"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:481
-#: includes/class-wp-loupe-settings.php:1180
+#: includes/class-wp-loupe-settings.php:1661
 msgid "Tokenization"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:483
-#: includes/class-wp-loupe-settings.php:1194
-#: includes/class-wp-loupe-settings.php:1197
+#: includes/class-wp-loupe-settings.php:1675
+#: includes/class-wp-loupe-settings.php:1678
 msgid "Prefix Search"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:485
-#: includes/class-wp-loupe-settings.php:1208
-#: includes/class-wp-loupe-settings.php:1211
+#: includes/class-wp-loupe-settings.php:1689
+#: includes/class-wp-loupe-settings.php:1692
 msgid "Typo Tolerance"
 msgstr ""
 
@@ -109,6 +112,7 @@ msgid "Configure typo tolerance for search queries. Typo tolerance allows findin
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:516
+#, php-format
 msgid "Based on the algorithm from \"Efficient Similarity Search in Very Large String Sets\" %s."
 msgstr ""
 
@@ -117,13 +121,13 @@ msgid "(read the paper)"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:546
-#: includes/class-wp-loupe-settings.php:814
+#: includes/class-wp-loupe-settings.php:1294
 msgid "Select Post Types"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:555
-#: includes/class-wp-loupe-settings.php:828
-#: includes/class-wp-loupe-settings.php:1185
+#: includes/class-wp-loupe-settings.php:1308
+#: includes/class-wp-loupe-settings.php:1666
 msgid "Max Query Tokens"
 msgstr ""
 
@@ -132,8 +136,8 @@ msgid "Maximum number of tokens in a search query."
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:569
-#: includes/class-wp-loupe-settings.php:857
-#: includes/class-wp-loupe-settings.php:1200
+#: includes/class-wp-loupe-settings.php:1337
+#: includes/class-wp-loupe-settings.php:1681
 msgid "Minimum Prefix Length"
 msgstr ""
 
@@ -142,8 +146,8 @@ msgid "Minimum number of characters before prefix search is enabled."
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:583
-#: includes/class-wp-loupe-settings.php:873
-#: includes/class-wp-loupe-settings.php:1214
+#: includes/class-wp-loupe-settings.php:1353
+#: includes/class-wp-loupe-settings.php:1695
 msgid "Enable Typo Tolerance"
 msgstr ""
 
@@ -152,7 +156,7 @@ msgid "Enable or disable typo tolerance in search."
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:596
-#: includes/class-wp-loupe-settings.php:886
+#: includes/class-wp-loupe-settings.php:1366
 msgid "Alphabet Size"
 msgstr ""
 
@@ -161,7 +165,7 @@ msgid "Size of the alphabet for typo tolerance (default: 4)."
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:609
-#: includes/class-wp-loupe-settings.php:901
+#: includes/class-wp-loupe-settings.php:1381
 msgid "Index Length"
 msgstr ""
 
@@ -170,8 +174,8 @@ msgid "Length of the index for typo tolerance (default: 14)."
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:622
-#: includes/class-wp-loupe-settings.php:929
-#: includes/class-wp-loupe-settings.php:1231
+#: includes/class-wp-loupe-settings.php:1409
+#: includes/class-wp-loupe-settings.php:1712
 msgid "Typo Tolerance for Prefix Search"
 msgstr ""
 
@@ -187,444 +191,689 @@ msgstr ""
 msgid "Count a typo at the beginning of a word as two mistakes."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:749
+#: includes/class-wp-loupe-settings.php:763
+msgid "Rate limits updated."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:772
+msgid "All tokens revoked."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:781
+msgid "Token revoked."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:816
+msgid "New token created. Copy it now – it will not be shown again."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:832
 msgid "General"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:752
+#: includes/class-wp-loupe-settings.php:835
+msgid "MCP"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:839
 msgid "Advanced"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:769
-msgid "Reindex"
+#: includes/class-wp-loupe-settings.php:851
+msgid "MCP Server Status"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:769
-msgid "Save Settings"
+#: includes/class-wp-loupe-settings.php:855
+msgid "Enable MCP discovery manifest and command endpoint"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:837
-msgid "Maximum number of tokens in a search query (default: 12)."
+#: includes/class-wp-loupe-settings.php:858
+msgid "Controls exposure of the Machine Connection Protocol (MCP) manifest (/.well-known/mcp.json) and the server command handler endpoint."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:843
-#: includes/class-wp-loupe-settings.php:1187
-msgid "Languages"
+#: includes/class-wp-loupe-settings.php:863
+msgid "Active Endpoints"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:850
-msgid "Select languages for tokenization. Uses site language by default."
+#: includes/class-wp-loupe-settings.php:869
+msgid "Provide these to MCP-compatible clients. Rate limits and token scopes still apply."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:866
-msgid "Minimum number of characters before prefix search is enabled (default: 3)."
+#: includes/class-wp-loupe-settings.php:873
+#: includes/class-wp-loupe-settings.php:927
+msgid "Save"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:880
-msgid "Allow search to find results with typos."
+#: includes/class-wp-loupe-settings.php:879
+msgid "Rate Limiting"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:889
+msgid "Window & Query Limits"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:894
+msgid "Context"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:895
-msgid "Size of the alphabet for typo tolerance (default: 4). Higher values reduce false positives but increase index size."
+msgid "Window (seconds)"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:910
-msgid "Length of the index for typo tolerance (default: 14). Higher values improve accuracy but increase index size."
+#: includes/class-wp-loupe-settings.php:896
+msgid "Requests / Window"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:916
-#: includes/class-wp-loupe-settings.php:1229
-msgid "First Character Typo Weight"
+#: includes/class-wp-loupe-settings.php:897
+msgid "Max Search Limit"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:923
-msgid "Count a typo at the beginning of a word as two mistakes (recommended)."
+#: includes/class-wp-loupe-settings.php:902
+msgid "Anonymous"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:936
-msgid "Enable typo tolerance in prefix search. Not recommended for large datasets."
+#: includes/class-wp-loupe-settings.php:912
+msgid "Authenticated (Token)"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:942
-#: includes/class-wp-loupe-settings.php:1227
-msgid "Typo Thresholds"
+#: includes/class-wp-loupe-settings.php:924
+msgid "Anonymous requests (no token) have conservative defaults. Authenticated tokens receive higher ceilings. Adjust only if you observe abuse or need greater throughput."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:930
+msgid "Access Tokens"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:939
+msgid "Create New Token"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:941
+msgid "Label (optional)"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:944
+#: includes/class-wp-loupe-settings.php:1111
+msgid "Scopes"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:946
+msgid "All"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:948
+msgid "None"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:952
-msgid "Configure how many typos are allowed based on word length."
+msgid "Search"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:953
+msgid "Single Post"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:954
+msgid "Schema"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:955
+msgid "Health"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:956
+msgid "Commands List"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:959
+msgid "Perform searchPosts queries"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:960
+msgid "Retrieve a single post via getPost"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:961
+msgid "Fetch the schema (getSchema)"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:962
+msgid "Check server health (healthCheck)"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:963
+msgid "List available commands (listCommands)"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:978
+msgid "Uncheck to narrow a token. All checked = full read surface."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:983
+msgid "TTL (hours)"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1000
+msgid "Pick a preset or enter 1–168. 0 = never expires."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1005
+msgid "Generate Token"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1014
+msgid "Choose scopes and TTL above. Token value shown once."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1018
+msgid "Token:"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1022
+msgid "Copy token to clipboard"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1022
+#: includes/class-wp-loupe-settings.php:1029
+msgid "Copy"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1025
+msgid "Store this token securely; it will not be shown again."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1029
+msgid "Copied"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1110
+msgid "Label"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1112
+msgid "Issued"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1113
+msgid "Expires"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:1114
-msgid "Overview"
+msgid "Last Used"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1117
-msgid "WP Loupe Help"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1118
-msgid "WP Loupe provides powerful search functionality with both basic and advanced configuration options."
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1119
-msgid "Basic Settings"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1120
-msgid "Configure which content is searchable and how:"
+#: includes/class-wp-loupe-settings.php:1115
+msgid "Actions"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:1121
-msgid "Select post types to include in search"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1122
-msgid "Configure field weights for relevance"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1123
-msgid "Set filterable and sortable fields"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1124
-msgid "Advanced Settings"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1125
-msgid "Fine-tune search behavior with advanced options:"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1126
-msgid "Tokenization and language settings"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1127
-msgid "Prefix search configuration"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1128
-msgid "Typo tolerance customization"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1135
-#: lib/js/admin.js:394
-msgid "Weight"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1138
-msgid "Field Weight"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1139
-msgid "Weight determines how important a field is in search results:"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1140
-msgid "Higher weight (e.g., 2.0) makes matches in this field more important in results ranking"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1141
-msgid "Default weight is 1.0"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1142
-msgid "Lower weight (e.g., 0.5) makes matches less important but still searchable"
+msgid "No tokens issued yet."
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:1148
-#: lib/js/admin.js:395
-msgid "Filterable"
+msgid "Never expires"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1151
-msgid "Filterable Fields"
+#: includes/class-wp-loupe-settings.php:1148
+#: includes/class-wp-loupe-settings.php:1164
+msgid "Never"
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:1152
-msgid "Filterable fields can be used to refine search results:"
+msgid "Expired"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1153
-msgid "Enable this option to allow filtering search results by this field's values"
+#: includes/class-wp-loupe-settings.php:1175
+msgid "Revoke"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1154
-msgid "Best for fields with consistent, categorized values like taxonomies, status fields, or controlled metadata"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1155
-msgid "Examples: categories, tags, post type, author, or custom taxonomies"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1156
-msgid "Note: Fields with highly variable or unique values (like content) make poor filters as each post would have its own filter value."
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1162
-#: lib/js/admin.js:396
-msgid "Sortable"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1165
-msgid "Sortable Fields"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1166
-msgid "Sortable fields can be used to order search results:"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1167
-msgid "Enable this option to allow sorting search results by this field's values"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1168
-msgid "Works best with numerical fields, dates, or short text values"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1169
-msgid "Examples: date, price, rating, title"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1170
-msgid "Why some fields are not sortable"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1171
-msgid "Not all fields make good candidates for sorting:"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1172
-msgid "Long text fields (like content) don't provide meaningful sort order"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1173
-msgid "Fields with complex values (like arrays or objects) cannot be directly sorted"
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1183
-msgid "Tokenization Settings"
+#: includes/class-wp-loupe-settings.php:1175
+msgid "Revoke this token? This cannot be undone."
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:1184
-msgid "Tokenization controls how search queries are split into searchable pieces."
+msgid "Tokens generated via WP-CLI will appear here after issuance/use. Last Used updates after a successful request with that token. \"Never\" indicates no recorded usage yet."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1186
-msgid "Limits the number of words processed in a search query. Higher values allow longer queries but may impact performance."
+#: includes/class-wp-loupe-settings.php:1187
+msgid "Tokens marked as Never (∞) do not expire. Consider periodically rotating them for security."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1188
-msgid "Select languages to properly handle word splitting, stemming, and special characters. Include all languages your content uses."
+#: includes/class-wp-loupe-settings.php:1194
+msgid "Revoke All Tokens"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1198
-msgid "Prefix search allows users to find words by typing just the beginning of the term. For example, \"huck\" will match \"huckleberry. Prefix search is only performed on the last word in a search query. Prior words must be typed out fully to get accurate results. E.g. my friend huck would find documents containing huckleberry - huck is my friend, however, would not."
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1199
-msgid "Only the last word in a query is treated as a prefix. Earlier words must be typed fully."
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1201
-msgid "Sets the minimum number of characters before prefix search activates. Default is 3."
-msgstr ""
-
-#: includes/class-wp-loupe-settings.php:1202
-msgid "Lower values (1-2) provide more immediate results but may slow searches on large sites. Higher values (4+) improve performance but require more typing."
+#: includes/class-wp-loupe-settings.php:1194
+msgid "Revoke ALL tokens? Clients will immediately lose access."
 msgstr ""
 
 #: includes/class-wp-loupe-settings.php:1212
+msgid "Reindex"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1212
+msgid "Save Settings"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1317
+msgid "Maximum number of tokens in a search query (default: 12)."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1323
+#: includes/class-wp-loupe-settings.php:1668
+msgid "Languages"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1330
+msgid "Select languages for tokenization. Uses site language by default."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1346
+msgid "Minimum number of characters before prefix search is enabled (default: 3)."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1360
+msgid "Allow search to find results with typos."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1375
+msgid "Size of the alphabet for typo tolerance (default: 4). Higher values reduce false positives but increase index size."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1390
+msgid "Length of the index for typo tolerance (default: 14). Higher values improve accuracy but increase index size."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1396
+#: includes/class-wp-loupe-settings.php:1710
+msgid "First Character Typo Weight"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1403
+msgid "Count a typo at the beginning of a word as two mistakes (recommended)."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1416
+msgid "Enable typo tolerance in prefix search. Not recommended for large datasets."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1422
+#: includes/class-wp-loupe-settings.php:1708
+msgid "Typo Thresholds"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1432
+msgid "Configure how many typos are allowed based on word length."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1595
+msgid "Overview"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1598
+msgid "WP Loupe Help"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1599
+msgid "WP Loupe provides powerful search functionality with both basic and advanced configuration options."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1600
+msgid "Basic Settings"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1601
+msgid "Configure which content is searchable and how:"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1602
+msgid "Select post types to include in search"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1603
+msgid "Configure field weights for relevance"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1604
+msgid "Set filterable and sortable fields"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1605
+msgid "Advanced Settings"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1606
+msgid "Fine-tune search behavior with advanced options:"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1607
+msgid "Tokenization and language settings"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1608
+msgid "Prefix search configuration"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1609
+msgid "Typo tolerance customization"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1616
+msgid "Weight"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1619
+msgid "Field Weight"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1620
+msgid "Weight determines how important a field is in search results:"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1621
+msgid "Higher weight (e.g., 2.0) makes matches in this field more important in results ranking"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1622
+msgid "Default weight is 1.0"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1623
+msgid "Lower weight (e.g., 0.5) makes matches less important but still searchable"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1629
+msgid "Filterable"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1632
+msgid "Filterable Fields"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1633
+msgid "Filterable fields can be used to refine search results:"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1634
+msgid "Enable this option to allow filtering search results by this field's values"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1635
+msgid "Best for fields with consistent, categorized values like taxonomies, status fields, or controlled metadata"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1636
+msgid "Examples: categories, tags, post type, author, or custom taxonomies"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1637
+msgid "Note: Fields with highly variable or unique values (like content) make poor filters as each post would have its own filter value."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1643
+msgid "Sortable"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1646
+msgid "Sortable Fields"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1647
+msgid "Sortable fields can be used to order search results:"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1648
+msgid "Enable this option to allow sorting search results by this field's values"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1649
+msgid "Works best with numerical fields, dates, or short text values"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1650
+msgid "Examples: date, price, rating, title"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1651
+msgid "Why some fields are not sortable"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1652
+msgid "Not all fields make good candidates for sorting:"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1653
+msgid "Long text fields (like content) don't provide meaningful sort order"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1654
+msgid "Fields with complex values (like arrays or objects) cannot be directly sorted"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1664
+msgid "Tokenization Settings"
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1665
+msgid "Tokenization controls how search queries are split into searchable pieces."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1667
+msgid "Limits the number of words processed in a search query. Higher values allow longer queries but may impact performance."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1669
+msgid "Select languages to properly handle word splitting, stemming, and special characters. Include all languages your content uses."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1679
+msgid "Prefix search allows users to find words by typing just the beginning of the term. For example, \"huck\" will match \"huckleberry. Prefix search is only performed on the last word in a search query. Prior words must be typed out fully to get accurate results. E.g. my friend huck would find documents containing huckleberry - huck is my friend, however, would not."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1680
+msgid "Only the last word in a query is treated as a prefix. Earlier words must be typed fully."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1682
+msgid "Sets the minimum number of characters before prefix search activates. Default is 3."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1683
+msgid "Lower values (1-2) provide more immediate results but may slow searches on large sites. Higher values (4+) improve performance but require more typing."
+msgstr ""
+
+#: includes/class-wp-loupe-settings.php:1693
 msgid "Typo tolerance allows users to find results even when they make spelling mistakes in their search queries."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1213
+#: includes/class-wp-loupe-settings.php:1694
 msgid "For example, searching for \"potatos\" would still find \"potatoes\"."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1215
+#: includes/class-wp-loupe-settings.php:1696
 msgid "Turn typo tolerance on or off. Disabling may increase search speed but reduces forgiveness for spelling errors."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1221
+#: includes/class-wp-loupe-settings.php:1702
 msgid "Typo Details"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1224
+#: includes/class-wp-loupe-settings.php:1705
 msgid "Advanced Typo Settings"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1225
+#: includes/class-wp-loupe-settings.php:1706
 msgid "Alphabet Size & Index Length"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1226
+#: includes/class-wp-loupe-settings.php:1707
 msgid "These settings affect index size and search performance. Higher values improve accuracy but increase index size. Default values work well for most sites."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1228
+#: includes/class-wp-loupe-settings.php:1709
 msgid "Control how many typos are allowed based on word length. Longer words typically allow more typos than shorter words."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1230
+#: includes/class-wp-loupe-settings.php:1711
 msgid "When enabled, typos at the beginning of a word count as two mistakes. This helps prioritize more relevant results, as most typos occur in the middle of words."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1232
+#: includes/class-wp-loupe-settings.php:1713
 msgid "Allows typos in prefix searches. Not recommended for large sites as it can significantly impact performance."
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1271
+#: includes/class-wp-loupe-settings.php:1752
 msgid "Arabic"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1272
+#: includes/class-wp-loupe-settings.php:1753
 msgid "Armenian"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1273
+#: includes/class-wp-loupe-settings.php:1754
 msgid "Basque"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1274
+#: includes/class-wp-loupe-settings.php:1755
 msgid "Catalan"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1275
+#: includes/class-wp-loupe-settings.php:1756
 msgid "Chinese"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1276
+#: includes/class-wp-loupe-settings.php:1757
 msgid "Czech"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1277
+#: includes/class-wp-loupe-settings.php:1758
 msgid "Danish"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1278
+#: includes/class-wp-loupe-settings.php:1759
 msgid "Dutch"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1279
+#: includes/class-wp-loupe-settings.php:1760
 msgid "English"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1280
+#: includes/class-wp-loupe-settings.php:1761
 msgid "Finnish"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1281
+#: includes/class-wp-loupe-settings.php:1762
 msgid "French"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1282
+#: includes/class-wp-loupe-settings.php:1763
 msgid "Galician"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1283
+#: includes/class-wp-loupe-settings.php:1764
 msgid "German"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1284
+#: includes/class-wp-loupe-settings.php:1765
 msgid "Greek"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1285
+#: includes/class-wp-loupe-settings.php:1766
 msgid "Hindi"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1286
+#: includes/class-wp-loupe-settings.php:1767
 msgid "Hungarian"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1287
+#: includes/class-wp-loupe-settings.php:1768
 msgid "Indonesian"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1288
+#: includes/class-wp-loupe-settings.php:1769
 msgid "Irish"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1289
+#: includes/class-wp-loupe-settings.php:1770
 msgid "Italian"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1290
+#: includes/class-wp-loupe-settings.php:1771
 msgid "Japanese"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1291
+#: includes/class-wp-loupe-settings.php:1772
 msgid "Korean"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1292
+#: includes/class-wp-loupe-settings.php:1773
 msgid "Norwegian"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1293
+#: includes/class-wp-loupe-settings.php:1774
 msgid "Persian"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1294
+#: includes/class-wp-loupe-settings.php:1775
 msgid "Portuguese"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1295
+#: includes/class-wp-loupe-settings.php:1776
 msgid "Romanian"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1296
+#: includes/class-wp-loupe-settings.php:1777
 msgid "Russian"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1297
+#: includes/class-wp-loupe-settings.php:1778
 msgid "Serbian"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1298
+#: includes/class-wp-loupe-settings.php:1779
 msgid "Spanish"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1299
+#: includes/class-wp-loupe-settings.php:1780
 msgid "Swedish"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1300
+#: includes/class-wp-loupe-settings.php:1781
 msgid "Tamil"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1301
+#: includes/class-wp-loupe-settings.php:1782
 msgid "Thai"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1302
+#: includes/class-wp-loupe-settings.php:1783
 msgid "Turkish"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1303
+#: includes/class-wp-loupe-settings.php:1784
 msgid "Ukrainian"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1304
+#: includes/class-wp-loupe-settings.php:1785
 msgid "Urdu"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1319
+#: includes/class-wp-loupe-settings.php:1800
 msgid "Select languages"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1335
-#: includes/class-wp-loupe-settings.php:1344
+#: includes/class-wp-loupe-settings.php:1817
+#: includes/class-wp-loupe-settings.php:1826
 msgid "Word length ≥"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1337
-#: includes/class-wp-loupe-settings.php:1346
+#: includes/class-wp-loupe-settings.php:1819
+#: includes/class-wp-loupe-settings.php:1828
 msgid "characters: Allow"
 msgstr ""
 
-#: includes/class-wp-loupe-settings.php:1339
-#: includes/class-wp-loupe-settings.php:1348
+#: includes/class-wp-loupe-settings.php:1821
+#: includes/class-wp-loupe-settings.php:1830
 msgid "typos"
 msgstr ""
 
@@ -639,48 +888,4 @@ msgstr ""
 
 #: includes/class-wp-loupe-utils.php:33
 msgid "SQLite3 version too old"
-msgstr ""
-
-#: lib/js/admin.js:134
-msgid "Deleting database structure for"
-msgstr ""
-
-#: lib/js/admin.js:164
-msgid "Error deleting database for"
-msgstr ""
-
-#: lib/js/admin.js:178
-msgid "Creating database structure for"
-msgstr ""
-
-#: lib/js/admin.js:193
-msgid "Please configure fields below and click Reindex to complete setup."
-msgstr ""
-
-#: lib/js/admin.js:208
-msgid "Error creating database for"
-msgstr ""
-
-#: lib/js/admin.js:392
-msgid "Field"
-msgstr ""
-
-#: lib/js/admin.js:393
-msgid "Indexable"
-msgstr ""
-
-#: lib/js/admin.js:397
-msgid "Sort Direction"
-msgstr ""
-
-#: lib/js/admin.js:571
-msgid "Ascending"
-msgstr ""
-
-#: lib/js/admin.js:573
-msgid "Descending"
-msgstr ""
-
-#: lib/js/admin.js:643
-msgid "Starting full reindex of all selected post types. This may take a moment..."
 msgstr ""
