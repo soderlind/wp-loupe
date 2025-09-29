@@ -866,9 +866,20 @@ class WPLoupe_Settings_Page {
 								<strong
 									style="display:block;margin-bottom:6px;"><?php esc_html_e( 'Active Endpoints', 'wp-loupe' ); ?></strong>
 								<ul style="margin:0 0 4px 18px;list-style:disc;">
-									<li><code><?php echo esc_html( home_url( '/.well-known/mcp.json' ) ); ?></code></li>
-									<li><code><?php echo esc_html( rest_url( 'wp-loupe-mcp/v1/commands' ) ); ?></code></li>
+									<li><code><?php echo esc_html( home_url( '/.well-known/mcp.json' ) ); ?></code> <button
+											type="button" class="button button-small wp-loupe-copy-endpoint"
+											data-copy="<?php echo esc_attr( home_url( '/.well-known/mcp.json' ) ); ?>"
+											aria-label="<?php esc_attr_e( 'Copy manifest URL', 'wp-loupe' ); ?>"
+											style="margin-left:6px;">&nbsp;<?php esc_html_e( 'Copy', 'wp-loupe' ); ?>&nbsp;</button>
+									</li>
+									<li><code><?php echo esc_html( home_url( '/.well-known/oauth-protected-resource' ) ); ?></code>
+										<button type="button" class="button button-small wp-loupe-copy-endpoint"
+											data-copy="<?php echo esc_attr( home_url( '/.well-known/oauth-protected-resource' ) ); ?>"
+											aria-label="<?php esc_attr_e( 'Copy protected resource URL', 'wp-loupe' ); ?>"
+											style="margin-left:6px;">&nbsp;<?php esc_html_e( 'Copy', 'wp-loupe' ); ?>&nbsp;</button>
+									</li>
 								</ul>
+								<div id="wp-loupe-copy-live" class="screen-reader-text" aria-live="polite" role="status"></div>
 								<p class="description" style="margin:4px 0 0;">
 									<?php esc_html_e( 'Provide these to MCP-compatible clients. Rate limits and token scopes still apply.', 'wp-loupe' ); ?>
 								</p>
