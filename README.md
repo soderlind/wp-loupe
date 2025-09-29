@@ -6,33 +6,6 @@ A powerful search enhancement plugin for WordPress that delivers fast, accurate,
 
 [Features](#features) | [Installation](#installation) | [Usage](#usage) | [Settings](#settings) | [FAQ](#faq) | [Filters](#filters)  | [Behind the scenes](#behind-the-scenes) | [MCP Docs](docs/mcp.md) | [MCP WP-CLI](docs/mcp.md#wp-cli-usage) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
 
-<!-- TOC BEGIN (generated manually; update when headings change) -->
-- [Overview](#overview)
-- [MCP (Model Context Protocol) Integration (Summary)](#mcp-model-context-protocol-integration-summary)
-- [Features](#features)
-	- [Core Features](#core-features)
-	- [Search Capabilities](#search-capabilities)
-	- [Developer Features](#developer-features)
-- [Installation](#installation)
-- [Usage](#usage)
-	- [Basic Search](#basic-search)
-	- [Advanced Search Operators](#advanced-search-operators)
-- [Settings](#settings)
-	- [General Settings](#general-settings)
-	- [Advanced Settings](#advanced-settings)
-- [FAQ](#faq)
-- [Filters](#filters)
-- [Behind the Scenes](#behind-the-scenes)
-	- [Overview](#overview-1)
-	- [Core Components](#core-components)
-	- [Key Technical Features](#key-technical-features)
-	- [Search Flow](#search-flow)
-	- [Index Maintenance](#index-maintenance)
-	- [Admin Interface](#admin-interface)
-	- [Technical Requirements](#technical-requirements)
-- [Acknowledgements](#acknowledgements)
-- [Copyright and License](#copyright-and-license)
-<!-- TOC END -->
 
 ## Overview
 
