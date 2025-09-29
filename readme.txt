@@ -158,7 +158,22 @@ Yes, you can select which post types to include in the Settings page or via filt
 
 == Changelog ==
 
-== Changelog ==
+= 0.5.3 =
+* Added: Copy buttons (with accessible live feedback) for MCP manifest and protected resource endpoints.
+* Added: Aria-live region and translatable status messages for copy success/failure.
+* Changed: Removed inline JavaScript for endpoint copying; logic centralized in `admin.js`.
+* Fixed: Clipboard fallback for browsers without `navigator.clipboard` support.
+* Changed: Minor wording clarity improvements in endpoint descriptions.
+* Note: Small UX iteration paving the way for richer manifest metadata.
+
+= 0.5.2 =
+* Added: Settings surfacing discovery endpoints (manifest & protected resource) for MCP clients.
+* Added: Accessibility improvements groundwork (live region placeholder) before 0.5.3 enhancements.
+* Changed: Removed POST `/commands` from visible endpoint list (method clarity).
+* Fixed: Ensured reliable JSON output for `/.well-known/mcp.json` (rewrite + fallback path).
+* Fixed: Clipboard copy resilience improvements (initial implementation) preparing for 0.5.3.
+* I18n: Regenerated `wp-loupe.pot` with new MCP strings and translator comments.
+* Note: Internal rate-limit option polish and manifest stability adjustments.
 
 = 0.5.1 =
 * UI: Wrapped MCP token table in panel and standardized max-width (840px)
@@ -171,8 +186,6 @@ Yes, you can select which post types to include in the Settings page or via filt
 = 0.5.0 =
 * Initial MCP integration (preview): discovery manifest, commands, rate limiting, scoped tokens, pagination security
 * Requires PHP 8.3+ and Loupe 0.12.13
-
-== Upgrade Notice ==
 
 = 0.5.0 =
 Introduces optional MCP (Model Context Protocol) server (disabled by default). After upgrading:
