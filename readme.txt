@@ -3,8 +3,8 @@ Contributors: persoderlind
 Tags: search, full-text search, relevance, typo-tolerant, fast search, search engine
 Requires at least: 6.3
 Tested up to: 6.7
-Requires PHP: 8.2
-Stable tag: 0.4.3
+Requires PHP: 8.3
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
@@ -151,7 +151,7 @@ Yes, you can select which post types to include in the Settings page or via filt
 
 = What are the technical requirements? =
 
-* PHP 8.2 or higher
+* PHP 8.3 or higher
 * SQLite 3.16.0+ (required by the Loupe library)
 * WordPress 6.3+
 
