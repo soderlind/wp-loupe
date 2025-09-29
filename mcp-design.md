@@ -5,6 +5,30 @@ Target Version: 0.5.0 (incremental preview) then 0.6.0 (stabilize)
 Author: AI Assistant (to be reviewed)
 Date: 2025-09-21
 
+<!-- TOC BEGIN (generated manually; update when headings change) -->
+- [1. Goal & Summary](#1-goal--summary)
+- [2. Scope (Initial Phase)](#2-scope-initial-phase)
+- [3. Architectural Overview](#3-architectural-overview)
+- [4. Transports & Endpoints](#4-transports--endpoints)
+- [5. Authentication & Authorization](#5-authentication--authorization)
+- [6. Commands (Phase 1)](#6-commands-phase-1)
+- [7. Resources (Conceptual Mapping)](#7-resources-conceptual-mapping)
+- [8. Abilities API Integration](#8-abilities-api-integration)
+- [9. Auto-Discovery](#9-auto-discovery)
+- [10. Security Considerations](#10-security-considerations)
+- [11. Performance](#11-performance)
+- [12. Open Questions / Decisions Pending](#12-open-questions--decisions-pending)
+- [13. Phased Implementation Plan](#13-phased-implementation-plan)
+- [14. Data Models (JSON Shapes)](#14-data-models-json-shapes)
+- [15. WordPress Integration Points](#15-wordpress-integration-points)
+- [16. Risks & Mitigations](#16-risks--mitigations)
+- [17. Testing Strategy (Phase 1)](#17-testing-strategy-phase-1)
+- [18. Documentation & Developer Experience](#18-documentation--developer-experience)
+- [19. Future Enhancements](#19-future-enhancements)
+- [20. Open Items for Review](#20-open-items-for-review)
+- [21. WordPress Native Function Strategy (Summary)](#21-wordpress-native-function-strategy-summary)
+<!-- TOC END -->
+
 ## 1. Goal & Summary
 Add a Remote HTTP-based Model Context Protocol (MCP) server interface to WP Loupe so AI agents / MCP clients can discover, authorize, and invoke WordPress search and index management capabilities using standardized MCP resources & commands. This layer will wrap existing WP Loupe search/index functions, integrate with the WordPress Abilities API + MCP Adapter, and expose OAuth 2.1 secured endpoints with auto-discovery.
 

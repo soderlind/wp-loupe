@@ -2,6 +2,53 @@
 
 ![API Version](https://img.shields.io/badge/MCP%20API-v1-blue) ![Status](https://img.shields.io/badge/Status-Draft-orange)
 
+<!-- TOC BEGIN (generated manually; update when headings change) -->
+- [Overview](#overview)
+- [Discovery](#discovery)
+- [Authentication Model](#authentication-model)
+  - [Enabling the MCP Server](#enabling-the-mcp-server)
+  - [Token Management UI](#token-management-ui)
+  - [Scopes](#scopes)
+  - [Hybrid Rules](#hybrid-rules)
+  - [Token Response](#token-response)
+  - [Error Responses](#error-responses)
+- [Commands](#commands)
+  - [`searchPosts`](#searchposts)
+  - [`getPost`](#getpost)
+  - [`getSchema`](#getschema)
+  - [`listCommands`](#listcommands)
+  - [`healthCheck`](#healthcheck)
+- [Pagination](#pagination)
+- [Rate Limiting](#rate-limiting)
+  - [Configuration UI (Preferred)](#-configuration-ui-preferred)
+  - [Precedence Order](#precedence-order)
+  - [HTTP Headers](#http-headers)
+  - [Defaults (If Not Modified)](#defaults-if-not-modified)
+  - [Filters (Optional Overrides)](#filters-optional-overrides)
+- [Field Filtering and Heavy Fields](#field-filtering-and-heavy-fields)
+- [Authorization Header Handling](#authorization-header-handling)
+- [Error Semantics](#error-semantics)
+- [Testing](#testing)
+- [WP-CLI Usage](#wp-cli-usage)
+- [Connecting from MCP-Capable Clients](#connecting-from-mcp-capable-clients)
+  - [Claude Desktop](#1-claude-desktop-anthropic--local-mcp-server-config)
+  - [VS Code Extensions](#2-vs-code--copilot--mcp-extensions)
+  - [ChatGPT Workaround](#3-chatgpt-openai--custom-tool-manifest-workaround)
+  - [cURL Reference](#4-curl--scripted-agent-reference)
+  - [Rotating / Revoking Tokens](#5-rotating--revoking-tokens-for-clients)
+  - [Field & Payload Optimization](#6-field--payload-optimization-tips)
+  - [Troubleshooting](#7-troubleshooting)
+  - [Security Best Practices](#8-security-best-practices)
+  - [Manifest Cache Policy](#9-example-manifest-consumption-cache-policy)
+- [Security Considerations](#security-considerations)
+- [Indefinite Tokens (TTL = 0)](#indefinite-tokens-ttl--0)
+- [Last-Used Tracking](#last-used-tracking)
+- [Revoke-All Operation](#revoke-all-operation)
+- [Adjustable TTL & Scopes Summary](#adjustable-ttl--scopes-summary)
+- [Roadmap (Potential Enhancements)](#roadmap-potential-enhancements)
+- [Changelog (MCP Portion)](#changelog-mcp-portion)
+<!-- TOC END -->
+
 | Property | Value |
 |----------|-------|
 | MCP API Version | v1 |
@@ -65,7 +112,7 @@ Authentication uses **OAuth2 client_credentials** (scaffold-level) with in-memor
 - Token endpoint: `POST /wp-json/wp-loupe-mcp/v1/oauth/token`
 - Body supports either JSON or form-encoded:
   - `grant_type=client_credentials`
-  - `client_id=wp-loupe-local` (default)  
+  - `client_id=wp-loupe-local` (default)
   - `client_secret` (optional – if not defined by constant, secret-less dev mode allowed)
   - `scope` space-separated (optional)
 
@@ -186,6 +233,8 @@ Example response:
   }
 }
 
+```
+
 ### `listCommands`
 Returns metadata describing supported commands.
 
@@ -227,6 +276,8 @@ Example response:
     }
   }
 }
+
+```
 
 ### `healthCheck`
 Protected; returns environment diagnostics (`version`, `phpVersion`, `wpVersion`, `hasSqlite`, `timestamp`).
@@ -273,7 +324,7 @@ Each `searchPosts` response includes:
 You can still override any piece via filters (they run after option retrieval):
 | Filter | Purpose | Option-Based Default Passed In |
 |--------|---------|--------------------------------|
-| `wp_loupe_mcp_rate_window_seconds` | Effective window length (seconds) | `anon_window` or `auth_window` selected based on auth | 
+| `wp_loupe_mcp_rate_window_seconds` | Effective window length (seconds) | `anon_window` or `auth_window` selected based on auth |
 | `wp_loupe_mcp_search_rate_limit_anon` | Anonymous requests per window | Saved `anon_limit` |
 | `wp_loupe_mcp_search_rate_limit_auth` | Auth requests per window | Saved `auth_limit` |
 | `wp_loupe_mcp_search_max_limit_anon` | Max hits per search (anon) | Saved `max_search_anon` |
@@ -543,3 +594,13 @@ The “Revoke All Tokens” action wipes every active token and its transient. U
 
 ---
 *This document will evolve as MCP capabilities expand.*
+
+<!--
+TOC MAINTENANCE
+The TOC at the top of this document is maintained manually. When adding or renaming headings:
+1. Collect all level 2 (##) and important level 3 (###) headings.
+2. Generate anchor IDs using GitHub slug rules (lowercase, spaces -> dashes, strip punctuation).
+3. Update the list between <!-- TOC BEGIN --> and <!-- TOC END --> accordingly.
+4. Keep ordering identical to document flow.
+5. Avoid deep nesting unless readability benefits.
+-->
