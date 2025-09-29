@@ -1,4 +1,4 @@
-> **0.5.0 and later, require PHP 8.3**
+> **0.5.1 and later, require PHP 8.3**
 
 # WP Loupe - Enhanced WordPress Search
 
