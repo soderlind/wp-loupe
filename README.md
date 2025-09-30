@@ -392,9 +392,9 @@ The plugin includes a settings page that allows:
 
 ### Technical Requirements
 
-- PHP 8.2
+- PHP 8.3
 - SQLite 3.16.0+ (required by the Loupe library)
-- WordPress 6.3+
+- WordPress 6.7+
 
 This architecture provides a balance between search quality, performance, and ease of integration with WordPress.
 
