@@ -81,7 +81,7 @@ Full details, filter references, and examples: see [docs/mcp.md](docs/mcp.md).
    - Go to Settings > WP Loupe
    - Click "Reindex" to build the initial search index
 
-> As of version 0.1.4, plugin updates are handled automatically via GitHub. No need to manually download and install updates.
+* Plugin [updates are handled automatically](https://github.com/soderlind/wordpress-plugin-github-updater#readme) via GitHub. No need to manually download and install updates.
 
 ## Usage
 
