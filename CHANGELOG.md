@@ -5,18 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.4] - 2025-09-30
+## [0.5.5] - 2025-11-10
 ### Added
-- Placeholder
+- Settings toggle to enable/disable automatic plugin updates (defaults enabled)
+- Schema manager unit test validating baseline `post_date` only
+- Updated translation template (`languages/wp-loupe.pot`) with new settings strings
+- Unit tests for token service (rate limit bounding & revoke-all) and settings sanitization (auto-update default, field filters)
+ - Upgrade note covering automatic `post_date` field + SQLite column migration (inline ≤2000 posts; scheduled otherwise) with opt-out (`WP_LOUPE_DISABLE_AUTO_REINDEX`) and manual rebuild fallback
 
 ### Changed
-- Placeholder
+- Default schema construction simplified to mandatory baseline (`post_date` only); all other fields are post-type scoped
+- Readme wording trimmed to reduce promotional language
+- Extracted MCP token issuance & rate limit persistence from settings page into `WP_Loupe_Token_Service` (separation of concerns, improved maintainability & testability)
+- Relocated auto-update checkbox to Advanced tab for clearer grouping of maintenance options
 
 ### Fixed
-- Placeholder
+- Structural mismatch in `WP_Loupe_Schema_Manager::get_default_schema()` which previously mis-read saved settings globally
+- Consistent hard-bounding of rate limit values during persistence (avoids accidental oversize windows/quotas)
+
+### Documentation
+- Clarified schema baseline behavior and auto-update control in README changelog
+- Added internal developer note (in code comments) about token service extraction rationale
+ - Documented migration path & reindex strategy for newly enforced `post_date` column/field
 
 ### Notes
-- Release metadata version bump only; fill in once features land.
+- Minor internal refactor ahead of future schema expansion; added test coverage for schema baseline
+- Service extraction sets foundation for future MCP feature growth (scopes, audit logging)
+
+## [0.5.4] - 2025-09-30
+### Added
+- Automatic plugin update infrastructure (filter-based) with constant opt-out
+- Migration ensuring mandatory `post_date` field presence after Loupe upgrade; conditional reindex (immediate ≤2000 posts, scheduled otherwise)
+
+### Fixed
+- Publishing/indexing error from missing SQLite `post_date` column
+
+### Notes
+- Introduces migration path setting groundwork for future schema evolution
 
 ## [0.5.3] - 2025-09-30
 ### Added

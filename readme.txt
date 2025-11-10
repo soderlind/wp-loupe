@@ -1,19 +1,19 @@
-=== WP Loupe - Advanced WordPress Search ===
+=== WP Loupe – WordPress Search Enhancement ===
 Contributors: persoderlind
 Tags: search, full-text search, relevance, typo-tolerant, fast search, search engine
 Requires at least: 6.7
 Tested up to: 6.8
 Requires PHP: 8.3
-Stable tag: 0.5.4
+Stable tag: 0.5.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
 
-A powerful search enhancement plugin for WordPress that delivers fast, accurate, and typo-tolerant search results.
+A search enhancement plugin for WordPress that delivers fast, accurate, and typo-tolerant results.
 
 == Description ==
 
-WP Loupe transforms WordPress's search functionality by creating a dedicated search index for lightning-fast results, supporting typo-tolerant searches, offering phrase matching and advanced search operators, automatically maintaining the search index, and providing customization options for developers.
+WP Loupe improves WordPress core search by maintaining its own index for fast lookups, supporting typo tolerance, phrase matching, basic exclusion operators, and per–post-type customization.
 
 = MCP (Model Context Protocol) Integration (Preview) =
 An optional MCP server (currently in draft on the development branch) allows external agents / AI tools to:
@@ -157,6 +157,20 @@ Yes, you can select which post types to include in the Settings page or via filt
 
 
 == Changelog ==
+
+= 0.5.5 =
+* Added: Settings toggle to enable or disable automatic plugin updates (defaults enabled).
+* Added: Schema manager unit test validating baseline `post_date` only.
+* Added: Updated translation template with new settings strings.
+* Changed: Simplified baseline schema to only include mandatory `post_date`; per-post-type field settings now applied cleanly.
+* Changed: Readme wording trimmed to reduce promotional language.
+* Fixed: Structural mismatch in default schema logic preventing accurate field inheritance.
+
+= 0.5.4 =
+* Added: Automatic plugin update infrastructure (filter-based) with constant opt-out.
+* Added: Migration ensuring mandatory `post_date` field exists after Loupe upgrade; conditional reindex strategy (immediate for small sites, scheduled for large).
+* Fixed: Publishing/indexing error caused by missing SQLite `post_date` column.
+* Internal: Post-date migration triggers safe reindex path based on site size.
 
 = 0.5.3 =
 * Added: Copy buttons (with accessible live feedback) for MCP manifest and protected resource endpoints.

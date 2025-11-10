@@ -30,34 +30,34 @@ class WP_Loupe_Schema_Manager {
 	 * @param string $post_type The post type to retrieve the schema for.
 	 * @return array The schema for the specified post type.
 	 */
-	public function get_schema_for_post_type(string $post_type): array {
-        if (!isset($this->schema_cache[$post_type])) {
-            $schema = $this->get_default_schema();
-            $saved_fields = get_option('wp_loupe_fields', []);
-            
-            // Override or add post type specific settings, but only for fields marked as indexable
-            if (isset($saved_fields[$post_type])) {
-                foreach ($saved_fields[$post_type] as $field_key => $settings) {
-                    if (!empty($settings['indexable'])) {
-                        $schema[$field_key] = [
-                            'weight' => (float)($settings['weight'] ?? 1.0),
-                            'indexable' => true,
-                            'filterable' => !empty($settings['filterable']),
-                            'sortable' => !empty($settings['sortable']),
-                            'sort_direction' => $settings['sort_direction'] ?? 'desc'
-                        ];
-                    }
-                }
-            }
-            
-            // Allow further customization through filter
-            $this->schema_cache[$post_type] = apply_filters(
-                "wp_loupe_schema_{$post_type}",
-                $schema
-            );
-        }
-        return $this->schema_cache[$post_type];
-    }
+	public function get_schema_for_post_type( string $post_type ): array {
+		if ( ! isset( $this->schema_cache[ $post_type ] ) ) {
+			$schema       = $this->get_default_schema();
+			$saved_fields = get_option( 'wp_loupe_fields', [] );
+
+			// Override or add post type specific settings, but only for fields marked as indexable
+			if ( isset( $saved_fields[ $post_type ] ) ) {
+				foreach ( $saved_fields[ $post_type ] as $field_key => $settings ) {
+					if ( ! empty( $settings[ 'indexable' ] ) ) {
+						$schema[ $field_key ] = [
+							'weight'         => (float) ( $settings[ 'weight' ] ?? 1.0 ),
+							'indexable'      => true,
+							'filterable'     => ! empty( $settings[ 'filterable' ] ),
+							'sortable'       => ! empty( $settings[ 'sortable' ] ),
+							'sort_direction' => $settings[ 'sort_direction' ] ?? 'desc'
+						];
+					}
+				}
+			}
+
+			// Allow further customization through filter
+			$this->schema_cache[ $post_type ] = apply_filters(
+				"wp_loupe_schema_{$post_type}",
+				$schema
+			);
+		}
+		return $this->schema_cache[ $post_type ];
+	}
 
 	/**
 	 * Retrieves the indexable fields for a specific post type.
@@ -95,37 +95,17 @@ class WP_Loupe_Schema_Manager {
 	 * @return array The default schema.
 	 */
 	private function get_default_schema(): array {
-        $schema = [];
-        
-        // Core fields will only be added if they are in saved settings
-        $saved_fields = get_option('wp_loupe_fields', []);
-        
-        // Core fields that can be configured
-        $core_fields = [
-            'post_title',
-            'post_content',
-            'post_excerpt',
-            'post_date',
-            'post_author'
-        ];
-        
-        foreach ($core_fields as $field) {
-            if (isset($saved_fields[$field]) && !empty($saved_fields[$field]['indexable'])) {
-                $schema[$field] = $saved_fields[$field];
-            } elseif ($field === 'post_date') {
-                // Special case: post_date is always included with default settings
-                $schema[$field] = [
-                    'weight' => 1.0,
-                    'indexable' => true,
-                    'filterable' => true,
-                    'sortable' => true,
-                    'sort_direction' => 'desc'
-                ];
-            }
-        }
-        
-        return $schema;
-    }
+		// Baseline schema includes only mandatory core fields independent of saved settings.
+		return [
+			'post_date' => [
+				'weight'         => self::$default_weight,
+				'indexable'      => true,
+				'filterable'     => true,
+				'sortable'       => true,
+				'sort_direction' => self::$default_direction,
+			],
+		];
+	}
 
 	/**
 	 * Retrieves the fields of a specific type from a schema.
@@ -162,36 +142,36 @@ class WP_Loupe_Schema_Manager {
 	 * @return mixed The processed field.
 	 */
 	private function process_field( string $field, array $settings, string $type ) {
-        // Special handling for taxonomy fields
-        if ($this->is_taxonomy_field($field)) {
-            $taxonomy = $this->get_taxonomy_name($field);
-            if (!taxonomy_exists($taxonomy)) {
-                return null;
-            }
-        }
+		// Special handling for taxonomy fields
+		if ( $this->is_taxonomy_field( $field ) ) {
+			$taxonomy = $this->get_taxonomy_name( $field );
+			if ( ! taxonomy_exists( $taxonomy ) ) {
+				return null;
+			}
+		}
 
-        // First check if the field is indexable at all
-        if (!($settings['indexable'] ?? false)) {
-            return null;
-        }
+		// First check if the field is indexable at all
+		if ( ! ( $settings[ 'indexable' ] ?? false ) ) {
+			return null;
+		}
 
-        switch ( $type ) {
-            case 'indexable':
-                return [ 
-                    'field'  => $field,
-                    'weight' => $settings['weight'] ?? self::$default_weight
-                ];
-            case 'filterable':
-                return ($settings['filterable'] ?? false) ? $field : null;
-            case 'sortable':
-                return ($settings['sortable'] ?? false) ? [ 
-                    'field'     => $field,
-                    'direction' => $settings['sort_direction'] ?? self::$default_direction
-                ] : null;
-            default:
-                return null;
-        }
-    }
+		switch ( $type ) {
+			case 'indexable':
+				return [
+					'field'  => $field,
+					'weight' => $settings[ 'weight' ] ?? self::$default_weight
+				];
+			case 'filterable':
+				return ( $settings[ 'filterable' ] ?? false ) ? $field : null;
+			case 'sortable':
+				return ( $settings[ 'sortable' ] ?? false ) ? [
+					'field'     => $field,
+					'direction' => $settings[ 'sort_direction' ] ?? self::$default_direction
+				] : null;
+			default:
+				return null;
+		}
+	}
 
 	/**
 	 * Clears the schema and fields cache.
@@ -204,14 +184,14 @@ class WP_Loupe_Schema_Manager {
 	/**
 	 * Check if field is a taxonomy field
 	 */
-	private function is_taxonomy_field(string $field): bool {
-		return strpos($field, 'taxonomy_') === 0;
+	private function is_taxonomy_field( string $field ): bool {
+		return strpos( $field, 'taxonomy_' ) === 0;
 	}
 
 	/**
 	 * Get taxonomy name from field
 	 */
-	private function get_taxonomy_name(string $field): string {
-		return substr($field, 9); // Remove 'taxonomy_' prefix
+	private function get_taxonomy_name( string $field ): string {
+		return substr( $field, 9 ); // Remove 'taxonomy_' prefix
 	}
 }
