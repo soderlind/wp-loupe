@@ -22,6 +22,13 @@ if ( ! function_exists( 'update_option' ) ) {
 		return true;
 	}
 }
+if ( ! function_exists( 'delete_option' ) ) {
+	function delete_option( $name ) {
+		global $wp_loupe_test_options;
+		unset( $wp_loupe_test_options[ $name ] );
+		return true;
+	}
+}
 if ( ! function_exists( 'apply_filters' ) ) {
 	function apply_filters( $tag, $value ) {
 		return $value;
@@ -127,9 +134,32 @@ if ( ! function_exists( 'do_action' ) ) {
 	function do_action( $tag ) { /* no-op */
 	}
 }
+if ( ! function_exists( 'add_action' ) ) {
+	function add_action( $tag, $callback, $priority = 10, $accepted_args = 1 ) { /* no-op */
+	}
+}
+if ( ! function_exists( 'did_action' ) ) {
+	function did_action( $tag ) {
+		// For tests we never actually fire hooks, return 0.
+		return 0;
+	}
+}
+if ( ! function_exists( 'wp_die' ) ) {
+	function wp_die() { /* no-op for tests */
+	}
+}
+if ( ! function_exists( 'add_filter' ) ) {
+	function add_filter( $tag, $callback, $priority = 10, $accepted_args = 1 ) { /* no-op */
+	}
+}
 if ( ! function_exists( 'sanitize_key' ) ) {
 	function sanitize_key( $key ) {
 		return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( $key ) );
+	}
+}
+if ( ! function_exists( 'absint' ) ) {
+	function absint( $maybeint ) {
+		return abs( intval( $maybeint ) );
 	}
 }
 if ( ! defined( 'MINUTE_IN_SECONDS' ) ) {
@@ -140,6 +170,94 @@ if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
 }
 if ( ! defined( 'YEAR_IN_SECONDS' ) ) {
 	define( 'YEAR_IN_SECONDS', 31536000 );
+}
+if ( ! defined( 'WP_CONTENT_DIR' ) ) {
+	define( 'WP_CONTENT_DIR', sys_get_temp_dir() . '/wp-content' );
+}
+if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', sys_get_temp_dir() . '/wp-root/' );
+}
+
+// Minimal $wpdb shim for REST meta key discovery queries.
+if ( ! isset( $GLOBALS[ 'wpdb' ] ) ) {
+	class WP_Loupe_Test_WPDB {
+		public function prepare( $query, $arg ) {
+			// very naive replacement for single %s
+			return str_replace( '%s', addslashes( (string) $arg ), $query );
+		}
+		public function get_col( $sql ) {
+			// Return empty list; tests only assert structure, not specific meta keys.
+			return [];
+		}
+		public $postmeta = 'wp_postmeta';
+		public $posts = 'wp_posts';
+	}
+	$GLOBALS[ 'wpdb' ] = new WP_Loupe_Test_WPDB();
+}
+
+// Additional shims required for REST search test.
+if ( ! function_exists( 'get_locale' ) ) {
+	function get_locale() {
+		return 'en_US';
+	}
+}
+if ( ! function_exists( 'current_user_can' ) ) {
+	function current_user_can( $cap ) {
+		return true;
+	}
+}
+if ( ! function_exists( 'rest_ensure_response' ) ) {
+	function rest_ensure_response( $value ) {
+		return $value;
+	}
+}
+if ( ! function_exists( 'get_post' ) ) {
+	function get_post( $id ) {
+		// Provide richer WP_Post-like stub so REST enrichment passes.
+		return (object) [
+			'ID'           => (int) $id,
+			'post_status'  => 'publish',
+			'post_type'    => ( (int) $id % 2 === 0 ) ? 'post' : 'page', // alternate types deterministically
+			'post_title'   => 'Title ' . $id,
+			'post_content' => 'Content for ' . $id,
+		];
+	}
+}
+if ( ! function_exists( 'get_post_type_object' ) ) {
+	function get_post_type_object( $pt ) {
+		return (object) [ 'labels' => (object) [ 'singular_name' => ucfirst( $pt ) ] ];
+	}
+}
+if ( ! function_exists( 'get_the_title' ) ) {
+	function get_the_title( $id ) {
+		return 'Title ' . $id;
+	}
+}
+if ( ! function_exists( 'get_permalink' ) ) {
+	function get_permalink( $id ) {
+		return 'https://example.test/post/' . $id;
+	}
+}
+if ( ! function_exists( 'get_the_excerpt' ) ) {
+	function get_the_excerpt( $id ) {
+		return 'Excerpt ' . $id;
+	}
+}
+if ( ! function_exists( 'post_type_exists' ) ) {
+	function post_type_exists( $pt ) {
+		// Include custom post types referenced in tests.
+		return in_array( $pt, [ 'post', 'page', 'hlz_movie' ], true );
+	}
+}
+if ( ! function_exists( 'get_object_taxonomies' ) ) {
+	function get_object_taxonomies( $pt ) {
+		return [];
+	}
+}
+if ( ! function_exists( 'taxonomy_exists' ) ) {
+	function taxonomy_exists( $tax ) {
+		return false;
+	}
 }
 
 // Shut down Monkey after suite.

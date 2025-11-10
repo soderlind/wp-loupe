@@ -31,424 +31,55 @@ class WPLoupe_Settings_Page {
 	 */
 	public function __construct() {
 		add_action( 'admin_menu', [ $this, 'wp_loupe_create_settings' ] );
+		add_action( 'admin_init', [ $this, 'register_settings' ] );
 		add_action( 'admin_init', [ $this, 'wp_loupe_setup_sections' ] );
 		add_action( 'admin_init', [ $this, 'wp_loupe_setup_fields' ] );
-		add_action( 'admin_init', [ $this, 'register_settings' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
-		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
 		add_action( 'load-settings_page_wp-loupe', [ $this, 'add_help_tabs' ] );
 	}
 
-	/**
-	 * Register REST API routes
-	 */
-	public function register_rest_routes() {
-		register_rest_route( 'wp-loupe/v1', '/post-type-fields/(?P<post_type>[a-zA-Z0-9_-]+)', [
-			'methods'             => 'GET',
-			'callback'            => [ $this, 'get_post_type_fields' ],
-			'permission_callback' => function () {
-				return current_user_can( 'manage_options' );
-			}
-		] );
-
-		// Add new endpoints for database management
-		register_rest_route( 'wp-loupe/v1', '/create-database', [
-			'methods'             => 'POST',
-			'callback'            => [ $this, 'create_database_for_post_type' ],
-			'permission_callback' => function () {
-				return current_user_can( 'manage_options' );
-			},
-			'args'                => [
-				'post_type' => [
-					'required'          => true,
-					'type'              => 'string',
-					'sanitize_callback' => 'sanitize_text_field',
-				],
-			],
-		] );
-
-		register_rest_route( 'wp-loupe/v1', '/delete-database', [
-			'methods'             => 'POST',
-			'callback'            => [ $this, 'delete_database_for_post_type' ],
-			'permission_callback' => function () {
-				return current_user_can( 'manage_options' );
-			},
-			'args'                => [
-				'post_type' => [
-					'required'          => true,
-					'type'              => 'string',
-					'sanitize_callback' => 'sanitize_text_field',
-				],
-			],
-		] );
-
-		register_rest_route( 'wp-loupe/v1', '/update-database', [
-			'methods'             => 'POST',
-			'callback'            => [ $this, 'update_database_for_post_type' ],
-			'permission_callback' => function () {
-				return current_user_can( 'manage_options' );
-			},
-			'args'                => [
-				'post_type' => [
-					'required'          => true,
-					'type'              => 'string',
-					'sanitize_callback' => 'sanitize_text_field',
-				],
-			],
-		] );
-	}
+	// (Removed corrupted meta key handling.)
 
 	/**
-	 * Create database for a post type via REST API
-	 * 
-	 * @param \WP_REST_Request $request
-	 * @return \WP_REST_Response
-	 */
-	public function create_database_for_post_type( $request ) {
-		$post_type = $request->get_param( 'post_type' );
-
-		if ( ! post_type_exists( $post_type ) ) {
-			return new \WP_Error( 'invalid_post_type', 'Invalid post type', [ 'status' => 404 ] );
-		}
-
-		try {
-			// Get DB instance
-			$db           = WP_Loupe_DB::get_instance();
-			$iso6391_lang = ( '' === get_locale() ) ? 'en' : strtolower( substr( get_locale(), 0, 2 ) );
-
-			// Create Loupe instance - this creates the database structure but doesn't add documents
-			$loupe = WP_Loupe_Factory::create_loupe_instance( $post_type, $iso6391_lang, $db );
-
-			// Force update the post type settings to include this post type
-			$this->force_update_post_type_settings( $post_type, true );
-
-			return rest_ensure_response( [
-				'success' => true,
-				/* translators: %s: post type slug */
-				'message' => sprintf( __( 'Created database structure for post type: %s', 'wp-loupe' ), $post_type ),
-				'count'   => 0 // No documents indexed
-			] );
-		} catch (\Exception $e) {
-			return new \WP_Error( 'database_creation_failed', $e->getMessage(), [ 'status' => 500 ] );
-		}
-	}
-
-	/**
-	 * Delete database for a post type via REST API
-	 * 
-	 * @param \WP_REST_Request $request
-	 * @return \WP_REST_Response
-	 */
-	public function delete_database_for_post_type( $request ) {
-		$post_type = $request->get_param( 'post_type' );
-
-		if ( ! post_type_exists( $post_type ) ) {
-			return new \WP_Error( 'invalid_post_type', 'Invalid post type', [ 'status' => 404 ] );
-		}
-
-		try {
-			// Get the database path for the post type
-			$db      = WP_Loupe_DB::get_instance();
-			$db_path = $db->get_db_path( $post_type );
-
-			// Clear factory cache for this post type
-			WP_Loupe_Factory::clear_instance_cache( $post_type );
-
-			// Force update post type settings to remove this post type
-			$this->force_update_post_type_settings( $post_type, false );
-
-			// Delete the database directory if it exists
-			if ( file_exists( $db_path ) ) {
-				// Include the filesystem class if needed
-				if ( ! class_exists( 'WP_Filesystem_Direct' ) ) {
-					require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-					require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
-				}
-
-				$file_system_direct = new \WP_Filesystem_Direct( false );
-
-				if ( $file_system_direct->is_dir( $db_path ) ) {
-					// Attempt to delete the directory forcefully
-					$success = $file_system_direct->rmdir( $db_path, true );
-
-					// If failed, try direct PHP functions as a fallback
-					if ( ! $success ) {
-						WP_Loupe_Utils::dump( "Filesystem deletion failed, trying PHP functions" );
-						$this->delete_directory_recursive( $db_path );
-					}
-				}
-			}
-
-			// Clear cache for search results regardless of whether directory existed
-			WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
-
-			// Also remove this post type from the fields configuration
-			$saved_fields = get_option( 'wp_loupe_fields', [] );
-			if ( isset( $saved_fields[ $post_type ] ) ) {
-				unset( $saved_fields[ $post_type ] );
-				update_option( 'wp_loupe_fields', $saved_fields );
-			}
-
-			// Clear schema cache after removing fields
-			$schema_manager = new WP_Loupe_Schema_Manager();
-			$schema_manager->clear_cache();
-
-			return rest_ensure_response( [
-				'success' => true,
-				/* translators: %s: post type slug */
-				'message' => sprintf( __( 'Deleted database for post type: %s', 'wp-loupe' ), $post_type ),
-			] );
-		} catch (\Exception $e) {
-			return new \WP_Error( 'database_deletion_failed', $e->getMessage(), [ 'status' => 500 ] );
-		}
-	}
-
-	/**
-	 * Force update the post type settings
-	 * 
-	 * @param string $post_type The post type to update
-	 * @param bool $include Whether to include or exclude the post type
-	 */
-	private function force_update_post_type_settings( $post_type, $include = true ) {
-		$options             = get_option( 'wp_loupe_custom_post_types', [] );
-		$selected_post_types = ! empty( $options ) && isset( $options[ 'wp_loupe_post_type_field' ] )
-			? (array) $options[ 'wp_loupe_post_type_field' ]
-			: [ 'post', 'page' ];
-
-		if ( $include && ! in_array( $post_type, $selected_post_types ) ) {
-			// Add the post type to selected types
-			$selected_post_types[] = $post_type;
-		} else if ( ! $include ) {
-			// Remove the post type from selected types
-			$selected_post_types = array_diff( $selected_post_types, [ $post_type ] );
-		}
-
-		// Update the option
-		$options[ 'wp_loupe_post_type_field' ] = $selected_post_types;
-		update_option( 'wp_loupe_custom_post_types', $options );
-
-		return true;
-	}
-
-	/**
-	 * Delete directory recursively using PHP functions
-	 * Fallback when WP_Filesystem_Direct fails
-	 * 
-	 * @param string $dir Directory path
-	 * @return bool Success
-	 */
-	private function delete_directory_recursive( $dir ) {
-		if ( ! file_exists( $dir ) ) {
-			return true;
-		}
-
-		if ( ! is_dir( $dir ) ) {
-			return unlink( $dir );
-		}
-
-		$files = scandir( $dir );
-		foreach ( $files as $file ) {
-			if ( $file !== '.' && $file !== '..' ) {
-				$path = $dir . '/' . $file;
-
-				if ( is_dir( $path ) ) {
-					$this->delete_directory_recursive( $path );
-				} else {
-					unlink( $path );
-				}
-			}
-		}
-
-		return rmdir( $dir );
-	}
-
-	/**
-	 * Update database for a post type via REST API
-	 * 
-	 * @param \WP_REST_Request $request
-	 * @return \WP_REST_Response
-	 */
-	public function update_database_for_post_type( $request ) {
-		$post_type = $request->get_param( 'post_type' );
-
-		if ( ! post_type_exists( $post_type ) ) {
-			return new \WP_Error( 'invalid_post_type', 'Invalid post type', [ 'status' => 404 ] );
-		}
-
-		try {
-			// Get DB instance
-			$db           = WP_Loupe_DB::get_instance();
-			$iso6391_lang = ( '' === get_locale() ) ? 'en' : strtolower( substr( get_locale(), 0, 2 ) );
-
-			// Clear schema cache to ensure new settings are used
-			$schema_manager = new WP_Loupe_Schema_Manager();
-			$schema_manager->clear_cache();
-
-			// Clear factory cache for this post type 
-			WP_Loupe_Factory::clear_instance_cache( $post_type );
-
-			// Create new Loupe instance with updated configuration
-			$loupe = WP_Loupe_Factory::create_loupe_instance( $post_type, $iso6391_lang, $db );
-
-			// Get posts of selected type
-			$posts = get_posts( [
-				'post_type'      => $post_type,
-				'posts_per_page' => -1,
-				'post_status'    => 'publish',
-			] );
-
-			// Create indexer to prepare documents
-			$indexer = new WP_Loupe_Indexer( [ $post_type ] );
-
-			// Map posts to documents and update the index
-			$documents = array_map(
-				[ $indexer, 'prepare_document' ],
-				$posts
-			);
-
-			// Clear existing documents first
-			$post_ids = array_map( function ( $post ) {
-				return $post->ID;
-			}, $posts );
-
-			if ( ! empty( $post_ids ) ) {
-				$loupe->deleteDocuments( $post_ids );
-			}
-
-			// Add documents to the index
-			if ( ! empty( $documents ) ) {
-				$loupe->addDocuments( $documents );
-			}
-
-			// Clear cache for search results
-			WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
-
-			return rest_ensure_response( [
-				'success' => true,
-				/* translators: %s: post type slug */
-				'message' => sprintf( __( 'Updated database for post type: %s', 'wp-loupe' ), $post_type ),
-				'count'   => count( $documents ),
-			] );
-		} catch (\Exception $e) {
-			return new \WP_Error( 'database_update_failed', $e->getMessage(), [ 'status' => 500 ] );
-		}
-	}
-
-	/**
-	 * Get fields for a post type via REST API
-	 * 
-	 * @param \WP_REST_Request $request
-	 * @return \WP_REST_Response
-	 */
-	public function get_post_type_fields( $request ) {
-		$post_type        = $request->get_param( 'post_type' );
-		$post_type_object = get_post_type_object( $post_type );
-
-		if ( ! $post_type_object ) {
-			return new \WP_Error( 'invalid_post_type', 'Invalid post type', [ 'status' => 404 ] );
-		}
-
-		$fields = $this->get_available_fields( $post_type );
-		return rest_ensure_response( $fields );
-	}
-
-	/**
-	 * Get available fields for a post type
-	 * 
+	 * Retrieve post meta keys that have non-empty values for a post type.
+	 *
 	 * @param string $post_type
-	 * @return array
-	 */
-	public function get_available_fields( $post_type ) {
-		// Always include core fields
-		$fields = [
-			'post_title'   => __( 'Title', 'wp-loupe' ),
-			'post_content' => __( 'Content', 'wp-loupe' ),
-			'post_excerpt' => __( 'Excerpt', 'wp-loupe' ),
-			'post_date'    => __( 'Date', 'wp-loupe' ),
-			'post_author'  => __( 'Author', 'wp-loupe' ),
-		];
-
-		// Add taxonomy fields
-		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
-		foreach ( $taxonomies as $tax_name => $tax_object ) {
-			if ( $tax_object->show_ui ) {
-				$fields[ 'taxonomy_' . $tax_name ] = $tax_object->label;
-			}
-		}
-
-		// Get custom fields with values
-		$meta_keys = $this->get_post_type_meta_keys_with_values( $post_type );
-		foreach ( $meta_keys as $meta_key => $has_value ) {
-			$registered_meta = get_registered_meta_keys( 'post', $post_type );
-			$meta_label      = isset( $registered_meta[ $meta_key ][ 'description' ] ) ?
-				$registered_meta[ $meta_key ][ 'description' ] :
-				$this->prettify_meta_key( $meta_key );
-
-			$fields[ $meta_key ] = [
-				'label'    => $meta_label,
-				'hasValue' => $has_value,
-			];
-		}
-
-		return apply_filters( 'wp_loupe_available_fields', $fields, $post_type );
-	}
-
-	/**
-	 * Get meta keys with values for a post type
-	 * 
-	 * @param string $post_type
-	 * @return array
+	 * @return array meta_key => true if it has at least one non-empty value.
 	 */
 	private function get_post_type_meta_keys_with_values( $post_type ) {
-		$meta_keys = $this->get_filtered_meta_keys( $post_type );
-		return array_fill_keys( $meta_keys, true );
-	}
-
-	/**
-	 * Get filtered meta keys for a post type, removing system and protected meta
-	 *
-	 * @param string $post_type Post type to get meta keys for
-	 * @return array Filtered meta keys
-	 */
-	private function get_filtered_meta_keys( $post_type ) {
 		global $wpdb;
-		static $cache = array();
 
-		// Check cache first
-		$cache_key = 'wp_loupe_meta_keys_' . $post_type;
-		if ( isset( $cache[ $cache_key ] ) ) {
-			return $cache[ $cache_key ];
+		if ( ! post_type_exists( $post_type ) ) {
+			return [];
 		}
 
-		// Get all meta keys in a single query
-		$query = $wpdb->prepare(
-			"SELECT DISTINCT meta_key 
-            FROM $wpdb->postmeta pm 
-            JOIN $wpdb->posts p ON p.ID = pm.post_id 
-            WHERE p.post_type = %s 
-            AND pm.meta_key NOT LIKE '\_%'",
+		// Query distinct meta keys for published posts of this post type with non-empty values.
+		// Avoid protected keys (leading underscore) in results.
+		$sql = $wpdb->prepare(
+			"SELECT DISTINCT pm.meta_key
+			 FROM {$wpdb->postmeta} pm
+			 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+			 WHERE p.post_type = %s AND p.post_status = 'publish'
+			   AND pm.meta_key NOT LIKE '\_%'
+			   AND pm.meta_value <> ''
+			 LIMIT 500",
 			$post_type
 		);
 
-		$meta_keys = $wpdb->get_col( $query );
+		$keys = $wpdb->get_col( $sql );
+		if ( ! is_array( $keys ) ) {
+			return [];
+		}
 
-		// Remove system meta keys and make unique
-		$filtered_keys = array_unique( array_filter( $meta_keys, function ( $key ) {
-			return ! is_protected_meta( $key, 'post' )
-				&& ! preg_match( '/^_oembed|^_wp/', $key )
-				&& ! in_array( $key, [
-					'_edit_last',
-					'_edit_lock',
-					'_thumbnail_id',
-					'_wp_old_slug',
-					'_wp_page_template',
-				] );
-		} ) );
+		$out = [];
+		foreach ( $keys as $k ) {
+			// Basic validation: skip excessively long keys.
+			if ( is_string( $k ) && strlen( $k ) < 128 ) {
+				$out[ $k ] = true;
+			}
+		}
 
-		sort( $filtered_keys );
-		$cache[ $cache_key ] = $filtered_keys;
-
-		return $filtered_keys;
+		return $out;
 	}
 
 	/**
@@ -459,6 +90,50 @@ class WPLoupe_Settings_Page {
 	 */
 	private function prettify_meta_key( $key ) {
 		return ucwords( str_replace( [ '_', '-' ], ' ', $key ) );
+	}
+
+	/**
+	 * Get the available fields for a given post type.
+	 *
+	 * This consolidates:
+	 * 1. The current schema-derived fields (baseline + any saved indexable fields)
+	 * 2. Public post meta keys that have at least one non-empty value
+	 *
+	 * Returning an associative array keyed by field name lets callers simply
+	 * use isset( $available_fields[ $field_key ] ) to validate a saved field.
+	 *
+	 * We deliberately do NOT attempt to load every possible WordPress core
+	 * field here; schema manager already guarantees mandatory baseline fields
+	 * (e.g. post_date). Any saved custom/meta fields that still exist in the
+	 * database but are no longer present in the current discovery set will be
+	 * filtered out by callers.
+	 *
+	 * @param string $post_type
+	 * @return array field_key => true
+	 */
+	private function get_available_fields( $post_type ) {
+		$available = [];
+
+		// Start with schema fields (these reflect saved indexable configuration + baseline)
+		if ( class_exists( __NAMESPACE__ . '\\WP_Loupe_Schema_Manager' ) ) {
+			$schema_manager = WP_Loupe_Schema_Manager::get_instance();
+			$schema         = $schema_manager->get_schema_for_post_type( $post_type );
+			foreach ( $schema as $field_name => $_settings ) {
+				$available[ $field_name ] = true;
+			}
+		}
+
+		// Augment with discovered meta keys that have values
+		$meta_keys = $this->get_post_type_meta_keys_with_values( $post_type );
+		if ( ! empty( $meta_keys ) ) {
+			foreach ( $meta_keys as $meta_key => $_ ) {
+				if ( ! isset( $available[ $meta_key ] ) ) {
+					$available[ $meta_key ] = true;
+				}
+			}
+		}
+
+		return $available;
 	}
 
 	/**
@@ -487,6 +162,10 @@ class WPLoupe_Settings_Page {
 			[ $this, 'prefix_section_callback' ], 'wp-loupe-advanced' );
 		add_settings_section( 'wp_loupe_typo_section', __( 'Typo Tolerance', 'wp-loupe' ),
 			[ $this, 'typo_section_callback' ], 'wp-loupe-advanced' );
+		add_settings_section( 'wp_loupe_updates_section', __( 'Plugin Updates', 'wp-loupe' ),
+			function () {
+				echo '<p>' . esc_html__( 'Control automatic update behavior for WP Loupe.', 'wp-loupe' ) . '</p>';
+			}, 'wp-loupe-advanced' );
 	}
 
 	/**
@@ -535,8 +214,6 @@ class WPLoupe_Settings_Page {
 	 * @return void
 	 */
 	public function wp_loupe_setup_fields() {
-		register_setting( 'wp-loupe', 'wp_loupe_custom_post_types' );
-
 		$this->cpt = array_diff( get_post_types(
 			[
 				'public' => true,
@@ -553,17 +230,17 @@ class WPLoupe_Settings_Page {
 			'wp_loupe_section'
 		);
 
-		// Tokenization settings
+		// Advanced tab fields (tokenization)
 		add_settings_field(
 			'wp_loupe_max_query_tokens',
 			__( 'Max Query Tokens', 'wp-loupe' ),
 			[ $this, 'number_field_callback' ],
-			'wp-loupe',
-			'wp_loupe_advanced_section',
+			'wp-loupe-advanced',
+			'wp_loupe_tokenization_section',
 			[
 				'name'        => 'wp_loupe_advanced[max_query_tokens]',
 				'value'       => $this->get_advanced_option( 'max_query_tokens', 12 ),
-				'description' => __( 'Maximum number of tokens in a search query.', 'wp-loupe' ),
+				'description' => __( 'Maximum number of tokens processed in a search query.', 'wp-loupe' ),
 			]
 		);
 
@@ -572,12 +249,12 @@ class WPLoupe_Settings_Page {
 			'wp_loupe_min_prefix_length',
 			__( 'Minimum Prefix Length', 'wp-loupe' ),
 			[ $this, 'number_field_callback' ],
-			'wp-loupe',
-			'wp_loupe_advanced_section',
+			'wp-loupe-advanced',
+			'wp_loupe_prefix_section',
 			[
 				'name'        => 'wp_loupe_advanced[min_prefix_length]',
 				'value'       => $this->get_advanced_option( 'min_prefix_length', 3 ),
-				'description' => __( 'Minimum number of characters before prefix search is enabled.', 'wp-loupe' ),
+				'description' => __( 'Minimum characters before prefix search activates.', 'wp-loupe' ),
 			]
 		);
 
@@ -586,12 +263,12 @@ class WPLoupe_Settings_Page {
 			'wp_loupe_typo_enabled',
 			__( 'Enable Typo Tolerance', 'wp-loupe' ),
 			[ $this, 'checkbox_field_callback' ],
-			'wp-loupe',
-			'wp_loupe_advanced_section',
+			'wp-loupe-advanced',
+			'wp_loupe_typo_section',
 			[
 				'name'        => 'wp_loupe_advanced[typo_enabled]',
 				'value'       => $this->get_advanced_option( 'typo_enabled', true ),
-				'description' => __( 'Enable or disable typo tolerance in search.', 'wp-loupe' ),
+				'description' => __( 'Allow search to return results with minor spelling mistakes.', 'wp-loupe' ),
 			]
 		);
 
@@ -599,12 +276,12 @@ class WPLoupe_Settings_Page {
 			'wp_loupe_alphabet_size',
 			__( 'Alphabet Size', 'wp-loupe' ),
 			[ $this, 'number_field_callback' ],
-			'wp-loupe',
-			'wp_loupe_advanced_section',
+			'wp-loupe-advanced',
+			'wp_loupe_typo_section',
 			[
 				'name'        => 'wp_loupe_advanced[alphabet_size]',
 				'value'       => $this->get_advanced_option( 'alphabet_size', 4 ),
-				'description' => __( 'Size of the alphabet for typo tolerance (default: 4).', 'wp-loupe' ),
+				'description' => __( 'Size of internal alphabet used for typo tolerance.', 'wp-loupe' ),
 			]
 		);
 
@@ -612,12 +289,12 @@ class WPLoupe_Settings_Page {
 			'wp_loupe_index_length',
 			__( 'Index Length', 'wp-loupe' ),
 			[ $this, 'number_field_callback' ],
-			'wp-loupe',
-			'wp_loupe_advanced_section',
+			'wp-loupe-advanced',
+			'wp_loupe_typo_section',
 			[
 				'name'        => 'wp_loupe_advanced[index_length]',
 				'value'       => $this->get_advanced_option( 'index_length', 14 ),
-				'description' => __( 'Length of the index for typo tolerance (default: 14).', 'wp-loupe' ),
+				'description' => __( 'Internal index length; affects accuracy vs. size.', 'wp-loupe' ),
 			]
 		);
 
@@ -625,12 +302,12 @@ class WPLoupe_Settings_Page {
 			'wp_loupe_typo_prefix_search',
 			__( 'Typo Tolerance for Prefix Search', 'wp-loupe' ),
 			[ $this, 'checkbox_field_callback' ],
-			'wp-loupe',
-			'wp_loupe_advanced_section',
+			'wp-loupe-advanced',
+			'wp_loupe_typo_section',
 			[
 				'name'        => 'wp_loupe_advanced[typo_prefix_search]',
 				'value'       => $this->get_advanced_option( 'typo_prefix_search', false ),
-				'description' => __( 'Enable typo tolerance in prefix search (may impact performance).', 'wp-loupe' ),
+				'description' => __( 'Allow typos when matching prefix (can slow searches).', 'wp-loupe' ),
 			]
 		);
 
@@ -638,12 +315,26 @@ class WPLoupe_Settings_Page {
 			'wp_loupe_first_char_typo_double',
 			__( 'Double Count First Character Typo', 'wp-loupe' ),
 			[ $this, 'checkbox_field_callback' ],
-			'wp-loupe',
-			'wp_loupe_advanced_section',
+			'wp-loupe-advanced',
+			'wp_loupe_typo_section',
 			[
 				'name'        => 'wp_loupe_advanced[first_char_typo_double]',
 				'value'       => $this->get_advanced_option( 'first_char_typo_double', true ),
-				'description' => __( 'Count a typo at the beginning of a word as two mistakes.', 'wp-loupe' ),
+				'description' => __( 'Treat a typo at the start of a word as two mistakes.', 'wp-loupe' ),
+			]
+		);
+
+		// Advanced tab: auto update moved here (page wp-loupe-advanced)
+		add_settings_field(
+			'wp_loupe_auto_update_enabled',
+			__( 'Automatic Plugin Updates', 'wp-loupe' ),
+			[ $this, 'checkbox_field_callback' ],
+			'wp-loupe-advanced',
+			'wp_loupe_updates_section',
+			[
+				'name'        => 'wp_loupe_auto_update_enabled',
+				'value'       => (bool) get_option( 'wp_loupe_auto_update_enabled', true ),
+				'description' => __( 'Automatically install new versions of WP Loupe when available.', 'wp-loupe' ),
 			]
 		);
 	}
@@ -745,82 +436,37 @@ class WPLoupe_Settings_Page {
 
 		$current_tab = isset( $_GET[ 'tab' ] ) ? sanitize_key( $_GET[ 'tab' ] ) : 'general';
 
-		// Handle MCP token management actions (nonce protected) before rendering form so list reflects changes.
+		// Delegate MCP token & rate limit actions to service
 		if ( 'mcp' === $current_tab && isset( $_POST[ 'wp_loupe_mcp_action' ] ) ) {
 			check_admin_referer( 'wp_loupe_mcp_tokens_action', 'wp_loupe_mcp_tokens_nonce' );
-			$registry = get_option( 'wp_loupe_mcp_tokens', [] );
-			if ( ! is_array( $registry ) ) {
-				$registry = [];
-			}
-			$action = sanitize_key( wp_unslash( $_POST[ 'wp_loupe_mcp_action' ] ) );
+			$service = new WP_Loupe_Token_Service();
+			$action  = sanitize_key( wp_unslash( $_POST[ 'wp_loupe_mcp_action' ] ) );
 			if ( 'save_rate_limits' === $action ) {
-				$existing                       = get_option( 'wp_loupe_mcp_rate_limits', [] );
-				$incoming                       = isset( $_POST[ 'wp_loupe_mcp_rate_limits' ] ) ? (array) wp_unslash( $_POST[ 'wp_loupe_mcp_rate_limits' ] ) : [];
-				$sanitized                      = [];
-				$sanitized[ 'anon_window' ]     = max( 10, min( 3600, intval( $incoming[ 'anon_window' ] ?? ( $existing[ 'anon_window' ] ?? 60 ) ) ) );
-				$sanitized[ 'anon_limit' ]      = max( 1, min( 1000, intval( $incoming[ 'anon_limit' ] ?? ( $existing[ 'anon_limit' ] ?? 15 ) ) ) );
-				$sanitized[ 'auth_window' ]     = max( 10, min( 3600, intval( $incoming[ 'auth_window' ] ?? ( $existing[ 'auth_window' ] ?? 60 ) ) ) );
-				$sanitized[ 'auth_limit' ]      = max( 1, min( 5000, intval( $incoming[ 'auth_limit' ] ?? ( $existing[ 'auth_limit' ] ?? 60 ) ) ) );
-				$sanitized[ 'max_search_auth' ] = max( 1, min( 500, intval( $incoming[ 'max_search_auth' ] ?? ( $existing[ 'max_search_auth' ] ?? 100 ) ) ) );
-				$sanitized[ 'max_search_anon' ] = max( 1, min( 100, intval( $incoming[ 'max_search_anon' ] ?? ( $existing[ 'max_search_anon' ] ?? 10 ) ) ) );
-				update_option( 'wp_loupe_mcp_rate_limits', $sanitized );
+				$incoming = isset( $_POST[ 'wp_loupe_mcp_rate_limits' ] ) ? (array) wp_unslash( $_POST[ 'wp_loupe_mcp_rate_limits' ] ) : [];
+				$service->save_rate_limits( $incoming );
 				add_settings_error( 'wp_loupe_mcp_tokens', 'rate_limits_saved', __( 'Rate limits updated.', 'wp-loupe' ), 'updated' );
-			}
-			if ( 'revoke_all' === $action ) {
-				// Bulk revoke: delete each transient then clear registry.
-				foreach ( array_keys( $registry ) as $hash ) {
-					delete_transient( 'wp_loupe_mcp_oauth_tok_' . $hash );
-				}
-				$registry = [];
-				update_option( 'wp_loupe_mcp_tokens', $registry );
+			} elseif ( 'revoke_all' === $action ) {
+				$service->revoke_all_tokens();
 				add_settings_error( 'wp_loupe_mcp_tokens', 'tokens_revoked_all', __( 'All tokens revoked.', 'wp-loupe' ), 'updated' );
-			}
-			if ( 'revoke' === $action && ! empty( $_POST[ 'token_hash' ] ) ) {
+			} elseif ( 'revoke' === $action && ! empty( $_POST[ 'token_hash' ] ) ) {
 				$hash = sanitize_text_field( wp_unslash( $_POST[ 'token_hash' ] ) );
-				// Remove transient & registry entry.
-				if ( isset( $registry[ $hash ] ) ) {
-					delete_transient( 'wp_loupe_mcp_oauth_tok_' . $hash );
-					unset( $registry[ $hash ] );
-					update_option( 'wp_loupe_mcp_tokens', $registry );
+				if ( $service->revoke_token( $hash ) ) {
 					add_settings_error( 'wp_loupe_mcp_tokens', 'token_revoked', __( 'Token revoked.', 'wp-loupe' ), 'updated' );
 				}
-			}
-			if ( 'create' === $action ) {
-				// Collect scopes from form (fallback to all if none selected) and TTL (hours).
-				$available_scopes = [ 'search.read', 'post.read', 'schema.read', 'health.read', 'commands.read' ];
-				$scopes           = isset( $_POST[ 'token_scopes' ] ) && is_array( $_POST[ 'token_scopes' ] ) ? array_intersect( $available_scopes, array_map( 'sanitize_text_field', wp_unslash( $_POST[ 'token_scopes' ] ) ) ) : [];
+			} elseif ( 'create' === $action ) {
+				$available = [ 'search.read', 'post.read', 'schema.read', 'health.read', 'commands.read' ];
+				$scopes    = isset( $_POST[ 'token_scopes' ] ) && is_array( $_POST[ 'token_scopes' ] ) ? array_intersect( $available, array_map( 'sanitize_text_field', wp_unslash( $_POST[ 'token_scopes' ] ) ) ) : [];
 				if ( empty( $scopes ) ) {
-					$scopes = $available_scopes;
+					$scopes = $available;
 				}
-				$ttl_hours  = isset( $_POST[ 'token_ttl' ] ) ? intval( $_POST[ 'token_ttl' ] ) : 1; // default 1 hour
-				$indefinite = ( 0 === $ttl_hours );
-				if ( $ttl_hours > 168 ) {
-					$ttl_hours = 168; // cap at 7 days unless 0 (forever)
-				}
-				$ttl_seconds = $indefinite ? 0 : ( $ttl_hours * HOUR_IN_SECONDS );
+				$ttl_hours = isset( $_POST[ 'token_ttl' ] ) ? intval( $_POST[ 'token_ttl' ] ) : 1;
+				$label     = isset( $_POST[ 'token_label' ] ) ? wp_unslash( $_POST[ 'token_label' ] ) : '';
 				try {
-					// Reuse existing MCP server issuance logic if available.
-					if ( class_exists( '\\Soderlind\\Plugin\\WPLoupe\\WP_Loupe_MCP_Server' ) ) {
-						$server = \Soderlind\Plugin\WPLoupe\WP_Loupe_MCP_Server::get_instance();
-						$result = $server->oauth_issue_access_token( defined( 'WP_LOUPE_OAUTH_CLIENT_ID' ) ? WP_LOUPE_OAUTH_CLIENT_ID : 'wp-loupe-local', defined( 'WP_LOUPE_OAUTH_CLIENT_SECRET' ) ? WP_LOUPE_OAUTH_CLIENT_SECRET : '', $scopes, $ttl_seconds );
-						if ( ! is_wp_error( $result ) ) {
-							$raw_token = $result[ 'access_token' ];
-							// Hash the token same way as server for lookup.
-							$hash              = hash_hmac( 'sha256', $raw_token, wp_salt( 'wp_loupe_mcp_oauth' ) );
-							$registry[ $hash ] = [
-								'label'      => sanitize_text_field( $_POST[ 'token_label' ] ?? '' ),
-								'scopes'     => $scopes,
-								'issued_at'  => time(),
-								'expires_at' => $indefinite ? 0 : time() + $ttl_seconds,
-								'last_used'  => null,
-							];
-							update_option( 'wp_loupe_mcp_tokens', $registry );
-							// Store token temporarily in option for display (once) then cleared after render.
-							update_option( 'wp_loupe_mcp_last_created_token', $raw_token, false );
-							add_settings_error( 'wp_loupe_mcp_tokens', 'token_created', __( 'New token created. Copy it now – it will not be shown again.', 'wp-loupe' ), 'updated' );
-						} else {
-							add_settings_error( 'wp_loupe_mcp_tokens', 'token_error', $result->get_error_message(), 'error' );
-						}
+					$result = $service->create_token( $label, $scopes, $ttl_hours );
+					if ( ! is_wp_error( $result ) ) {
+						add_settings_error( 'wp_loupe_mcp_tokens', 'token_created', __( 'New token created. Copy it now – it will not be shown again.', 'wp-loupe' ), 'updated' );
+					} else {
+						add_settings_error( 'wp_loupe_mcp_tokens', 'token_error', $result->get_error_message(), 'error' );
 					}
 				} catch (\Exception $e) {
 					add_settings_error( 'wp_loupe_mcp_tokens', 'token_error', $e->getMessage(), 'error' );
@@ -858,6 +504,8 @@ class WPLoupe_Settings_Page {
 							<input type="checkbox" name="wp_loupe_mcp_enabled" value="1" <?php checked( $enabled, true ); ?> />
 							<span><?php esc_html_e( 'Enable MCP discovery manifest and command endpoint', 'wp-loupe' ); ?></span>
 						</label>
+						<?php $auto_update_enabled = (bool) get_option( 'wp_loupe_auto_update_enabled', true ); ?>
+						<?php /* Auto-update checkbox moved to Advanced tab */ ?>
 						<p class="description" style="margin-top:0;">
 							<?php esc_html_e( 'Controls exposure of the Machine Connection Protocol (MCP) manifest (/.well-known/mcp.json) and the server command handler endpoint.', 'wp-loupe' ); ?>
 						</p>
@@ -1236,7 +884,7 @@ class WPLoupe_Settings_Page {
 	 * Register all settings
 	 */
 	public function register_settings() {
-		// General tab settings
+		// General settings group
 		register_setting( 'wp-loupe', 'wp_loupe_custom_post_types' );
 		register_setting( 'wp-loupe', 'wp_loupe_fields', [
 			'type'              => 'array',
@@ -1244,14 +892,24 @@ class WPLoupe_Settings_Page {
 			'sanitize_callback' => [ $this, 'sanitize_fields_settings' ],
 		] );
 
-		// Advanced tab settings
+		// Advanced settings group
 		register_setting( 'wp-loupe-advanced', 'wp_loupe_advanced', [
 			'type'              => 'array',
 			'description'       => 'Advanced search configuration options',
 			'sanitize_callback' => [ $this, 'sanitize_advanced_settings' ],
 		] );
 
-		// MCP tab settings
+		// Auto-update option registered with advanced group (field rendered in Advanced tab)
+		register_setting( 'wp-loupe-advanced', 'wp_loupe_auto_update_enabled', [
+			'type'              => 'boolean',
+			'description'       => 'Enable or disable automatic WP Loupe plugin updates',
+			'sanitize_callback' => function ( $value ) {
+				return (bool) $value;
+			},
+			'default'           => true,
+		] );
+
+		// MCP server enable option
 		register_setting( 'wp-loupe-mcp', 'wp_loupe_mcp_enabled', [
 			'type'              => 'boolean',
 			'description'       => 'Enable or disable the MCP server endpoints',
@@ -1260,193 +918,24 @@ class WPLoupe_Settings_Page {
 			},
 		] );
 
-		// MCP rate limit settings
+		// Rate limits option (sanitized & range bounded)
 		register_setting( 'wp-loupe-mcp', 'wp_loupe_mcp_rate_limits', [
 			'type'              => 'array',
 			'description'       => 'MCP rate limit configuration',
 			'sanitize_callback' => function ( $value ) {
-				$defaults = [
-					'anon_window'     => 60,
-					'anon_limit'      => 15,
-					'auth_window'     => 60,
-					'auth_limit'      => 60,
-					'max_search_auth' => 100,
-					'max_search_anon' => 10,
-				];
 				if ( ! is_array( $value ) ) {
-					$value = [];
+					return [];
 				}
-				$out                      = [];
-				$out[ 'anon_window' ]     = max( 10, min( 3600, intval( $value[ 'anon_window' ] ?? $defaults[ 'anon_window' ] ) ) );
-				$out[ 'anon_limit' ]      = max( 1, min( 1000, intval( $value[ 'anon_limit' ] ?? $defaults[ 'anon_limit' ] ) ) );
-				$out[ 'auth_window' ]     = max( 10, min( 3600, intval( $value[ 'auth_window' ] ?? $defaults[ 'auth_window' ] ) ) );
-				$out[ 'auth_limit' ]      = max( 1, min( 5000, intval( $value[ 'auth_limit' ] ?? $defaults[ 'auth_limit' ] ) ) );
-				$out[ 'max_search_auth' ] = max( 1, min( 500, intval( $value[ 'max_search_auth' ] ?? $defaults[ 'max_search_auth' ] ) ) );
-				$out[ 'max_search_anon' ] = max( 1, min( 100, intval( $value[ 'max_search_anon' ] ?? $defaults[ 'max_search_anon' ] ) ) );
-				return $out;
+				$clean                      = [];
+				$clean[ 'anon_window' ]     = max( 10, min( 3600, intval( $value[ 'anon_window' ] ?? 60 ) ) );
+				$clean[ 'anon_limit' ]      = max( 1, min( 1000, intval( $value[ 'anon_limit' ] ?? 15 ) ) );
+				$clean[ 'auth_window' ]     = max( 10, min( 3600, intval( $value[ 'auth_window' ] ?? 60 ) ) );
+				$clean[ 'auth_limit' ]      = max( 1, min( 5000, intval( $value[ 'auth_limit' ] ?? 60 ) ) );
+				$clean[ 'max_search_auth' ] = max( 1, min( 500, intval( $value[ 'max_search_auth' ] ?? 100 ) ) );
+				$clean[ 'max_search_anon' ] = max( 1, min( 100, intval( $value[ 'max_search_anon' ] ?? 10 ) ) );
+				return $clean;
 			},
 		] );
-
-		// Setup fields
-		$this->wp_loupe_setup_general_fields();
-		$this->wp_loupe_setup_advanced_fields();
-	}
-
-	/**
-	 * Setup basic fields (moved from wp_loupe_setup_fields)
-	 */
-	public function wp_loupe_setup_general_fields() {
-		$this->cpt = array_diff( get_post_types(
-			[
-				'public' => true,
-			],
-			'names',
-			'and'
-		), [ 'attachment' ] );
-
-		add_settings_field(
-			'wp_loupe_post_type_field',
-			__( 'Select Post Types', 'wp-loupe' ),
-			[ $this, 'wp_loupe_post_type_field_callback' ],
-			'wp-loupe',
-			'wp_loupe_section'
-		);
-	}
-
-	/**
-	 * Setup advanced fields
-	 */
-	public function wp_loupe_setup_advanced_fields() {
-		// Tokenization section fields
-		add_settings_field(
-			'wp_loupe_max_query_tokens',
-			__( 'Max Query Tokens', 'wp-loupe' ),
-			[ $this, 'number_field_callback' ],
-			'wp-loupe-advanced',
-			'wp_loupe_tokenization_section',
-			[
-				'name'        => 'wp_loupe_advanced[max_query_tokens]',
-				'value'       => $this->get_advanced_option( 'max_query_tokens', 12 ),
-				'min'         => 1,
-				'max'         => 50,
-				'description' => __( 'Maximum number of tokens in a search query (default: 12).', 'wp-loupe' ),
-			]
-		);
-
-		add_settings_field(
-			'wp_loupe_languages',
-			__( 'Languages', 'wp-loupe' ),
-			[ $this, 'languages_field_callback' ],
-			'wp-loupe-advanced',
-			'wp_loupe_tokenization_section',
-			[
-				'name'        => 'wp_loupe_advanced[languages]',
-				'value'       => $this->get_advanced_option( 'languages', [ 'en' ] ),
-				'description' => __( 'Select languages for tokenization. Uses site language by default.', 'wp-loupe' ),
-			]
-		);
-
-		// Prefix search section fields
-		add_settings_field(
-			'wp_loupe_min_prefix_length',
-			__( 'Minimum Prefix Length', 'wp-loupe' ),
-			[ $this, 'number_field_callback' ],
-			'wp-loupe-advanced',
-			'wp_loupe_prefix_section',
-			[
-				'name'        => 'wp_loupe_advanced[min_prefix_length]',
-				'value'       => $this->get_advanced_option( 'min_prefix_length', 3 ),
-				'min'         => 1,
-				'max'         => 10,
-				'description' => __( 'Minimum number of characters before prefix search is enabled (default: 3).', 'wp-loupe' ),
-			]
-		);
-
-		// Typo tolerance section fields
-		add_settings_field(
-			'wp_loupe_typo_enabled',
-			__( 'Enable Typo Tolerance', 'wp-loupe' ),
-			[ $this, 'checkbox_field_callback' ],
-			'wp-loupe-advanced',
-			'wp_loupe_typo_section',
-			[
-				'name'        => 'wp_loupe_advanced[typo_enabled]',
-				'value'       => $this->get_advanced_option( 'typo_enabled', true ),
-				'description' => __( 'Allow search to find results with typos.', 'wp-loupe' ),
-			]
-		);
-
-		add_settings_field(
-			'wp_loupe_alphabet_size',
-			__( 'Alphabet Size', 'wp-loupe' ),
-			[ $this, 'number_field_callback' ],
-			'wp-loupe-advanced',
-			'wp_loupe_typo_section',
-			[
-				'name'        => 'wp_loupe_advanced[alphabet_size]',
-				'value'       => $this->get_advanced_option( 'alphabet_size', 4 ),
-				'min'         => 1,
-				'max'         => 10,
-				'description' => __( 'Size of the alphabet for typo tolerance (default: 4). Higher values reduce false positives but increase index size.', 'wp-loupe' ),
-			]
-		);
-
-		add_settings_field(
-			'wp_loupe_index_length',
-			__( 'Index Length', 'wp-loupe' ),
-			[ $this, 'number_field_callback' ],
-			'wp-loupe-advanced',
-			'wp_loupe_typo_section',
-			[
-				'name'        => 'wp_loupe_advanced[index_length]',
-				'value'       => $this->get_advanced_option( 'index_length', 14 ),
-				'min'         => 5,
-				'max'         => 25,
-				'description' => __( 'Length of the index for typo tolerance (default: 14). Higher values improve accuracy but increase index size.', 'wp-loupe' ),
-			]
-		);
-
-		add_settings_field(
-			'wp_loupe_first_char_typo_double',
-			__( 'First Character Typo Weight', 'wp-loupe' ),
-			[ $this, 'checkbox_field_callback' ],
-			'wp-loupe-advanced',
-			'wp_loupe_typo_section',
-			[
-				'name'        => 'wp_loupe_advanced[first_char_typo_double]',
-				'value'       => $this->get_advanced_option( 'first_char_typo_double', true ),
-				'description' => __( 'Count a typo at the beginning of a word as two mistakes (recommended).', 'wp-loupe' ),
-			]
-		);
-
-		add_settings_field(
-			'wp_loupe_typo_prefix_search',
-			__( 'Typo Tolerance for Prefix Search', 'wp-loupe' ),
-			[ $this, 'checkbox_field_callback' ],
-			'wp-loupe-advanced',
-			'wp_loupe_typo_section',
-			[
-				'name'        => 'wp_loupe_advanced[typo_prefix_search]',
-				'value'       => $this->get_advanced_option( 'typo_prefix_search', false ),
-				'description' => __( 'Enable typo tolerance in prefix search. Not recommended for large datasets.', 'wp-loupe' ),
-			]
-		);
-
-		add_settings_field(
-			'wp_loupe_typo_thresholds',
-			__( 'Typo Thresholds', 'wp-loupe' ),
-			[ $this, 'typo_thresholds_callback' ],
-			'wp-loupe-advanced',
-			'wp_loupe_typo_section',
-			[
-				'name'        => 'wp_loupe_advanced[typo_thresholds]',
-				'value'       => $this->get_advanced_option( 'typo_thresholds', [
-					'9' => 2, // 9 or more characters = 2 typos
-					'5' => 1  // 5-8 characters = 1 typo
-				] ),
-				'description' => __( 'Configure how many typos are allowed based on word length.', 'wp-loupe' ),
-			]
-		);
 	}
 
 	/**
@@ -1569,9 +1058,10 @@ class WPLoupe_Settings_Page {
 
 		// Localize script with enhanced field data
 		wp_localize_script( 'wp-loupe-admin', 'wpLoupeAdmin', [
-			'restUrl'     => rest_url( 'wp-loupe/v1' ),
-			'nonce'       => wp_create_nonce( 'wp_rest' ),
-			'savedFields' => $this->prepare_fields_for_js(),
+			'restUrl'        => rest_url( 'wp-loupe/v1' ),
+			'nonce'          => wp_create_nonce( 'wp_rest' ),
+			'savedFields'    => $this->prepare_fields_for_js(),
+			'availableCache' => $this->prepare_available_fields_for_js(), // Provide available fields so JS can build UI even if REST route missing
 		] );
 	}
 
@@ -1596,6 +1086,25 @@ class WPLoupe_Settings_Page {
 		}
 
 		return $enhanced_fields;
+	}
+
+	/**
+	 * Prepare available fields for JS (meta + schema baseline) keyed by post type.
+	 * Falls back gracefully if no saved fields yet.
+	 */
+	private function prepare_available_fields_for_js() {
+		$post_types = array_diff( get_post_types( [ 'public' => true ], 'names', 'and' ), [ 'attachment' ] );
+		$out        = [];
+		foreach ( $post_types as $pt ) {
+			$available  = $this->get_available_fields( $pt );
+			$out[ $pt ] = [];
+			foreach ( array_keys( $available ) as $field_key ) {
+				$out[ $pt ][ $field_key ] = [
+					'label' => $this->prettify_meta_key( $field_key ),
+				];
+			}
+		}
+		return $out;
 	}
 
 	/**
