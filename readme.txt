@@ -4,7 +4,7 @@ Tags: search, full-text search, relevance, typo-tolerant, fast search, search en
 Requires at least: 6.7
 Tested up to: 6.8
 Requires PHP: 8.3
-Stable tag: 0.5.5
+Stable tag: 0.5.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
@@ -158,6 +158,9 @@ Yes, you can select which post types to include in the Settings page or via filt
 
 == Changelog ==
 
+= 0.5.6 =
+* Changed: Updated dependecies to latest versions
+
 = 0.5.5 =
 * Added: Settings toggle to enable or disable automatic plugin updates (defaults enabled).
 * Added: Schema manager unit test validating baseline `post_date` only.
@@ -216,7 +219,7 @@ This is a developer/automation feature; sites not using MCP can ignore these new
 * Customizer settings not being saved
 
 = 0.4.1 =
-* Update advanced settings documentation in README.md
+* Update settings documentation in README.md
 * Update translations for new strings
 
 = 0.4.0 =
