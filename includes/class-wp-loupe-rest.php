@@ -192,12 +192,19 @@ class WP_Loupe_REST {
 			return new \WP_Error( 'wp_loupe_invalid_post_type', __( 'Invalid post type.', 'wp-loupe' ), [ 'status' => 404 ] );
 		}
 
-		// Build schema-based fields first
+		// Start with core WordPress fields that should always be available
+		$fields = [];
+		foreach ( array_keys( $this->get_core_fields() ) as $core_field ) {
+			$fields[ $core_field ] = [ 'label' => $this->prettify_field_label( $core_field ) ];
+		}
+
+		// Add schema-based fields (saved indexable configuration)
 		$schema_manager = WP_Loupe_Schema_Manager::get_instance();
 		$schema         = $schema_manager->get_schema_for_post_type( $post_type );
-		$fields         = [];
 		foreach ( $schema as $field_key => $_settings ) {
-			$fields[ $field_key ] = [ 'label' => $this->prettify_field_label( $field_key ) ];
+			if ( ! isset( $fields[ $field_key ] ) ) {
+				$fields[ $field_key ] = [ 'label' => $this->prettify_field_label( $field_key ) ];
+			}
 		}
 
 		// Add discovered meta keys (non-protected, existing values)
@@ -216,6 +223,23 @@ class WP_Loupe_REST {
 	 */
 	private function prettify_field_label( $key ) {
 		return ucwords( str_replace( [ '_', '-' ], ' ', $key ) );
+	}
+
+	/**
+	 * Get core WordPress fields that should always be available
+	 * 
+	 * @return array Associative array of field_key => true
+	 */
+	private function get_core_fields() {
+		return [
+			'post_title'    => true,
+			'post_content'  => true,
+			'post_excerpt'  => true,
+			'post_date'     => true,
+			'post_modified' => true,
+			'post_author'   => true,
+			'permalink'     => true,
+		];
 	}
 
 	/**

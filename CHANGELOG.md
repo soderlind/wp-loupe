@@ -5,10 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.7] - 2025-11-11
+
+### Added
+- Always expose core WordPress fields (`post_title`, `post_content`, `post_excerpt`, `post_date`, `post_modified`, `post_author`, `permalink`) in REST post-type field discovery and settings UI regardless of indexing status.
+
+### Changed
+- Field discovery now seeds from core fields before merging schema-derived and meta keys to ensure consistent availability in admin UI.
+
+### Fixed
+- Typo in 0.5.6 changelog entry ("dependecies" -> "dependencies").
+
 ## [0.5.6] - 2025-11-11
 
 ### Changed
-- Updated dependecies to latest versions
+- Updated dependencies to latest versions
 
 
 ## [0.5.5] - 2025-11-10
