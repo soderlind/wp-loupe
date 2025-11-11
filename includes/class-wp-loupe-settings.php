@@ -93,20 +93,32 @@ class WPLoupe_Settings_Page {
 	}
 
 	/**
+	 * Get core WordPress fields that should always be available in the UI
+	 * 
+	 * @return array Associative array of field_key => true
+	 */
+	private function get_core_fields() {
+		return [
+			'post_title'    => true,
+			'post_content'  => true,
+			'post_excerpt'  => true,
+			'post_date'     => true,
+			'post_modified' => true,
+			'post_author'   => true,
+			'permalink'     => true,
+		];
+	}
+
+	/**
 	 * Get the available fields for a given post type.
 	 *
 	 * This consolidates:
-	 * 1. The current schema-derived fields (baseline + any saved indexable fields)
-	 * 2. Public post meta keys that have at least one non-empty value
+	 * 1. Core WordPress fields (always available regardless of indexing status)
+	 * 2. The current schema-derived fields (baseline + any saved indexable fields)
+	 * 3. Public post meta keys that have at least one non-empty value
 	 *
 	 * Returning an associative array keyed by field name lets callers simply
 	 * use isset( $available_fields[ $field_key ] ) to validate a saved field.
-	 *
-	 * We deliberately do NOT attempt to load every possible WordPress core
-	 * field here; schema manager already guarantees mandatory baseline fields
-	 * (e.g. post_date). Any saved custom/meta fields that still exist in the
-	 * database but are no longer present in the current discovery set will be
-	 * filtered out by callers.
 	 *
 	 * @param string $post_type
 	 * @return array field_key => true
@@ -114,7 +126,10 @@ class WPLoupe_Settings_Page {
 	private function get_available_fields( $post_type ) {
 		$available = [];
 
-		// Start with schema fields (these reflect saved indexable configuration + baseline)
+		// Start with core fields that should always be available
+		$available = $this->get_core_fields();
+
+		// Add schema fields (these reflect saved indexable configuration + baseline)
 		if ( class_exists( __NAMESPACE__ . '\\WP_Loupe_Schema_Manager' ) ) {
 			$schema_manager = WP_Loupe_Schema_Manager::get_instance();
 			$schema         = $schema_manager->get_schema_for_post_type( $post_type );
