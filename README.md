@@ -6,7 +6,7 @@ A search enhancement plugin for WordPress that builds a fast, typo-tolerant inde
 
 ## Quick Links
 
-[Installation](#installation) | [REST API](#rest-api) | [Search API Docs](docs/search-api.md) | [Settings](#settings) | [Filters](#filters) | [MCP Docs](docs/mcp.md) | [Changelog](CHANGELOG.md)
+[Installation](#installation) | [REST API](#rest-api) | [Building Your Own Search UI](#building-your-own-search-ui) | [Settings](#settings) | [Filters](#filters) | [MCP Docs](docs/mcp.md) | [Changelog](CHANGELOG.md)
 
 
 ## Overview
