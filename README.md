@@ -6,7 +6,7 @@ A powerful search enhancement plugin for WordPress that delivers fast, accurate,
 
 ## Quick Links
 
-[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Settings](#settings) | [FAQ](#faq) | [Filters](#filters)  | [Behind the scenes](#behind-the-scenes) | [MCP Docs](docs/mcp.md) | [MCP WP-CLI](docs/mcp.md#wp-cli-usage) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
+[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Settings](#settings) | [FAQ](#faq) | [Filters](#filters)  | [Behind the scenes](docs/tutorial/README.md) | [MCP Docs](docs/mcp.md) | [MCP WP-CLI](docs/mcp.md#wp-cli-usage) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
 
 
 ## Overview
@@ -288,119 +288,7 @@ Default schema fields:
 ```
 
 
-## Behind the Scenes
-
-This document explains the architecture and technical implementation of the WP Loupe plugin, detailing how it provides fast search functionality for WordPress sites.
-
-### Overview
-
-WP Loupe is a search plugin that enhances WordPress's default search with a fast, SQLite-based search engine. The plugin creates and maintains search indexes for WordPress content and intercepts search queries to provide improved results.
-
-### Core Components
-
-#### 1. Search Engine
-
-The plugin uses the Loupe search library, which provides:
-- Full-text search capabilities
-- Typo tolerance
-- Fast queries via SQLite
-
-Each post type has its own search index stored in separate SQLite databases:
-```
-/wp-content/wp-loupe-db/
-  ├── post/
-  ├── page/
-  └── {custom-post-type}/
-```
-
-#### 3. Component Classes
-
-##### Factory Pattern
-
-`WP_Loupe_Factory` creates Loupe instances with appropriate configuration:
-- Uses schema information to determine which fields to index, search, filter, and sort
-- Processes field weights for relevance scoring
-- Configures language and typo tolerance settings
-
-##### Schema Management
-
-`WP_Loupe_Schema_Manager` handles search schema configuration:
-- Defines which fields are searchable and their weights
-- Manages filterable and sortable fields
-- Provides a default schema that can be customized via filters
-
-##### Indexing
-
-`WP_Loupe_Indexer`:
-- Monitors post changes (create, update, delete) to keep the search index current
-- Provides bulk indexing functionality
-- Transforms WordPress posts into documents that can be indexed
-
-##### Search
-
-`WP_Loupe_Search_Engine` (preferred):
-- Side-effect free search engine built on Loupe
-- Performs optimized search using Loupe
-- Implements query result caching for improved performance
-
-`WP_Loupe_Search_Hooks` (front-end integration):
-- Intercepts WordPress search queries on the front-end
-- Handles pagination and result formatting
-- Emits footer timing information
-
-`WP_Loupe_Search` (legacy):
-- **Deprecated** wrapper kept for backward compatibility
-- Delegates to `WP_Loupe_Search_Engine` + `WP_Loupe_Search_Hooks`
-
-### Key Technical Features
-
-#### 1. Performance Optimizations
-
-- **Single-Pass Processing**: All field types are processed in one loop for efficiency
-- **Result Caching**: Search results are cached using WordPress transients
-- **Batch Operations**: Bulk indexing uses optimized document batching
-
-#### 2. Database Management
-
-`WP_Loupe_DB` handles:
-- Index file paths and creation
-- Index deletion (when necessary)
-- Directory structure management
-
-#### 3. Integration Points
-
-- Hooks into WordPress search via `posts_pre_query` filter
-- Monitors post changes via `save_post_{post_type}` and `wp_trash_post` actions
-- Settings integration via WordPress Settings API
-
-### Search Flow
-
-When a user performs a search:
-
-1. WP Loupe intercepts the search query via `posts_pre_query`
-2. The search term is sanitized and prepared
-3. The plugin checks the cache for existing results
-4. If not cached, the query is sent to the appropriate Loupe instance(s)
-5. Results are combined and sorted by relevance
-6. The plugin formats results as WordPress post objects
-7. Results are cached for future queries
-8. The WordPress query object is updated with results and pagination info
-
-### Index Maintenance
-
-The plugin automatically:
-- Adds/updates documents when posts are published or modified
-- Removes documents when posts are trashed
-- Provides a manual reindex option in the settings
-
-### Admin Interface
-
-The plugin includes a settings page that allows:
-- Selecting which post types to include in search
-- Triggering a complete reindex of content
-- Configuring search behavior (via filters)
-
-### Technical Requirements
+## Technical Requirements
 
 - PHP 8.3
 - SQLite 3.35+ (required by Loupe 0.13.x)
