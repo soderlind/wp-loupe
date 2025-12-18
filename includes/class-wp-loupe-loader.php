@@ -9,7 +9,8 @@ namespace Soderlind\Plugin\WPLoupe;
  */
 class WP_Loupe_Loader {
 	private static $instance = null;
-	private $search;
+	private $search_engine;
+	private $search_hooks;
 	private $indexer;
 	private $post_types;
 
@@ -41,11 +42,14 @@ class WP_Loupe_Loader {
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-schema-manager.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-factory.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-search.php';
+		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-search-engine.php';
+		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-search-hooks.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-indexer.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-db.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-utils.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-settings.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-rest.php';
+		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-blocks.php';
 		// MCP server class
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-mcp-server.php';
 	}
@@ -83,8 +87,16 @@ class WP_Loupe_Loader {
 		);
 		new WPLoupe_Settings_Page();
 
-		$this->search  = new WP_Loupe_Search( $this->post_types );
+		$this->search_engine = new WP_Loupe_Search_Engine( $this->post_types );
+		// Front-end only: register query interception + footer timing.
+		if ( ! is_admin() && ! ( defined( 'REST_REQUEST' ) && REST_REQUEST ) && ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+			$this->search_hooks = new WP_Loupe_Search_Hooks( $this->search_engine );
+			$this->search_hooks->register();
+		}
 		$this->indexer = new WP_Loupe_Indexer( $this->post_types );
+
+		// Editor-only: register block variation + inspector controls.
+		WP_Loupe_Blocks::init_editor();
 
 		// Initialize REST API handler
 		new WP_Loupe_REST();
