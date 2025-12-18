@@ -116,6 +116,18 @@ Sortable fields can be used to order search results:
 - Works best with numerical fields, dates, or short text values
 - Examples: date, price, rating, title
 
+### MCP Settings
+
+WP Loupe can optionally expose an MCP (Model Context Protocol) server so external AI agents or automation tools can discover capabilities and query your site.
+
+You can configure MCP in the WordPress admin under Settings > WP Loupe > MCP, including:
+
+- Enable/disable the discovery endpoints (`/.well-known/mcp.json` and `/.well-known/oauth-protected-resource`)
+- Create and manage access tokens (scope + TTL + revoke)
+- Configure rate limits for anonymous vs token-authenticated requests
+
+Full details: **[docs/mcp.md](docs/mcp.md)**
+
 ### Advanced Settings
 
 WP Loupe provides advanced configuration options to fine-tune your search experience:
@@ -144,6 +156,8 @@ WP Loupe provides advanced configuration options to fine-tune your search experi
 - Configure which languages the search index should optimize for. Default is English ('en').
 
 These advanced settings can be accessed in the WordPress admin under Settings > WP Loupe > Advanced tab.
+
+
 
 ## FAQ
 
