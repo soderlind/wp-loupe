@@ -125,6 +125,7 @@ You can configure MCP in the WordPress admin under Settings > WP Loupe > MCP, in
 - Enable/disable the discovery endpoints (`/.well-known/mcp.json` and `/.well-known/oauth-protected-resource`)
 - Create and manage access tokens (scope + TTL + revoke)
 - Configure rate limits for anonymous vs token-authenticated requests
+- Add access tokens.
 
 Full details: **[docs/mcp.md](docs/mcp.md)**
 
