@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-12-18
+
+### Added
+- Split search into side-effect free engine plus front-end-only hooks.
+- Block editor integration (editor-only load).
+
+### Changed
+- Upgraded `loupe/loupe` to 0.13.4 and added stricter runtime requirements checks.
+
+### Fixed
+- Reindexing now safely rebuilds/migrates indexes across Loupe schema upgrades.
+- Guarded against empty `wp_loupe_db_path` filter values.
+
 ## [0.5.7] - 2025-11-11
 
 ### Added

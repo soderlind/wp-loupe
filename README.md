@@ -185,7 +185,9 @@ Yes, you can select which post types to include in the Settings page or via filt
 This filter allows you to change the path where the Loupe database files are stored. By default, it's in the `WP_CONTENT_DIR .'/wp-loupe-db'` directory.
 
 ```php
-add_filter( 'wp_loupe_db_path', WP_CONTENT_DIR . '/my-path' );
+add_filter( 'wp_loupe_db_path', function ( $path ) {
+	return WP_CONTENT_DIR . '/my-path';
+} );
 ```
 
 ### `wp_loupe_post_types`
@@ -336,11 +338,19 @@ Each post type has its own search index stored in separate SQLite databases:
 
 ##### Search
 
-`WP_Loupe_Search`:
-- Intercepts WordPress search queries
+`WP_Loupe_Search_Engine` (preferred):
+- Side-effect free search engine built on Loupe
 - Performs optimized search using Loupe
-- Handles pagination and result formatting
 - Implements query result caching for improved performance
+
+`WP_Loupe_Search_Hooks` (front-end integration):
+- Intercepts WordPress search queries on the front-end
+- Handles pagination and result formatting
+- Emits footer timing information
+
+`WP_Loupe_Search` (legacy):
+- **Deprecated** wrapper kept for backward compatibility
+- Delegates to `WP_Loupe_Search_Engine` + `WP_Loupe_Search_Hooks`
 
 ### Key Technical Features
 
@@ -393,7 +403,8 @@ The plugin includes a settings page that allows:
 ### Technical Requirements
 
 - PHP 8.3
-- SQLite 3.16.0+ (required by the Loupe library)
+- SQLite 3.35+ (required by Loupe 0.13.x)
+- PHP extensions: `pdo_sqlite`, `intl`, `mbstring`
 - WordPress 6.7+
 
 This architecture provides a balance between search quality, performance, and ease of integration with WordPress.
