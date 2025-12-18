@@ -1,73 +1,94 @@
 # Tutorial: wp-loupe
 
-**WP Loupe** is a *powerful search enhancement plugin for WordPress*.
-It replaces the default site search with a **high-speed, relevant, and filterable search**—using a custom SQLite-powered index under the hood.
-With **WP Loupe**, you can *fine-tune what content is indexed, configure filters/sorting, and securely expose search via REST API and machine (AI) interfaces (MCP)*.
-The plugin is designed for both beginners who want *faster, better results* and developers/integrators who need advanced search APIs and automation.
+**WP Loupe** is a WordPress plugin that *supercharges site search*, making it much faster, typo-tolerant, and customizable. 
+Instead of relying on the slow, default WordPress search, it builds a **special search index** of your content and offers an advanced, developer-friendly REST API. 
+You can control exactly *which content and fields are searchable, filterable, and sortable* via an intuitive admin interface.
+WP Loupe also supports integration with *external automation and AI tools* using the MCP protocol, while handling updates and migrations automatically—making it both powerful and easy to use.
 
 
 **Source Repository:** [https://github.com/soderlind/wp-loupe](https://github.com/soderlind/wp-loupe)
 
 ```mermaid
 flowchart TD
-    A0["WP Loupe Search Engine (WP_Loupe_Search_Engine)
+    A0["WP Loupe Search Engine
 "]
-    A1["Search Integration Hooks (WP_Loupe_Search_Hooks)
+    A1["Indexer & Document Preparation
 "]
-    A2["Indexing & Document Preparation (WP_Loupe_Indexer)
+    A2["Schema Manager
 "]
-    A3["Database Management (WP_Loupe_DB)
+    A3["Database Management (WP Loupe DB)
 "]
-    A4["Schema Manager (WP_Loupe_Schema_Manager)
+    A4["REST API & Endpoints
 "]
-    A5["Field Configuration UI & Settings (WPLoupe_Settings_Page)
+    A5["Settings & Admin UI
 "]
-    A7["MCP Server (WP_Loupe_MCP_Server & related)
+    A6["MCP Server (Model Context Protocol)
 "]
-    A8["Factory & Utilities (WP_Loupe_Factory, WP_Loupe_Utils)
+    A7["Auto-Update and Migration System
 "]
-    A9["REST API Handler (WP_Loupe_REST)
+    A8["Utilities & Diagnostics
 "]
-    A0 -- "Reads index built by" --> A2
-    A0 -- "Uses database from" --> A3
-    A0 -- "Adheres to schema by" --> A4
-    A1 -- "Intercepts and delegates se..." --> A0
-    A2 -- "Stores data in" --> A3
-    A2 -- "Applies schema" --> A4
-    A4 -- "Defines schema from setting..." --> A5
-    A5 -- "Updates schema via" --> A4
-    A5 -- "Triggers reindex" --> A2
-    A5 -- "Uses utilities" --> A8
-    A9 -- "Serves API via" --> A0
-    A9 -- "Reads schema using" --> A4
-    A7 -- "Executes search through" --> A0
-    A7 -- "Alternative API layer to" --> A9
-    A7 -- "Gets schema from" --> A4
-    A7 -- "Uses for helpers and token ..." --> A8
-    A8 -- "Constructs and supports" --> A0
-    A3 -- "Database paths used by" --> A8
+    A9["Loader & Initialization
+"]
+    A0 -- "Queries indexed data from" --> A1
+    A0 -- "Reads field schema from" --> A2
+    A0 -- "Accesses search database" --> A3
+    A0 -- "Uses utility helpers" --> A8
+    A1 -- "Uses schema for doc prep" --> A2
+    A1 -- "Stores index in database" --> A3
+    A1 -- "Relies on utilities" --> A8
+    A2 -- "Uses utility functions" --> A8
+    A3 -- "Performs diagnostics with" --> A8
+    A4 -- "Routes search requests to" --> A0
+    A4 -- "Can trigger reindexing" --> A1
+    A4 -- "Manages database via API" --> A3
+    A4 -- "Reflects schema status" --> A2
+    A4 -- "Uses diagnostics for API" --> A8
+    A5 -- "Configures field schema" --> A2
+    A5 -- "Controls indexing behavior" --> A1
+    A5 -- "Triggers database setup" --> A3
+    A5 -- "Displays diagnostics" --> A8
+    A6 -- "Handles agent search commands" --> A0
+    A6 -- "Registers custom endpoints" --> A4
+    A6 -- "Shares schema info" --> A2
+    A6 -- "Performs diagnostics" --> A8
+    A7 -- "Migrates index schema" --> A3
+    A7 -- "Initiates reindex" --> A1
+    A7 -- "Logs migrations" --> A8
+    A8 -- "Assists with checks" --> A3
+    A9 -- "Boots and wires up" --> A0
+    A9 -- "Initializes" --> A1
+    A9 -- "Initializes" --> A2
+    A9 -- "Initializes" --> A3
+    A9 -- "Registers API" --> A4
+    A9 -- "Registers admin UI" --> A5
+    A9 -- "Initializes MCP server" --> A6
+    A9 -- "Triggers updates/migrations" --> A7
+    A9 -- "Uses utilities" --> A8
 ```
 
 ## Chapters
 
-1. [Field Configuration UI & Settings (WPLoupe_Settings_Page)
-](01_field_configuration_ui___settings__wploupe_settings_page__.md)
-2. [Search Integration Hooks (WP_Loupe_Search_Hooks)
-](02_search_integration_hooks__wp_loupe_search_hooks__.md)
-3. [REST API Handler (WP_Loupe_REST)
-](04_rest_api_handler__wp_loupe_rest__.md)
-4. [MCP Server (WP_Loupe_MCP_Server & related)
-](05_mcp_server__wp_loupe_mcp_server___related__.md)
-5. [WP Loupe Search Engine (WP_Loupe_Search_Engine)
-](06_wp_loupe_search_engine__wp_loupe_search_engine__.md)
-6. [Indexing & Document Preparation (WP_Loupe_Indexer)
-](07_indexing___document_preparation__wp_loupe_indexer__.md)
-7. [Schema Manager (WP_Loupe_Schema_Manager)
-](08_schema_manager__wp_loupe_schema_manager__.md)
-8. [Database Management (WP_Loupe_DB)
-](09_database_management__wp_loupe_db__.md)
-9. [Factory & Utilities (WP_Loupe_Factory, WP_Loupe_Utils)
-](10_factory___utilities__wp_loupe_factory__wp_loupe_utils__.md)
+1. [WP Loupe Search Engine
+](01_wp_loupe_search_engine_.md)
+2. [Settings & Admin UI
+](02_settings___admin_ui_.md)
+3. [REST API & Endpoints
+](03_rest_api___endpoints_.md)
+4. [MCP Server (Model Context Protocol)
+](04_mcp_server__model_context_protocol__.md)
+5. [Schema Manager
+](05_schema_manager_.md)
+6. [Indexer & Document Preparation
+](06_indexer___document_preparation_.md)
+7. [Database Management (WP Loupe DB)
+](07_database_management__wp_loupe_db__.md)
+8. [Auto-Update and Migration System
+](08_auto_update_and_migration_system_.md)
+9. [Utilities & Diagnostics
+](09_utilities___diagnostics_.md)
+10. [Loader & Initialization
+](10_loader___initialization_.md)
 
 
 ---
