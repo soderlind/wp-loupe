@@ -137,13 +137,13 @@ class WP_Loupe_Indexer {
 		$this->maybe_migrate_loupe_before_delete( $loupe, $post_id );
 		try {
 			$loupe->deleteDocument( $post_id );
-		} catch ( \Throwable $e ) {
+		} catch (\Throwable $e) {
 			if ( $this->is_loupe_schema_mismatch_error( $e ) ) {
 				$this->maybe_migrate_loupe_before_delete( $loupe, $post_id );
 				try {
 					$loupe->deleteDocument( $post_id );
 					return;
-				} catch ( \Throwable $e2 ) {
+				} catch (\Throwable $e2) {
 					WP_Loupe_Utils::debug_log( '[WP Loupe] deleteDocument failed after migration retry: ' . $e2->getMessage() );
 					return;
 				}
@@ -166,13 +166,13 @@ class WP_Loupe_Indexer {
 		$this->maybe_migrate_loupe_before_delete( $loupe, $post_ids[ 0 ] );
 		try {
 			$loupe->deleteDocuments( $post_ids );
-		} catch ( \Throwable $e ) {
+		} catch (\Throwable $e) {
 			if ( $this->is_loupe_schema_mismatch_error( $e ) ) {
 				$this->maybe_migrate_loupe_before_delete( $loupe, $post_ids[ 0 ] );
 				try {
 					$loupe->deleteDocuments( $post_ids );
 					return;
-				} catch ( \Throwable $e2 ) {
+				} catch (\Throwable $e2) {
 					WP_Loupe_Utils::debug_log( '[WP Loupe] deleteDocuments failed after migration retry: ' . $e2->getMessage() );
 					return;
 				}
@@ -243,7 +243,7 @@ class WP_Loupe_Indexer {
 			if ( isset( $this->loupe[ $post_type ] ) && method_exists( $this->loupe[ $post_type ], 'needsReindex' ) ) {
 				try {
 					$should_rebuild = (bool) $this->loupe[ $post_type ]->needsReindex();
-				} catch ( \Throwable $e ) {
+				} catch (\Throwable $e) {
 					$should_rebuild = false;
 				}
 			}
@@ -258,7 +258,7 @@ class WP_Loupe_Indexer {
 			// Using deleteAllDocuments on a current schema is fine; for old schemas we rebuild above or in the catch below.
 			try {
 				$this->loupe[ $post_type ]->deleteAllDocuments();
-			} catch ( \Throwable $e ) {
+			} catch (\Throwable $e) {
 				if ( $this->is_loupe_schema_mismatch_error( $e ) ) {
 					WP_Loupe_Utils::debug_log( '[WP Loupe] deleteAllDocuments schema mismatch during reindex for ' . $post_type . ': ' . $e->getMessage() );
 					$this->record_reindex_rebuild( $post_type, 'schema mismatch during deleteAllDocuments()' );
@@ -334,7 +334,7 @@ class WP_Loupe_Indexer {
 		}
 
 		$file_system_direct = new \WP_Filesystem_Direct( false );
-		$path              = $this->db->get_db_path( $post_type );
+		$path               = $this->db->get_db_path( $post_type );
 
 		if ( $file_system_direct->is_dir( $path ) ) {
 			$file_system_direct->rmdir( $path, true );
@@ -362,7 +362,7 @@ class WP_Loupe_Indexer {
 			if ( ! $loupe->needsReindex() ) {
 				return;
 			}
-		} catch ( \Throwable $e ) {
+		} catch (\Throwable $e) {
 			return;
 		}
 
@@ -374,7 +374,7 @@ class WP_Loupe_Indexer {
 
 		try {
 			$loupe->addDocument( $this->prepare_document( $post ) );
-		} catch ( \Throwable $e ) {
+		} catch (\Throwable $e) {
 			WP_Loupe_Utils::debug_log( '[WP Loupe] Failed triggering Loupe migration before delete: ' . $e->getMessage() );
 		}
 	}
@@ -739,6 +739,20 @@ class WP_Loupe_Indexer {
 
 		// Handle arrays
 		if ( is_array( $value ) ) {
+			// Loupe Geo-point support: { lat: float, lng: float }
+			// Accept both lng and lon as input; normalize to lng.
+			if ( isset( $value[ 'lat' ] ) && ( isset( $value[ 'lng' ] ) || isset( $value[ 'lon' ] ) ) ) {
+				$lat = $value[ 'lat' ];
+				$lng = isset( $value[ 'lng' ] ) ? $value[ 'lng' ] : $value[ 'lon' ];
+				if ( is_numeric( $lat ) && is_numeric( $lng ) ) {
+					return [
+						'lat' => (float) $lat,
+						'lng' => (float) $lng,
+					];
+				}
+				return null;
+			}
+
 			$sanitized = [];
 
 			foreach ( $value as $item ) {

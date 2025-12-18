@@ -2,11 +2,11 @@
 
 # WP Loupe - Enhanced WordPress Search
 
-A powerful search enhancement plugin for WordPress that delivers fast, accurate, and typo-tolerant search results.
+A search enhancement plugin for WordPress that builds a fast, typo-tolerant index and exposes a developer-friendly API so you can build your own search UI.
 
 ## Quick Links
 
-[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Settings](#settings) | [FAQ](#faq) | [Filters](#filters)  | [Behind the scenes](docs/tutorial/README.md) | [MCP Docs](docs/mcp.md) | [MCP WP-CLI](docs/mcp.md#wp-cli-usage) | [Changelog](CHANGELOG.md) | [TODO](TODO.md)
+[Installation](#installation) | [REST API](#rest-api) | [Search API Docs](docs/search-api.md) | [Settings](#settings) | [Filters](#filters) | [MCP Docs](docs/mcp.md) | [Changelog](CHANGELOG.md)
 
 
 ## Overview
@@ -15,13 +15,19 @@ WP Loupe transforms WordPress's search functionality by:
 
 - Creating a dedicated search index for lightning-fast results
 - Supporting typo-tolerant searches
-- Offering phrase matching and advanced search operators
 - Automatically maintaining the search index
-- Providing customization options for developers
+- Providing a stable REST API for custom search experiences
 
-> Want to write your own search plugin? Here's a guide to get you started: [Create a WordPress custom search](https://gist.github.com/soderlind/cc7283db9290031455c5a79d40e3119b)
+> Integrating with external agents or automation? See **[docs/mcp.md](docs/mcp.md)**.
 
-> Integrating with external agents or automation? See the new **[MCP Integration Documentation](docs/mcp.md)** for discovery, commands, auth & rate limiting (including [WP-CLI token issuance](docs/mcp.md#wp-cli-usage)).
+## REST API
+
+WP Loupe exposes search via REST endpoints:
+
+- **POST** `/wp-json/wp-loupe/v1/search` (recommended; supports JSON filters, facets, geo, and explicit sorting)
+- **GET** `/wp-json/wp-loupe/v1/search?q=...` (legacy; kept for backward compatibility)
+
+Developer documentation (schema + examples + Gutenberg block example): **[docs/search-api.md](docs/search-api.md)**
 
 ## MCP (Model Context Protocol) Integration (Summary)
 
@@ -40,28 +46,11 @@ Full details, filter references, and examples: see [docs/mcp.md](docs/mcp.md).
 
 ## Features
 
-### Core Features
-
-- 🚀 Enhanced search engine replacing WordPress default
-- ⚡ Lightning-fast, precise result delivery
-- 🔄 Real-time index synchronization
-- 🌐 Support for multiple languages
-- 📦 Full custom post type integration
-- 📈 Integrated search performance metrics
-- ✅ Seamless compatibility with WordPress default themes
-
-### Search Capabilities
-
-- 🔍 Typo-tolerant searching
-- "..." Phrase matching with quotation marks
-- `-` Exclusion operator support
-- 📖 Pagination support
-
-### Developer Features
-
-- 🛠️ Extensive filter system
-- 📊 Performance monitoring
-- 🔧 Customizable indexing
+- Fast index-backed search for configured post types
+- Typo-tolerance (Loupe)
+- Per-field weighting, filterable fields, sortable fields (configured in Settings)
+- Developer-facing REST API for building custom UIs
+- Optional MCP server for external agent/automation access
 
 ## Installation
 
@@ -83,19 +72,12 @@ Full details, filter references, and examples: see [docs/mcp.md](docs/mcp.md).
 
 * Plugin [updates are handled automatically](https://github.com/soderlind/wordpress-plugin-github-updater#readme) via GitHub. No need to manually download and install updates.
 
-## Usage
+## Building Your Own Search UI
 
-### Basic Search
+WP Loupe intentionally does **not** ship a front-end search block/shortcode UI.
+Instead, you build the UI you want and query WP Loupe via the REST API.
 
-- Type normally in your search box
-- Results are instant and typo-tolerant
-- Matches are highlighted in results
-
-### Advanced Search Operators
-
-- `Hello World` will search for posts containing `Hello` **or** `World`.
-- `"Hello World"` will search for posts containing the phrase `Hello World`.
-- `Hello -World` will search for posts containing `Hello` but not `World`.
+Start here: **[docs/search-api.md](docs/search-api.md)**
 
 ## Settings
 
