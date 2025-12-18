@@ -74,8 +74,11 @@ Full details, filter references, and examples: see [docs/mcp.md](docs/mcp.md).
 
 ## Building Your Own Search UI
 
+WP Loupe works out of the box with WordPress’s standard search.
+If your theme uses the normal search flow (e.g. a search form that routes to the built-in search results page), WP Loupe will power the results automatically — no custom UI required.
+
 WP Loupe intentionally does **not** ship a front-end search block/shortcode UI.
-Instead, you build the UI you want and query WP Loupe via the REST API.
+If you want a custom search experience (autocomplete, filters/facets, geo, custom sorting, etc.), build the UI you want and query WP Loupe via the REST API.
 
 Start here: **[docs/search-api.md](docs/search-api.md)**
 
