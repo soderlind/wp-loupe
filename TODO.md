@@ -15,10 +15,14 @@ This is a list of features, both implemented and planned. Checked items are comp
 - [x] Supports translation. .pot file is included in the `languages` folder.
 - [x] Delete posts and pages from the search index when they are deleted.
 - [x] Pagination.
-- [ ] Categories, tags, and custom taxonomies.
-- [ ] Custom fields.
-- [ ] Filter search results (AND, OR, IN, NOT IN, etc.)
+- [x] Developer-first REST Search API (GET legacy + POST advanced JSON).
+- [x] Filter search results (AND, OR, IN, NOT IN, etc.) via POST `/wp-json/wp-loupe/v1/search` JSON filter AST.
+- [x] Facets (terms) via POST `/wp-json/wp-loupe/v1/search`.
+- [x] Geo radius + geo sorting via POST `/wp-json/wp-loupe/v1/search`.
+- [x] Removed bundled UI integration (block/shortcode/search-form override). Build your own UI via the API.
+- [ ] Categories, tags, and custom taxonomies (indexing + allowlisting for filtering/faceting).
+- [ ] Custom fields (indexing + allowlisting for filtering/faceting).
 - [ ] Multisite support, including the option to index all sites in a network.
 - [ ] Multisite support. Select which sites to index.
 - [ ] Multisite support. Select which site to do search from.
-- [ ] Supports filtering (and ordering) on any attribute with any SQL-inspired filter statement
+- [ ] Expose/filter/sort on any allowlisted attribute (within schema constraints).

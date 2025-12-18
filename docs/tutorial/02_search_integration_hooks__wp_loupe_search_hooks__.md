@@ -209,8 +209,8 @@ _The loader makes sure the hooks are only active on the front end (never in admi
 - Everything “just works” with your theme and plugins.
 - No coding or template changes required!
 
-Ready to use Loupe-powered search forms, and add search blocks to pages?  
-Head over to [Chapter 3: Block & Form Integration (WP_Loupe_Blocks)](03_block___form_integration__wp_loupe_blocks__.md) to discover how search forms connect to Loupe!
+Next up: learn how to query WP Loupe programmatically from JavaScript and other tools via the REST API.  
+Continue to [Chapter 4: REST API Handler (WP_Loupe_REST)](04_rest_api_handler__wp_loupe_rest__.md).
 
 ---
 

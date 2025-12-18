@@ -14,13 +14,17 @@ require_once __DIR__ . '/wp-shims-hooks.php';
 // Composer's classmap autoloader in vendor/ is not regenerated automatically here.
 require_once __DIR__ . '/../includes/class-wp-loupe-search-engine.php';
 require_once __DIR__ . '/../includes/class-wp-loupe-search-hooks.php';
-require_once __DIR__ . '/../includes/class-wp-loupe-blocks.php';
 
 // Basic WP function shims (only those actually touched by tested units). If a test needs more, add here.
 // Simple in-memory option store shared across calls.
 global $wp_loupe_test_options, $wp_loupe_test_transients;
 $wp_loupe_test_options    = [];
 $wp_loupe_test_transients = [];
+
+// Simple post/meta store for tests that need post meta and WP_Query.
+global $wp_loupe_test_posts, $wp_loupe_test_post_meta;
+$wp_loupe_test_posts     = []; // [ post_id => [ 'post_type' => 'post' ] ]
+$wp_loupe_test_post_meta = []; // [ post_id => [ meta_key => meta_value ] ]
 if ( ! function_exists( 'get_option' ) ) {
 	function get_option( $name, $default = false ) {
 		global $wp_loupe_test_options;
@@ -51,9 +55,73 @@ if ( ! function_exists( 'home_url' ) ) {
 		return 'https://example.test' . $path;
 	}
 }
+
+if ( ! function_exists( 'update_post_meta' ) ) {
+	function update_post_meta( $post_id, $meta_key, $meta_value ) {
+		global $wp_loupe_test_post_meta;
+		if ( ! isset( $wp_loupe_test_post_meta[ $post_id ] ) ) {
+			$wp_loupe_test_post_meta[ $post_id ] = [];
+		}
+		$wp_loupe_test_post_meta[ $post_id ][ $meta_key ] = $meta_value;
+		return true;
+	}
+}
+
+if ( ! function_exists( 'get_post_meta' ) ) {
+	function get_post_meta( $post_id, $meta_key, $single = true ) {
+		global $wp_loupe_test_post_meta;
+		if ( isset( $wp_loupe_test_post_meta[ $post_id ] ) && array_key_exists( $meta_key, $wp_loupe_test_post_meta[ $post_id ] ) ) {
+			return $wp_loupe_test_post_meta[ $post_id ][ $meta_key ];
+		}
+		return $single ? '' : [];
+	}
+}
+
+if ( ! class_exists( 'WP_Query' ) ) {
+	class WP_Query {
+		public $posts = [];
+		private $have_posts = false;
+
+		public function __construct( $args = [] ) {
+			global $wp_loupe_test_posts, $wp_loupe_test_post_meta;
+			$post_type = $args[ 'post_type' ] ?? null;
+			$meta_key  = $args[ 'meta_key' ] ?? null;
+			$limit     = isset( $args[ 'posts_per_page' ] ) ? (int) $args[ 'posts_per_page' ] : 5;
+
+			$ids = [];
+			foreach ( $wp_loupe_test_posts as $id => $row ) {
+				if ( $post_type && ( $row[ 'post_type' ] ?? null ) !== $post_type ) {
+					continue;
+				}
+				if ( $meta_key ) {
+					$val = $wp_loupe_test_post_meta[ $id ][ $meta_key ] ?? null;
+					if ( null === $val || '' === $val ) {
+						continue;
+					}
+				}
+				$ids[] = $id;
+				if ( count( $ids ) >= $limit ) {
+					break;
+				}
+			}
+
+			$this->posts      = $ids;
+			$this->have_posts = ! empty( $ids );
+		}
+
+		public function have_posts() {
+			return $this->have_posts;
+		}
+	}
+}
 if ( ! function_exists( 'untrailingslashit' ) ) {
 	function untrailingslashit( $s ) {
 		return rtrim( $s, '/' );
+	}
+}
+if ( ! function_exists( 'trailingslashit' ) ) {
+	function trailingslashit( $s ) {
+		return rtrim( (string) $s, '/' ) . '/';
 	}
 }
 if ( ! function_exists( 'wp_json_encode' ) ) {
@@ -135,6 +203,11 @@ if ( ! class_exists( 'WP_Error' ) ) {
 		public function get_error_data() {
 			return $this->data;
 		}
+	}
+}
+if ( ! function_exists( 'is_wp_error' ) ) {
+	function is_wp_error( $thing ) {
+		return $thing instanceof \WP_Error;
 	}
 }
 if ( ! function_exists( 'get_query_var' ) ) {

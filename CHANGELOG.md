@@ -5,11 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-12-18
+
+### Added
+- Override hook for meta-field sortability: `wp_loupe_is_safely_sortable_meta_{$post_type}`.
+- Search API guide with hook-based field preparation examples (facets, geo, sorting).
+
+### Fixed
+- Geo-point meta fields are treated as sortable-safe (enables geo distance sorting when a geo field is stored as post meta).
+
 ## [0.6.0] - 2025-12-18
 
 ### Added
 - Split search into side-effect free engine plus front-end-only hooks.
-- Block editor integration (editor-only load).
+- Advanced REST search API: `POST /wp-json/wp-loupe/v1/search` (JSON filters, facets, geo, explicit sorting).
+
+### Removed
+- Bundled UI integration (block/shortcode/search form override). Build your own UI using the REST API.
 
 ### Changed
 - Upgraded `loupe/loupe` to 0.13.4 and added stricter runtime requirements checks.
@@ -41,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Schema manager unit test validating baseline `post_date` only
 - Updated translation template (`languages/wp-loupe.pot`) with new settings strings
 - Unit tests for token service (rate limit bounding & revoke-all) and settings sanitization (auto-update default, field filters)
- - Upgrade note covering automatic `post_date` field + SQLite column migration (inline ≤2000 posts; scheduled otherwise) with opt-out (`WP_LOUPE_DISABLE_AUTO_REINDEX`) and manual rebuild fallback
+- Upgrade note covering automatic `post_date` field + SQLite column migration (inline ≤2000 posts; scheduled otherwise) with opt-out (`WP_LOUPE_DISABLE_AUTO_REINDEX`) and manual rebuild fallback
 
 ### Changed
 - Default schema construction simplified to mandatory baseline (`post_date` only); all other fields are post-type scoped
@@ -56,7 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 - Clarified schema baseline behavior and auto-update control in README changelog
 - Added internal developer note (in code comments) about token service extraction rationale
- - Documented migration path & reindex strategy for newly enforced `post_date` column/field
+- Documented migration path & reindex strategy for newly enforced `post_date` column/field
 
 ### Notes
 - Minor internal refactor ahead of future schema expansion; added test coverage for schema baseline
@@ -443,43 +455,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Code style improvements for better maintainability
 
-[0.0.10]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.10
-[0.0.11]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.11
-[0.0.12]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.12
-[0.0.13]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.13
-[0.0.14]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.14
-[0.0.15]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.15
-[0.0.16]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.16
-[0.0.17]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.17
-[0.0.18]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.18
-[0.0.19]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.19
-[0.0.20]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.20
-[0.0.30]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.30
-[0.1.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.0
-[0.1.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.1
-[0.1.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.2
-[0.1.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.3
-[0.1.4]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.4
-[0.1.5]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.5
-[0.1.6]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.6
-[0.1.7]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.7
-[0.2.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.0
-[0.2.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.1
-[0.2.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.2
-[0.2.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.3
-[0.3.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.3.0
-[0.3.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.3.1
-[0.3.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.3.2
-[0.4.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.4.0
-[0.4.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.4.1
-[0.4.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.4.2
-[0.4.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.4.3
-[0.5.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.0
-[0.5.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.1
-[0.5.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.2
-[0.5.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.3
-[0.5.4]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.4
-[0.5.5]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.5
-[0.5.6]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.6
-[0.5.7]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.7
+[0.7.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.7.0
 [0.6.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.6.0
+[0.5.7]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.7
+[0.5.6]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.6
+[0.5.5]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.5
+[0.5.4]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.4
+[0.5.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.3
+[0.5.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.2
+[0.5.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.1
+[0.5.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.0
+[0.4.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.4.3
+[0.4.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.4.2
+[0.4.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.4.1
+[0.4.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.4.0
+[0.3.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.3.2
+[0.3.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.3.1
+[0.3.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.3.0
+[0.2.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.3
+[0.2.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.2
+[0.2.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.1
+[0.2.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.2.0
+[0.1.7]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.7
+[0.1.6]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.6
+[0.1.5]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.5
+[0.1.4]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.4
+[0.1.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.3
+[0.1.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.2
+[0.1.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.1
+[0.1.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.1.0
+[0.0.30]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.30
+[0.0.20]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.20
+[0.0.19]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.19
+[0.0.18]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.18
+[0.0.17]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.17
+[0.0.16]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.16
+[0.0.15]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.15
+[0.0.14]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.14
+[0.0.13]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.13
+[0.0.12]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.12
+[0.0.11]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.11
+[0.0.10]: https://github.com/soderlind/wp-loupe/releases/tag/0.0.10

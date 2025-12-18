@@ -1,7 +1,6 @@
 # Chapter 4: REST API Handler (WP_Loupe_REST)
 
-_Came from [Chapter 3: Block & Form Integration (WP_Loupe_Blocks)](03_block___form_integration__wp_loupe_blocks__.md)?  
-You’ve just learned how to add Loupe-powered search forms and filters across your site. But... **how do apps, JavaScript, or other tools actually talk to Loupe behind the scenes?** Enter: the REST API Handler!_
+_This chapter explains how apps, JavaScript, or other tools talk to Loupe behind the scenes via the REST API handler._
 
 ---
 
