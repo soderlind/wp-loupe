@@ -46,7 +46,7 @@ class WP_Loupe_REST {
 
 	private $post_types;
 	private $loupe = [];
-	/** @var WP_Loupe_Search|null */
+	/** @var object|null Search service with a search($query) method (engine or test stub). */
 	private $search_service = null;
 	private $db;
 	private $schema_manager;
@@ -62,8 +62,8 @@ class WP_Loupe_REST {
 
 		$this->set_post_types();
 		$this->init_loupe_instances();
-		// Reuse existing front-end search service for consistent engine invocation & field weighting.
-		$this->search_service = new WP_Loupe_Search( $this->post_types );
+		// Side-effect free engine for REST usage.
+		$this->search_service = new WP_Loupe_Search_Engine( $this->post_types, $this->db );
 		$this->register_rest_routes();
 	}
 
@@ -370,7 +370,7 @@ class WP_Loupe_REST {
 
 		// Generate a cache key based on the search parameters unless a custom injected search service (tests) is detected.
 		$cache_key      = 'wp_loupe_search_' . md5( $query . $post_type . $per_page . $page );
-		$use_cache      = is_object( $this->search_service ) && ( get_class( $this->search_service ) === __NAMESPACE__ . '\\WP_Loupe_Search' );
+		$use_cache      = is_object( $this->search_service ) && ( $this->search_service instanceof WP_Loupe_Search_Engine );
 		$cached_results = $use_cache ? get_transient( $cache_key ) : false;
 		if ( $use_cache && false !== $cached_results ) {
 			return rest_ensure_response( $cached_results );
@@ -402,7 +402,7 @@ class WP_Loupe_REST {
 		// Instantiate a narrowed search service if filtering to a single type (saves internal loops).
 		$service = ( count( $post_types_to_search ) === count( $this->post_types ) )
 			? $this->search_service
-			: new WP_Loupe_Search( $post_types_to_search );
+			: new WP_Loupe_Search_Engine( $post_types_to_search, $this->db );
 
 		$raw_hits = $service->search( $query ); // Returns combined hit arrays w/ post_type & id.
 

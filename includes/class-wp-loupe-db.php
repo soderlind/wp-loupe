@@ -60,7 +60,10 @@ class WP_Loupe_DB {
 	 * @return string Path to database file
 	 */
 	public function get_db_path($post_type) {
-		return $this->get_base_path() . '/' . $post_type;
+		$base_path = $this->get_base_path();
+		$path      = rtrim( $base_path, '/' ) . '/' . ltrim( (string) $post_type, '/' );
+		$this->ensure_directory_exists( $path );
+		return $path;
 	}
 	
 	/**
@@ -70,6 +73,38 @@ class WP_Loupe_DB {
 	 * @return string Base path
 	 */
 	public function get_base_path() {
-		return apply_filters('wp_loupe_db_path', WP_CONTENT_DIR . '/wp-loupe-db');
+		$default = defined( 'WP_CONTENT_DIR' ) ? ( WP_CONTENT_DIR . '/wp-loupe-db' ) : '';
+		$path    = apply_filters( 'wp_loupe_db_path', $default );
+		$path    = is_string( $path ) ? trim( $path ) : '';
+
+		// Guard against misbehaving filters returning empty/false.
+		if ( '' === $path ) {
+			$path = $default;
+		}
+
+		$path = is_string( $path ) ? rtrim( $path, '/' ) : '';
+		$this->ensure_directory_exists( $path );
+		return $path;
+	}
+
+	/**
+	 * Best-effort ensure that the directory exists.
+	 *
+	 * @param string $path
+	 */
+	private function ensure_directory_exists( string $path ): void {
+		if ( '' === $path ) {
+			return;
+		}
+
+		if ( function_exists( 'wp_mkdir_p' ) ) {
+			wp_mkdir_p( $path );
+			return;
+		}
+
+		// Fallback for very early contexts.
+		if ( ! is_dir( $path ) ) {
+			@mkdir( $path, 0755, true );
+		}
 	}
 }

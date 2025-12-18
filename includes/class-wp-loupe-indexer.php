@@ -20,6 +20,11 @@ class WP_Loupe_Indexer {
 	private $db;
 	private $schema_manager;
 	private $iso6391_lang;
+	private $last_reindex_rebuilds = [];
+	private const LOUPE_SCHEMA_MISMATCH_SUBSTRINGS = [
+		'no such column: _user_id',
+		'no such column: _id',
+	];
 
 	public function __construct( $post_types = null ) {
 		$this->db             = WP_Loupe_DB::get_instance();
@@ -129,7 +134,22 @@ class WP_Loupe_Indexer {
 			return;
 		}
 		$loupe = $this->loupe[ $post_type ];
-		$loupe->deleteDocument( $post_id );
+		$this->maybe_migrate_loupe_before_delete( $loupe, $post_id );
+		try {
+			$loupe->deleteDocument( $post_id );
+		} catch ( \Throwable $e ) {
+			if ( $this->is_loupe_schema_mismatch_error( $e ) ) {
+				$this->maybe_migrate_loupe_before_delete( $loupe, $post_id );
+				try {
+					$loupe->deleteDocument( $post_id );
+					return;
+				} catch ( \Throwable $e2 ) {
+					WP_Loupe_Utils::debug_log( '[WP Loupe] deleteDocument failed after migration retry: ' . $e2->getMessage() );
+					return;
+				}
+			}
+			throw $e;
+		}
 	}
 
 	/**
@@ -143,7 +163,22 @@ class WP_Loupe_Indexer {
 			return;
 		}
 		$loupe = $this->loupe[ $post_type ];
-		$loupe->deleteDocuments( $post_ids );
+		$this->maybe_migrate_loupe_before_delete( $loupe, $post_ids[ 0 ] );
+		try {
+			$loupe->deleteDocuments( $post_ids );
+		} catch ( \Throwable $e ) {
+			if ( $this->is_loupe_schema_mismatch_error( $e ) ) {
+				$this->maybe_migrate_loupe_before_delete( $loupe, $post_ids[ 0 ] );
+				try {
+					$loupe->deleteDocuments( $post_ids );
+					return;
+				} catch ( \Throwable $e2 ) {
+					WP_Loupe_Utils::debug_log( '[WP Loupe] deleteDocuments failed after migration retry: ' . $e2->getMessage() );
+					return;
+				}
+			}
+			throw $e;
+		}
 	}
 
 	/**
@@ -160,6 +195,7 @@ class WP_Loupe_Indexer {
 		) {
 			WP_Loupe_Utils::dump( $_POST );
 			$this->reindex_all();
+			$this->maybe_add_reindex_rebuild_notice();
 			add_settings_error( 'wp-loupe', 'wp-loupe-reindex', __( 'Reindexing completed successfully!', 'wp-loupe' ), 'updated' );
 
 		}
@@ -171,6 +207,7 @@ class WP_Loupe_Indexer {
 	 * @return void
 	 */
 	public function reindex_all() {
+		$this->last_reindex_rebuilds = [];
 		// Ensure required core columns exist (migration for post_date)
 		$this->ensure_required_columns();
 		// First, clear the search cache
@@ -200,18 +237,41 @@ class WP_Loupe_Indexer {
 				'post_status'    => 'publish',
 			] );
 
-			if ( empty( $posts ) ) {
-				continue;
+			// If Loupe indicates the on-disk schema/version needs a rebuild, do that first.
+			// This avoids calling deleteAllDocuments() against an old schema (e.g. missing _id / _user_id).
+			$should_rebuild = false;
+			if ( isset( $this->loupe[ $post_type ] ) && method_exists( $this->loupe[ $post_type ], 'needsReindex' ) ) {
+				try {
+					$should_rebuild = (bool) $this->loupe[ $post_type ]->needsReindex();
+				} catch ( \Throwable $e ) {
+					$should_rebuild = false;
+				}
+			}
+			if ( $should_rebuild ) {
+				WP_Loupe_Utils::debug_log( '[WP Loupe] Rebuilding index for post type due to Loupe needsReindex(): ' . $post_type );
+				$this->record_reindex_rebuild( $post_type, 'needsReindex()' );
+				$this->delete_index_for_post_type( $post_type );
+				$this->init_loupe_instances();
 			}
 
-			// Extract post IDs for deletion
-			$post_ids = array_map( function ( $post ) {
-				return $post->ID;
-			}, $posts );
+			// Always clear the index for this post type, even if there are zero published posts.
+			// Using deleteAllDocuments on a current schema is fine; for old schemas we rebuild above or in the catch below.
+			try {
+				$this->loupe[ $post_type ]->deleteAllDocuments();
+			} catch ( \Throwable $e ) {
+				if ( $this->is_loupe_schema_mismatch_error( $e ) ) {
+					WP_Loupe_Utils::debug_log( '[WP Loupe] deleteAllDocuments schema mismatch during reindex for ' . $post_type . ': ' . $e->getMessage() );
+					$this->record_reindex_rebuild( $post_type, 'schema mismatch during deleteAllDocuments()' );
+					$this->delete_index_for_post_type( $post_type );
+					$this->init_loupe_instances();
+				} else {
+					throw $e;
+				}
+			}
 
-			// Delete existing documents for these posts
-			if ( ! empty( $post_ids ) ) {
-				$this->loupe[ $post_type ]->deleteDocuments( $post_ids );
+			if ( empty( $posts ) ) {
+				// Index is now cleared; nothing to add.
+				continue;
 			}
 
 			// Prepare documents and add them to the index
@@ -224,6 +284,109 @@ class WP_Loupe_Indexer {
 				$this->loupe[ $post_type ]->addDocuments( $documents );
 			}
 		}
+	}
+
+	private function record_reindex_rebuild( string $post_type, string $reason ): void {
+		$this->last_reindex_rebuilds[ $post_type ] = $reason;
+	}
+
+	private function maybe_add_reindex_rebuild_notice(): void {
+		if ( ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) {
+			return;
+		}
+		if ( empty( $this->last_reindex_rebuilds ) ) {
+			return;
+		}
+		if ( ! function_exists( 'add_settings_error' ) ) {
+			return;
+		}
+
+		$parts = [];
+		foreach ( $this->last_reindex_rebuilds as $post_type => $reason ) {
+			$parts[] = sprintf( '%s (%s)', $post_type, $reason );
+		}
+
+		$message = sprintf(
+			/* translators: %s: list of post types and reasons */
+			__( 'WP Loupe debug: index rebuild triggered for %s.', 'wp-loupe' ),
+			esc_html( implode( ', ', $parts ) )
+		);
+
+		add_settings_error( 'wp-loupe', 'wp-loupe-reindex-rebuild', $message, 'warning' );
+	}
+
+	/**
+	 * Deletes the on-disk Loupe index for a single post type.
+	 *
+	 * @param string $post_type
+	 */
+	private function delete_index_for_post_type( string $post_type ): void {
+		// Clear schema cache
+		$this->schema_manager->clear_cache();
+
+		// Clear the Loupe instance cache
+		WP_Loupe_Factory::clear_instance_cache();
+
+		// Include the base filesystem class from WordPress core if not already included
+		if ( ! class_exists( 'WP_Filesystem_Direct' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+			require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+		}
+
+		$file_system_direct = new \WP_Filesystem_Direct( false );
+		$path              = $this->db->get_db_path( $post_type );
+
+		if ( $file_system_direct->is_dir( $path ) ) {
+			$file_system_direct->rmdir( $path, true );
+		}
+
+		unset( $this->loupe[ $post_type ] );
+	}
+
+	/**
+	 * Loupe 0.13.x introduced internal schema changes (e.g. documents._user_id).
+	 * Migrations are triggered during addDocuments(), but deleteDocuments() will fail on old schema.
+	 *
+	 * When Loupe reports it needs reindex, we trigger migration by indexing the current document (if available)
+	 * before attempting deletes.
+	 *
+	 * @param \Loupe\Loupe\Loupe $loupe
+	 * @param int $post_id
+	 */
+	private function maybe_migrate_loupe_before_delete( $loupe, int $post_id ): void {
+		if ( ! is_object( $loupe ) || ! method_exists( $loupe, 'needsReindex' ) ) {
+			return;
+		}
+
+		try {
+			if ( ! $loupe->needsReindex() ) {
+				return;
+			}
+		} catch ( \Throwable $e ) {
+			return;
+		}
+
+		$post = get_post( $post_id );
+		if ( ! ( $post instanceof \WP_Post ) ) {
+			WP_Loupe_Utils::debug_log( '[WP Loupe] Loupe needsReindex but no post available to trigger migration for delete: ' . $post_id );
+			return;
+		}
+
+		try {
+			$loupe->addDocument( $this->prepare_document( $post ) );
+		} catch ( \Throwable $e ) {
+			WP_Loupe_Utils::debug_log( '[WP Loupe] Failed triggering Loupe migration before delete: ' . $e->getMessage() );
+		}
+	}
+
+	private function is_loupe_schema_mismatch_error( \Throwable $e ): bool {
+		$message = strtolower( $e->getMessage() );
+		foreach ( self::LOUPE_SCHEMA_MISMATCH_SUBSTRINGS as $substr ) {
+			if ( false !== strpos( $message, $substr ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -411,7 +574,7 @@ class WP_Loupe_Indexer {
 		}
 
 		$file_system_direct = new \WP_Filesystem_Direct( false );
-		$cache_path         = apply_filters( 'wp_loupe_db_path', WP_CONTENT_DIR . '/wp-loupe-db' );
+		$cache_path         = $this->db->get_base_path();
 
 		if ( $file_system_direct->is_dir( $cache_path ) ) {
 			$file_system_direct->rmdir( $cache_path, true );

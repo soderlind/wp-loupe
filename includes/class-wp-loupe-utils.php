@@ -8,35 +8,172 @@ namespace Soderlind\Plugin\WPLoupe;
  * @since 0.0.1
  */
 class WP_Loupe_Utils {
+	private const REQUIRED_SQLITE_VERSION = '3.35.0';
+
 	/**
-	 * Check if SQLite3 is installed and meets version requirements
+	 * Debug logger helper.
+	 *
+	 * Logs only when WP_DEBUG is enabled.
+	 *
+	 * @param string $message Message to log.
+	 * @param string $prefix Optional prefix.
+	 * @return void
+	 */
+	public static function debug_log( $message, $prefix = 'WP Loupe' ) {
+		if ( ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) {
+			return;
+		}
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( '[' . $prefix . '] ' . (string) $message );
+	}
+
+	/**
+	 * Check if SQLite (PDO) is installed and meets version requirements.
+	 *
+	 * Loupe 0.13+ requires the PDO SQLite driver and SQLite >= 3.35.0.
 	 *
 	 * @since 0.0.1
-	 * @return boolean True if SQLite3 is available and meets requirements
+	 * @return boolean True if SQLite is available and meets requirements
 	 */
 	public static function has_sqlite() {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		if ( ! class_exists( 'SQLite3' ) ) {
+		if ( ! class_exists( '\\PDO' ) || ! extension_loaded( 'pdo_sqlite' ) ) {
 			self::display_error_and_deactivate_plugin(
-				__( 'SQLite3 not installed', 'wp-loupe' ),
-				__( 'WP Loupe requires SQLite3 version 3.16.0 or newer.', 'wp-loupe' )
+				__( 'SQLite PDO driver not available', 'wp-loupe' ),
+				sprintf(
+					/* translators: %s: required sqlite version */
+					__( 'WP Loupe requires the pdo_sqlite extension and SQLite version %s or newer.', 'wp-loupe' ),
+					self::REQUIRED_SQLITE_VERSION
+				)
 			);
 			return false;
 		}
 
-		$version = \SQLite3::version();
-		if ( version_compare( $version[ 'versionString' ], '3.16.0', '<' ) ) {
+		$drivers = [];
+		try {
+			$drivers = \PDO::getAvailableDrivers();
+		} catch ( \Throwable $e ) {
+			$drivers = [];
+		}
+		if ( ! is_array( $drivers ) || ! in_array( 'sqlite', $drivers, true ) ) {
 			self::display_error_and_deactivate_plugin(
-				__( 'SQLite3 version too old', 'wp-loupe' ),
-				__( 'WP Loupe requires SQLite3 version 3.16.0 or newer.', 'wp-loupe' )
+				__( 'SQLite PDO driver not available', 'wp-loupe' ),
+				sprintf(
+					/* translators: %s: required sqlite version */
+					__( 'WP Loupe requires the pdo_sqlite extension and SQLite version %s or newer.', 'wp-loupe' ),
+					self::REQUIRED_SQLITE_VERSION
+				)
+			);
+			return false;
+		}
+
+		$sqlite_version = self::get_sqlite_version_string();
+		if ( ! $sqlite_version ) {
+			self::display_error_and_deactivate_plugin(
+				__( 'Unable to detect SQLite version', 'wp-loupe' ),
+				sprintf(
+					/* translators: %s: required sqlite version */
+					__( 'WP Loupe requires SQLite version %s or newer.', 'wp-loupe' ),
+					self::REQUIRED_SQLITE_VERSION
+				)
+			);
+			return false;
+		}
+
+		if ( version_compare( $sqlite_version, self::REQUIRED_SQLITE_VERSION, '<' ) ) {
+			self::display_error_and_deactivate_plugin(
+				__( 'SQLite version too old', 'wp-loupe' ),
+				sprintf(
+					/* translators: %s: required sqlite version */
+					__( 'WP Loupe requires SQLite version %s or newer.', 'wp-loupe' ),
+					self::REQUIRED_SQLITE_VERSION
+				)
 			);
 			return false;
 		}
 
 		return true;
+	}
+
+	/**
+	 * Returns a short, admin-facing requirements diagnostic line.
+	 *
+	 * This is informational only and does not deactivate the plugin.
+	 *
+	 * @return string
+	 */
+	public static function get_requirements_diagnostic_line(): string {
+		$has_pdo        = class_exists( '\\PDO' );
+		$has_pdo_sqlite = extension_loaded( 'pdo_sqlite' );
+		$has_intl       = extension_loaded( 'intl' );
+		$has_mbstring   = extension_loaded( 'mbstring' );
+
+		$sqlite_version = null;
+		if ( $has_pdo && $has_pdo_sqlite ) {
+			$sqlite_version = self::get_sqlite_version_string();
+		} elseif ( class_exists( 'SQLite3' ) ) {
+			try {
+				$info = \SQLite3::version();
+				if ( is_array( $info ) && ! empty( $info['versionString'] ) ) {
+					$sqlite_version = (string) $info['versionString'];
+				}
+			} catch ( \Throwable $e ) {
+				$sqlite_version = null;
+			}
+		}
+
+		$sqlite_ok = ( is_string( $sqlite_version ) && $sqlite_version !== '' )
+			? version_compare( $sqlite_version, self::REQUIRED_SQLITE_VERSION, '>=' )
+			: false;
+
+		return sprintf(
+			/* translators: 1: pdo_sqlite yes/no, 2: sqlite version or ?, 3: required sqlite version, 4: ok/missing, 5: intl yes/no, 6: mbstring yes/no */
+			__( 'Requirements: pdo_sqlite=%1$s; SQLite=%2$s (>= %3$s): %4$s; intl=%5$s; mbstring=%6$s', 'wp-loupe' ),
+			$has_pdo_sqlite ? 'yes' : 'no',
+			$sqlite_version ? $sqlite_version : '?',
+			self::REQUIRED_SQLITE_VERSION,
+			$sqlite_ok ? 'OK' : 'MISSING/OLD',
+			$has_intl ? 'yes' : 'no',
+			$has_mbstring ? 'yes' : 'no'
+		);
+	}
+
+	/**
+	 * Returns the SQLite library version.
+	 *
+	 * Prefers PDO + `SELECT sqlite_version()` to match Loupe's usage.
+	 * Falls back to SQLite3::version() when available.
+	 *
+	 * @return string|null
+	 */
+	private static function get_sqlite_version_string(): ?string {
+		try {
+			$pdo = new \PDO( 'sqlite::memory:' );
+			$pdo->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION );
+			$stmt = $pdo->query( 'select sqlite_version()' );
+			$ver  = $stmt ? $stmt->fetchColumn() : null;
+			if ( is_string( $ver ) && $ver !== '' ) {
+				return $ver;
+			}
+		} catch ( \Throwable $e ) {
+			// Ignore and fall back.
+		}
+
+		if ( class_exists( 'SQLite3' ) ) {
+			try {
+				$info = \SQLite3::version();
+				if ( is_array( $info ) && ! empty( $info['versionString'] ) ) {
+					return (string) $info['versionString'];
+				}
+			} catch ( \Throwable $e ) {
+				return null;
+			}
+		}
+
+		return null;
 	}
 
 	/**

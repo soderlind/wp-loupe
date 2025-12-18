@@ -491,6 +491,9 @@ class WPLoupe_Settings_Page {
 		?>
 		<div class="wrap">
 			<h2><?php echo esc_html( get_admin_page_title() ); ?></h2>
+			<p class="description" style="margin-top:0;">
+				<?php echo esc_html( WP_Loupe_Utils::get_requirements_diagnostic_line() ); ?>
+			</p>
 
 			<nav class="nav-tab-wrapper">
 				<a href="?page=wp-loupe" class="nav-tab <?php echo $current_tab === 'general' ? 'nav-tab-active' : ''; ?>">

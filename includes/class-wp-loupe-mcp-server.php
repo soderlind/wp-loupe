@@ -551,8 +551,8 @@ class WP_Loupe_MCP_Server {
 			}
 		}
 		$start_time       = microtime( true );
-		$search           = new WP_Loupe_Search( $post_types );
-		$hits             = $search->search( $query );
+		$search_engine    = new WP_Loupe_Search_Engine( $post_types );
+		$hits             = $search_engine->search( $query );
 		$total            = count( $hits );
 		$window           = array_slice( $hits, $offset, $limit );
 		$results          = [];

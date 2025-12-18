@@ -2,9 +2,9 @@
 Contributors: persoderlind
 Tags: search, full-text search, relevance, typo-tolerant, fast search, search engine
 Requires at least: 6.7
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 8.3
-Stable tag: 0.5.7
+Stable tag: 0.6.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
@@ -15,31 +15,18 @@ A search enhancement plugin for WordPress that delivers fast, accurate, and typo
 
 WP Loupe improves WordPress core search by maintaining its own index for fast lookups, supporting typo tolerance, phrase matching, basic exclusion operators, and per–post-type customization.
 
-= MCP (Model Context Protocol) Integration (Preview) =
-An optional MCP server (currently in draft on the development branch) allows external agents / AI tools to:
-* Discover commands (`/.well-known/mcp.json`)
-* Perform anonymous or token-authenticated search (`searchPosts`)
-* Retrieve post data & schema (`getPost`, `getSchema`)
-* Run health diagnostics (token + `health.read` scope)
+= MCP (Model Context Protocol) Integration =
+WP Loupe includes an optional MCP server (disabled by default) for external agents / automation.
 
-Administration (when enabled via Settings → WP Loupe → MCP tab):
-* Enable/disable MCP endpoints (hard 404 when disabled)
-* Manage access tokens (scopes, TTL hours 1–168 or 0 = indefinite, revoke single/all)
-* View last-used timestamps for audit hygiene
-* Configure rate limits: separate anonymous vs authenticated window, quota, and max hits per search
+Key points:
+* Discovery endpoints: `/.well-known/mcp.json` and `/.well-known/oauth-protected-resource` (toggle in Settings → WP Loupe → MCP)
+* Commands include `searchPosts`, `getPost`, `getSchema`, and `healthCheck`
+* Anonymous access can be enabled with lower rate limits; tokens raise limits and can unlock health checks
+* Tokens are scoped (`search.read`, `health.read`), have configurable TTL (1–168 hours, or 0 = indefinite), and can be revoked
+* Tokens are stored hashed (raw value shown once); pagination cursors are HMAC-protected
+* Rate limits are configurable (anonymous vs authenticated), with filter hooks and a WP-CLI token command available
 
-Hybrid Access Model:
-* Anonymous search: lower limits (configurable) no token required
-* Authenticated search: requires `search.read` scope; higher limits
-* `healthCheck` always requires token with `health.read`
-
-Security & Extensibility:
-* Tokens hashed in storage (raw value shown once)
-* HMAC-protected pagination cursors
-* Filter hooks allow overriding limits & behavior even after UI config
-* WP-CLI command issues tokens (appearing in admin token list)
-
-Full technical documentation: See the GitHub repo `docs/mcp.md` file.
+Full documentation: https://github.com/soderlind/wp-loupe/blob/main/docs/mcp.md
 
 = Core Features =
 
@@ -152,11 +139,19 @@ Yes, you can select which post types to include in the Settings page or via filt
 = What are the technical requirements? =
 
 * PHP 8.3 or higher
-* SQLite 3.16.0+ (required by the Loupe library)
-* WordPress 6.3+
+* SQLite 3.35+ (required by Loupe 0.13.x)
+* PHP extensions: pdo_sqlite, intl, mbstring
+* WordPress 6.7+
 
 
 == Changelog ==
+
+= 0.6.0 =
+* Added: Split search engine (side-effect free) from front-end hooks to avoid REST/MCP side effects.
+* Added: Editor-only integration for the block editor search experience.
+* Changed: Upgraded `loupe/loupe` to 0.13.4 and tightened runtime requirements checks.
+* Fixed: Reindexing now safely rebuilds/migrates indexes across Loupe schema upgrades.
+* Fixed: Guarded against empty `wp_loupe_db_path` filter values.
 
 = 0.5.7 =
 * Added: Always expose core WordPress fields (`post_title`, `post_content`, `post_excerpt`, `post_date`, `post_modified`, `post_author`, `permalink`) in REST field discovery and settings UI even if unchecked for indexing.

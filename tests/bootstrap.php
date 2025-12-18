@@ -4,6 +4,18 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// Ensure Patchwork is loaded before any shim functions are defined.
+// This allows Brain Monkey to redefine functions like add_action/add_filter in tests.
+require_once __DIR__ . '/../vendor/antecedent/patchwork/Patchwork.php';
+
+require_once __DIR__ . '/wp-shims-hooks.php';
+
+// Explicitly require new classes added in this branch.
+// Composer's classmap autoloader in vendor/ is not regenerated automatically here.
+require_once __DIR__ . '/../includes/class-wp-loupe-search-engine.php';
+require_once __DIR__ . '/../includes/class-wp-loupe-search-hooks.php';
+require_once __DIR__ . '/../includes/class-wp-loupe-blocks.php';
+
 // Basic WP function shims (only those actually touched by tested units). If a test needs more, add here.
 // Simple in-memory option store shared across calls.
 global $wp_loupe_test_options, $wp_loupe_test_transients;
@@ -130,26 +142,8 @@ if ( ! function_exists( 'get_query_var' ) ) {
 		return null;
 	}
 }
-if ( ! function_exists( 'do_action' ) ) {
-	function do_action( $tag ) { /* no-op */
-	}
-}
-if ( ! function_exists( 'add_action' ) ) {
-	function add_action( $tag, $callback, $priority = 10, $accepted_args = 1 ) { /* no-op */
-	}
-}
-if ( ! function_exists( 'did_action' ) ) {
-	function did_action( $tag ) {
-		// For tests we never actually fire hooks, return 0.
-		return 0;
-	}
-}
 if ( ! function_exists( 'wp_die' ) ) {
 	function wp_die() { /* no-op for tests */
-	}
-}
-if ( ! function_exists( 'add_filter' ) ) {
-	function add_filter( $tag, $callback, $priority = 10, $accepted_args = 1 ) { /* no-op */
 	}
 }
 if ( ! function_exists( 'sanitize_key' ) ) {
