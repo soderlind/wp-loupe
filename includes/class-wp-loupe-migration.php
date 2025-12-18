@@ -107,7 +107,7 @@ class WP_Loupe_Migration {
 			$indexer = new WP_Loupe_Indexer( $post_types );
 			$indexer->reindex_all();
 		} catch (\Throwable $e) {
-			error_log( '[WP Loupe] Reindex failed after post_date migration: ' . $e->getMessage() );
+			WP_Loupe_Utils::debug_log( 'Reindex failed after post_date migration: ' . $e->getMessage(), 'WP Loupe' );
 		}
 	}
 
@@ -178,7 +178,7 @@ add_action( 'wp_loupe_migration_reindex', function ( $post_types ) {
 		$indexer = new WP_Loupe_Indexer( $post_types );
 		$indexer->reindex_all();
 	} catch (\Throwable $e) {
-		error_log( '[WP Loupe] Scheduled reindex failed after post_date migration: ' . $e->getMessage() );
+		WP_Loupe_Utils::debug_log( 'Scheduled reindex failed after post_date migration: ' . $e->getMessage(), 'WP Loupe' );
 	}
 }, 10, 1 );
 
