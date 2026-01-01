@@ -316,13 +316,13 @@ class WP_Loupe_Indexer {
 		$this->init_loupe_instances();
 
 		return [
-			'v'             => 1,
-			'post_types'    => array_values( $this->post_types ),
-			'idx'           => 0,
-			'last_id'       => 0,
-			'cleared'       => false,
-			'processed'     => 0,
-			'processed_pt'  => 0,
+			'v'            => 1,
+			'post_types'   => array_values( $this->post_types ),
+			'idx'          => 0,
+			'last_id'      => 0,
+			'cleared'      => false,
+			'processed'    => 0,
+			'processed_pt' => 0,
 		];
 	}
 
@@ -337,13 +337,13 @@ class WP_Loupe_Indexer {
 	 * @return array Updated state. Contains a 'done' boolean when complete.
 	 */
 	public function reindex_batch_step( array $state, int $batch_size = 500 ): array {
-		$batch_size = max( 10, min( 2000, (int) $batch_size ) );
-		$post_types = isset( $state['post_types'] ) && is_array( $state['post_types'] ) ? array_values( $state['post_types'] ) : [];
-		$idx        = isset( $state['idx'] ) ? max( 0, (int) $state['idx'] ) : 0;
-		$last_id    = isset( $state['last_id'] ) ? max( 0, (int) $state['last_id'] ) : 0;
-		$cleared    = ! empty( $state['cleared'] );
-		$processed  = isset( $state['processed'] ) ? max( 0, (int) $state['processed'] ) : 0;
-		$processed_pt = isset( $state['processed_pt'] ) ? max( 0, (int) $state['processed_pt'] ) : 0;
+		$batch_size   = max( 10, min( 2000, (int) $batch_size ) );
+		$post_types   = isset( $state[ 'post_types' ] ) && is_array( $state[ 'post_types' ] ) ? array_values( $state[ 'post_types' ] ) : [];
+		$idx          = isset( $state[ 'idx' ] ) ? max( 0, (int) $state[ 'idx' ] ) : 0;
+		$last_id      = isset( $state[ 'last_id' ] ) ? max( 0, (int) $state[ 'last_id' ] ) : 0;
+		$cleared      = ! empty( $state[ 'cleared' ] );
+		$processed    = isset( $state[ 'processed' ] ) ? max( 0, (int) $state[ 'processed' ] ) : 0;
+		$processed_pt = isset( $state[ 'processed_pt' ] ) ? max( 0, (int) $state[ 'processed_pt' ] ) : 0;
 
 		if ( empty( $post_types ) ) {
 			return [ 'done' => true ] + $state;
@@ -360,10 +360,10 @@ class WP_Loupe_Indexer {
 
 		$post_type = (string) $post_types[ $idx ];
 		if ( '' === $post_type ) {
-			$state['idx'] = $idx + 1;
-			$state['last_id'] = 0;
-			$state['cleared'] = false;
-			$state['processed_pt'] = 0;
+			$state[ 'idx' ]          = $idx + 1;
+			$state[ 'last_id' ]      = 0;
+			$state[ 'cleared' ]      = false;
+			$state[ 'processed_pt' ] = 0;
 			return $state;
 		}
 
@@ -399,8 +399,8 @@ class WP_Loupe_Indexer {
 					throw $e;
 				}
 			}
-			$cleared = true;
-			$last_id = 0;
+			$cleared      = true;
+			$last_id      = 0;
 			$processed_pt = 0;
 		}
 
@@ -408,11 +408,11 @@ class WP_Loupe_Indexer {
 		if ( empty( $ids ) ) {
 			// Done with this post type.
 			$idx++;
-			$state['idx'] = $idx;
-			$state['last_id'] = 0;
-			$state['cleared'] = false;
-			$state['processed_pt'] = 0;
-			$state['processed'] = $processed;
+			$state[ 'idx' ]          = $idx;
+			$state[ 'last_id' ]      = 0;
+			$state[ 'cleared' ]      = false;
+			$state[ 'processed_pt' ] = 0;
+			$state[ 'processed' ]    = $processed;
 			return ( $idx >= count( $post_types ) ) ? [ 'done' => true ] + $state : $state;
 		}
 
@@ -435,16 +435,16 @@ class WP_Loupe_Indexer {
 			$this->loupe[ $post_type ]->addDocuments( $documents );
 		}
 
-		$processed += count( $ids );
+		$processed    += count( $ids );
 		$processed_pt += count( $ids );
-		$last_id = max( $ids );
+		$last_id       = max( $ids );
 
-		$state['idx'] = $idx;
-		$state['last_id'] = $last_id;
-		$state['cleared'] = $cleared;
-		$state['processed'] = $processed;
-		$state['processed_pt'] = $processed_pt;
-		$state['post_types'] = $post_types;
+		$state[ 'idx' ]          = $idx;
+		$state[ 'last_id' ]      = $last_id;
+		$state[ 'cleared' ]      = $cleared;
+		$state[ 'processed' ]    = $processed;
+		$state[ 'processed_pt' ] = $processed_pt;
+		$state[ 'post_types' ]   = $post_types;
 		return $state;
 	}
 

@@ -233,8 +233,8 @@ class WP_Loupe_REST {
 		$post_types = null;
 
 		if ( is_object( $request ) && method_exists( $request, 'get_param' ) ) {
-			$cursor = (string) $request->get_param( 'cursor' );
-			$reset  = (bool) $request->get_param( 'reset' );
+			$cursor     = (string) $request->get_param( 'cursor' );
+			$reset      = (bool) $request->get_param( 'reset' );
 			$batch_size = (int) $request->get_param( 'batch_size' );
 			$post_types = $request->get_param( 'post_types' );
 		}
@@ -273,43 +273,43 @@ class WP_Loupe_REST {
 			return new \WP_Error( 'wp_loupe_reindex_failed', $e->getMessage(), [ 'status' => 500 ] );
 		}
 
-		$done = ! empty( $state['done'] );
+		$done        = ! empty( $state[ 'done' ] );
 		$next_cursor = $done ? null : $this->encode_reindex_cursor( $state );
 
-		$idx = isset( $state['idx'] ) ? (int) $state['idx'] : 0;
-		$post_types_state = isset( $state['post_types'] ) && is_array( $state['post_types'] ) ? $state['post_types'] : [];
-		$current_pt = ( $idx < count( $post_types_state ) ) ? (string) $post_types_state[ $idx ] : null;
+		$idx              = isset( $state[ 'idx' ] ) ? (int) $state[ 'idx' ] : 0;
+		$post_types_state = isset( $state[ 'post_types' ] ) && is_array( $state[ 'post_types' ] ) ? $state[ 'post_types' ] : [];
+		$current_pt       = ( $idx < count( $post_types_state ) ) ? (string) $post_types_state[ $idx ] : null;
 
 		return rest_ensure_response( [
-			'done'             => $done,
-			'cursor'           => $next_cursor,
-			'processed'        => isset( $state['processed'] ) ? (int) $state['processed'] : 0,
-			'processedPostType'=> isset( $state['processed_pt'] ) ? (int) $state['processed_pt'] : 0,
-			'currentPostType'  => $current_pt,
-			'totals'           => isset( $state['totals'] ) ? $state['totals'] : null,
-			'total'            => isset( $state['total'] ) ? (int) $state['total'] : null,
+			'done'              => $done,
+			'cursor'            => $next_cursor,
+			'processed'         => isset( $state[ 'processed' ] ) ? (int) $state[ 'processed' ] : 0,
+			'processedPostType' => isset( $state[ 'processed_pt' ] ) ? (int) $state[ 'processed_pt' ] : 0,
+			'currentPostType'   => $current_pt,
+			'totals'            => isset( $state[ 'totals' ] ) ? $state[ 'totals' ] : null,
+			'total'             => isset( $state[ 'total' ] ) ? (int) $state[ 'total' ] : null,
 		] );
 	}
 
 	private function add_totals_to_reindex_state( array $state ): array {
-		$post_types = isset( $state['post_types'] ) && is_array( $state['post_types'] ) ? $state['post_types'] : [];
-		$totals = [];
-		$total = 0;
+		$post_types = isset( $state[ 'post_types' ] ) && is_array( $state[ 'post_types' ] ) ? $state[ 'post_types' ] : [];
+		$totals     = [];
+		$total      = 0;
 		foreach ( $post_types as $pt ) {
 			$pt = is_string( $pt ) ? sanitize_key( $pt ) : '';
 			if ( '' === $pt ) {
 				continue;
 			}
-			$counts = function_exists( 'wp_count_posts' ) ? wp_count_posts( $pt ) : null;
+			$counts  = function_exists( 'wp_count_posts' ) ? wp_count_posts( $pt ) : null;
 			$publish = 0;
 			if ( is_object( $counts ) && isset( $counts->publish ) ) {
 				$publish = (int) $counts->publish;
 			}
-			$totals[ $pt ] = $publish;
-			$total += $publish;
+			$totals[ $pt ]  = $publish;
+			$total         += $publish;
 		}
-		$state['totals'] = $totals;
-		$state['total']  = $total;
+		$state[ 'totals' ] = $totals;
+		$state[ 'total' ]  = $total;
 		return $state;
 	}
 
@@ -327,18 +327,18 @@ class WP_Loupe_REST {
 			return null;
 		}
 		list( $payload, $hmac ) = explode( '|', $raw, 2 );
-		$calc = hash_hmac( 'sha256', $payload, wp_salt( 'auth' ) );
+		$calc                   = hash_hmac( 'sha256', $payload, wp_salt( 'auth' ) );
 		if ( ! hash_equals( $calc, $hmac ) ) {
 			return null;
 		}
 		$data = json_decode( $payload, true );
-		if ( ! is_array( $data ) || ! isset( $data['v'], $data['s'] ) ) {
+		if ( ! is_array( $data ) || ! isset( $data[ 'v' ], $data[ 's' ] ) ) {
 			return null;
 		}
-		if ( (int) $data['v'] !== self::REINDEX_CURSOR_VERSION ) {
+		if ( (int) $data[ 'v' ] !== self::REINDEX_CURSOR_VERSION ) {
 			return null;
 		}
-		return is_array( $data['s'] ) ? $data['s'] : null;
+		return is_array( $data[ 's' ] ) ? $data[ 's' ] : null;
 	}
 
 	/**

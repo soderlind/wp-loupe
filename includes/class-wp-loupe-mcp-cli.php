@@ -96,14 +96,14 @@ if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( '\\WP_CLI' ) ) {
 		 *   wp wp-loupe reindex --post-types=post --batch-size=1000
 		 */
 		public function reindex( $args, $assoc_args ) {
-			$batch_size = isset( $assoc_args['batch-size'] ) ? (int) $assoc_args['batch-size'] : 500;
+			$batch_size = isset( $assoc_args[ 'batch-size' ] ) ? (int) $assoc_args[ 'batch-size' ] : 500;
 			if ( $batch_size < 10 || $batch_size > 2000 ) {
 				$batch_size = 500;
 			}
 
 			$post_types = null;
-			if ( isset( $assoc_args['post-types'] ) && is_string( $assoc_args['post-types'] ) && trim( $assoc_args['post-types'] ) !== '' ) {
-				$post_types = preg_split( '/[\s,]+/', trim( (string) $assoc_args['post-types'] ) );
+			if ( isset( $assoc_args[ 'post-types' ] ) && is_string( $assoc_args[ 'post-types' ] ) && trim( $assoc_args[ 'post-types' ] ) !== '' ) {
+				$post_types = preg_split( '/[\s,]+/', trim( (string) $assoc_args[ 'post-types' ] ) );
 				$post_types = array_values( array_unique( array_filter( array_map( function ( $v ) {
 					return is_string( $v ) ? sanitize_key( $v ) : '';
 				}, $post_types ) ) ) );
@@ -117,12 +117,12 @@ if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( '\\WP_CLI' ) ) {
 
 			$totals = [];
 			$total  = 0;
-			if ( isset( $state['post_types'] ) && is_array( $state['post_types'] ) ) {
-				foreach ( $state['post_types'] as $pt ) {
-					$counts = function_exists( 'wp_count_posts' ) ? wp_count_posts( (string) $pt ) : null;
-					$publish = ( is_object( $counts ) && isset( $counts->publish ) ) ? (int) $counts->publish : 0;
-					$totals[ (string) $pt ] = $publish;
-					$total += $publish;
+			if ( isset( $state[ 'post_types' ] ) && is_array( $state[ 'post_types' ] ) ) {
+				foreach ( $state[ 'post_types' ] as $pt ) {
+					$counts                  = function_exists( 'wp_count_posts' ) ? wp_count_posts( (string) $pt ) : null;
+					$publish                 = ( is_object( $counts ) && isset( $counts->publish ) ) ? (int) $counts->publish : 0;
+					$totals[ (string) $pt ]  = $publish;
+					$total                  += $publish;
 				}
 			}
 
@@ -132,18 +132,18 @@ if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( '\\WP_CLI' ) ) {
 			}
 
 			$last_logged = -1;
-			while ( empty( $state['done'] ) ) {
-				$state = $indexer->reindex_batch_step( $state, $batch_size );
-				$processed = isset( $state['processed'] ) ? (int) $state['processed'] : 0;
-				$idx = isset( $state['idx'] ) ? (int) $state['idx'] : 0;
-				$post_types_state = isset( $state['post_types'] ) && is_array( $state['post_types'] ) ? $state['post_types'] : [];
-				$current_pt = ( $idx < count( $post_types_state ) ) ? (string) $post_types_state[ $idx ] : null;
-				$pt_processed = isset( $state['processed_pt'] ) ? (int) $state['processed_pt'] : 0;
+			while ( empty( $state[ 'done' ] ) ) {
+				$state            = $indexer->reindex_batch_step( $state, $batch_size );
+				$processed        = isset( $state[ 'processed' ] ) ? (int) $state[ 'processed' ] : 0;
+				$idx              = isset( $state[ 'idx' ] ) ? (int) $state[ 'idx' ] : 0;
+				$post_types_state = isset( $state[ 'post_types' ] ) && is_array( $state[ 'post_types' ] ) ? $state[ 'post_types' ] : [];
+				$current_pt       = ( $idx < count( $post_types_state ) ) ? (string) $post_types_state[ $idx ] : null;
+				$pt_processed     = isset( $state[ 'processed_pt' ] ) ? (int) $state[ 'processed_pt' ] : 0;
 
 				if ( $processed !== $last_logged ) {
 					$last_logged = $processed;
 					if ( $total > 0 ) {
-						$pct = min( 100, (int) round( ( $processed / $total ) * 100 ) );
+						$pct  = min( 100, (int) round( ( $processed / $total ) * 100 ) );
 						$line = sprintf( 'Progress: %d%% (%d/%d)', $pct, $processed, $total );
 					} else {
 						$line = sprintf( 'Progress: %d', $processed );
