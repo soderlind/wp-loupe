@@ -21,19 +21,23 @@ class WP_Loupe_Indexer {
 	private $schema_manager;
 	private $iso6391_lang;
 	private $last_reindex_rebuilds = [];
+	private $register_hooks;
 	private const LOUPE_SCHEMA_MISMATCH_SUBSTRINGS = [
 		'no such column: _user_id',
 		'no such column: _id',
 	];
 
-	public function __construct( $post_types = null ) {
+	public function __construct( $post_types = null, bool $register_hooks = true ) {
 		$this->db             = WP_Loupe_DB::get_instance();
 		$this->schema_manager = new WP_Loupe_Schema_Manager();
 		$this->iso6391_lang   = ( '' === get_locale() ) ? 'en' : strtolower( substr( get_locale(), 0, 2 ) );
+		$this->register_hooks = $register_hooks;
 
 		$this->set_post_types( $post_types );
 		$this->init_loupe_instances();
-		$this->register_hooks();
+		if ( $this->register_hooks ) {
+			$this->register_hooks();
+		}
 	}
 
 	/**
@@ -193,7 +197,6 @@ class WP_Loupe_Indexer {
 			'update' === $_POST[ 'action' ] && 'on' === $_POST[ 'wp_loupe_reindex' ] &&
 			wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ 'wp_loupe_nonce_field' ] ) ), 'wp_loupe_nonce_action' )
 		) {
-			WP_Loupe_Utils::dump( $_POST );
 			$this->reindex_all();
 			$this->maybe_add_reindex_rebuild_notice();
 			add_settings_error( 'wp-loupe', 'wp-loupe-reindex', __( 'Reindexing completed successfully!', 'wp-loupe' ), 'updated' );
@@ -284,6 +287,192 @@ class WP_Loupe_Indexer {
 				$this->loupe[ $post_type ]->addDocuments( $documents );
 			}
 		}
+	}
+
+	/**
+	 * Initialize a batched reindex state.
+	 *
+	 * This is intended for large sites where a full synchronous rebuild can time out.
+	 * The returned state is designed to be serialized into a cursor for REST/CLI.
+	 *
+	 * @param array|null $post_types Optional post types to reindex. Defaults to plugin setting.
+	 * @return array Batched reindex state.
+	 */
+	public function reindex_batch_init( $post_types = null ): array {
+		$this->last_reindex_rebuilds = [];
+		// Refresh post types (either from provided list or from settings)
+		$this->set_post_types( $post_types );
+		// Ensure required core columns exist (migration for post_date)
+		$this->ensure_required_columns();
+		// Clear the search cache
+		WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
+		// Ensure settings are sane (defaults exist)
+		$this->save_settings();
+		// Clear instance cache to ensure we're using the latest configuration
+		WP_Loupe_Factory::clear_instance_cache();
+		// Clear schema cache
+		$this->schema_manager->clear_cache();
+		// Initialize Loupe instances with the latest settings
+		$this->init_loupe_instances();
+
+		return [
+			'v'             => 1,
+			'post_types'    => array_values( $this->post_types ),
+			'idx'           => 0,
+			'last_id'       => 0,
+			'cleared'       => false,
+			'processed'     => 0,
+			'processed_pt'  => 0,
+		];
+	}
+
+	/**
+	 * Process a single batch step.
+	 *
+	 * Cursor strategy is keyset pagination using last processed post ID.
+	 * This avoids large-offset queries for big sites.
+	 *
+	 * @param array $state Batched reindex state (from reindex_batch_init or prior step).
+	 * @param int   $batch_size Number of posts to process per step.
+	 * @return array Updated state. Contains a 'done' boolean when complete.
+	 */
+	public function reindex_batch_step( array $state, int $batch_size = 500 ): array {
+		$batch_size = max( 10, min( 2000, (int) $batch_size ) );
+		$post_types = isset( $state['post_types'] ) && is_array( $state['post_types'] ) ? array_values( $state['post_types'] ) : [];
+		$idx        = isset( $state['idx'] ) ? max( 0, (int) $state['idx'] ) : 0;
+		$last_id    = isset( $state['last_id'] ) ? max( 0, (int) $state['last_id'] ) : 0;
+		$cleared    = ! empty( $state['cleared'] );
+		$processed  = isset( $state['processed'] ) ? max( 0, (int) $state['processed'] ) : 0;
+		$processed_pt = isset( $state['processed_pt'] ) ? max( 0, (int) $state['processed_pt'] ) : 0;
+
+		if ( empty( $post_types ) ) {
+			return [ 'done' => true ] + $state;
+		}
+
+		if ( $idx >= count( $post_types ) ) {
+			return [ 'done' => true ] + $state;
+		}
+
+		// Keep internals in sync with state.
+		$this->set_post_types( $post_types );
+		// Clear the search cache on each step (cheap and keeps results consistent).
+		WP_Loupe_Utils::remove_transient( 'wp_loupe_search_' );
+
+		$post_type = (string) $post_types[ $idx ];
+		if ( '' === $post_type ) {
+			$state['idx'] = $idx + 1;
+			$state['last_id'] = 0;
+			$state['cleared'] = false;
+			$state['processed_pt'] = 0;
+			return $state;
+		}
+
+		// Ensure Loupe instance exists.
+		if ( ! isset( $this->loupe[ $post_type ] ) ) {
+			$this->init_loupe_instances();
+		}
+
+		// One-time per post type: clear index (with rebuild protection).
+		if ( ! $cleared ) {
+			$should_rebuild = false;
+			if ( isset( $this->loupe[ $post_type ] ) && method_exists( $this->loupe[ $post_type ], 'needsReindex' ) ) {
+				try {
+					$should_rebuild = (bool) $this->loupe[ $post_type ]->needsReindex();
+				} catch (\Throwable $e) {
+					$should_rebuild = false;
+				}
+			}
+			if ( $should_rebuild ) {
+				$this->record_reindex_rebuild( $post_type, 'needsReindex()' );
+				$this->delete_index_for_post_type( $post_type );
+				$this->init_loupe_instances();
+			}
+			try {
+				$this->loupe[ $post_type ]->deleteAllDocuments();
+			} catch (\Throwable $e) {
+				if ( $this->is_loupe_schema_mismatch_error( $e ) ) {
+					$this->record_reindex_rebuild( $post_type, 'schema mismatch during deleteAllDocuments()' );
+					$this->delete_index_for_post_type( $post_type );
+					$this->init_loupe_instances();
+					// Fresh index; safe to proceed.
+				} else {
+					throw $e;
+				}
+			}
+			$cleared = true;
+			$last_id = 0;
+			$processed_pt = 0;
+		}
+
+		$ids = $this->get_published_post_ids_after( $post_type, $last_id, $batch_size );
+		if ( empty( $ids ) ) {
+			// Done with this post type.
+			$idx++;
+			$state['idx'] = $idx;
+			$state['last_id'] = 0;
+			$state['cleared'] = false;
+			$state['processed_pt'] = 0;
+			$state['processed'] = $processed;
+			return ( $idx >= count( $post_types ) ) ? [ 'done' => true ] + $state : $state;
+		}
+
+		$posts = get_posts( [
+			'post_type'      => $post_type,
+			'post_status'    => 'publish',
+			'post__in'       => $ids,
+			'orderby'        => 'post__in',
+			'posts_per_page' => count( $ids ),
+		] );
+
+		$documents = [];
+		foreach ( $posts as $post ) {
+			if ( $post instanceof \WP_Post ) {
+				$documents[] = $this->prepare_document( $post );
+			}
+		}
+
+		if ( ! empty( $documents ) ) {
+			$this->loupe[ $post_type ]->addDocuments( $documents );
+		}
+
+		$processed += count( $ids );
+		$processed_pt += count( $ids );
+		$last_id = max( $ids );
+
+		$state['idx'] = $idx;
+		$state['last_id'] = $last_id;
+		$state['cleared'] = $cleared;
+		$state['processed'] = $processed;
+		$state['processed_pt'] = $processed_pt;
+		$state['post_types'] = $post_types;
+		return $state;
+	}
+
+	/**
+	 * Fetch published post IDs for a post type, using keyset pagination by ID.
+	 *
+	 * @param string $post_type
+	 * @param int    $after_id Only return IDs greater than this.
+	 * @param int    $limit
+	 * @return int[]
+	 */
+	private function get_published_post_ids_after( string $post_type, int $after_id, int $limit ): array {
+		global $wpdb;
+		$limit    = max( 1, (int) $limit );
+		$after_id = max( 0, (int) $after_id );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish' AND ID > %d ORDER BY ID ASC LIMIT %d",
+				$post_type,
+				$after_id,
+				$limit
+			)
+		);
+		if ( ! is_array( $ids ) ) {
+			return [];
+		}
+		return array_map( 'intval', $ids );
 	}
 
 	private function record_reindex_rebuild( string $post_type, string $reason ): void {

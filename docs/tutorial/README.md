@@ -40,7 +40,7 @@ flowchart TD
     A2 -- "Uses utility functions" --> A8
     A3 -- "Performs diagnostics with" --> A8
     A4 -- "Routes search requests to" --> A0
-    A4 -- "Can trigger reindexing" --> A1
+    A4 -- "Can trigger batched reindexing" --> A1
     A4 -- "Manages database via API" --> A3
     A4 -- "Reflects schema status" --> A2
     A4 -- "Uses diagnostics for API" --> A8
@@ -53,7 +53,7 @@ flowchart TD
     A6 -- "Shares schema info" --> A2
     A6 -- "Performs diagnostics" --> A8
     A7 -- "Migrates index schema" --> A3
-    A7 -- "Initiates reindex" --> A1
+    A7 -- "Initiates (batched) reindex" --> A1
     A7 -- "Logs migrations" --> A8
     A8 -- "Assists with checks" --> A3
     A9 -- "Boots and wires up" --> A0

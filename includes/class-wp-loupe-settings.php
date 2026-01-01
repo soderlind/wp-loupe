@@ -885,12 +885,15 @@ class WPLoupe_Settings_Page {
 						settings_fields( 'wp-loupe-advanced' );
 						do_settings_sections( 'wp-loupe-advanced' );
 					} else {
-						echo '<input type="hidden" name="wp_loupe_reindex" id="wp_loupe_reindex" value="on">';
 						settings_fields( 'wp-loupe' );
 						do_settings_sections( 'wp-loupe' );
 					}
 
-					submit_button( $current_tab === 'general' ? __( 'Reindex', 'wp-loupe' ) : __( 'Save Settings', 'wp-loupe' ) );
+					submit_button( __( 'Save Settings', 'wp-loupe' ) );
+					if ( $current_tab === 'general' ) {
+						echo '<button type="button" class="button button-secondary" id="wp-loupe-reindex-button" style="margin-left:8px;">' . esc_html__( 'Reindex', 'wp-loupe' ) . '</button>';
+						echo '<p class="description" style="max-width:800px;">' . esc_html__( 'Reindex runs in small batches to avoid request timeouts. Save settings first, then click Reindex.', 'wp-loupe' ) . '</p>';
+					}
 					?>
 				</form>
 			<?php endif; ?>

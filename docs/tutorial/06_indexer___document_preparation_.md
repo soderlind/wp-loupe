@@ -110,7 +110,12 @@ Suppose you add a new field "cuisine_type" to your blueprint in [Schema Manager]
 You’ll want to **reindex**:
 
 ```php
-$indexer->reindex_all();
+// For large sites, prefer batched reindexing (via Admin UI or WP-CLI)
+// to avoid long-running requests.
+$state = $indexer->reindex_batch_init();
+while ( empty( $state['done'] ) ) {
+  $state = $indexer->reindex_batch_step( $state, 500 );
+}
 ```
 
 **Result:**  

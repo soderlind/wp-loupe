@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-01-01
+
+### Added
+- Batched reindexing to avoid admin request timeouts on large sites.
+- Admin-only maintenance REST endpoint: `POST /wp-json/wp-loupe/v1/reindex-batch`.
+- WP-CLI command for batched reindexing: `wp wp-loupe reindex`.
+- Pest test runner (dev) alongside PHPUnit.
+
+### Changed
+- Reindexing is triggered via a separate admin UI button (not tied to saving settings).
+
+### Documentation
+- Updated reindexing and testing docs (admin UI, REST, WP-CLI).
+
 ## [0.7.0] - 2025-12-18
 
 ### Added
@@ -455,6 +469,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Code style improvements for better maintainability
 
+[0.8.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.0
 [0.7.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.7.0
 [0.6.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.6.0
 [0.5.7]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.7

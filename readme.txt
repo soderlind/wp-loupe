@@ -1,10 +1,10 @@
 === WP Loupe – WordPress Search Enhancement ===
-Contributors: persoderlind
+Contributors: PerS
 Tags: search, full-text search, relevance, typo-tolerant, fast search, search engine
 Requires at least: 6.7
 Tested up to: 6.9
 Requires PHP: 8.3
-Stable tag: 0.7.0
+Stable tag: 0.8.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
@@ -107,7 +107,7 @@ For usage examples, see the [filter documentation at GitHub](https://github.com/
 
 2. **Post-Installation**
    * Visit Settings > WP Loupe to configure
-   * Click 'Reindex' to build the initial search index
+   * Click 'Reindex' to build the initial search index (runs in batches to avoid timeouts)
 
 3. **Updates**
    * Plugin updates are handled automatically via GitHub. No need to manually download and install updates.
@@ -130,6 +130,13 @@ Yes, using filters you can control exactly what content gets indexed and how it'
 
 Yes, you can select which post types to include in the Settings page or via filters.
 
+= How do I reindex on large sites? =
+
+Use Settings > WP Loupe > Reindex (batched), or run via WP-CLI:
+
+* `wp wp-loupe reindex`
+* `wp wp-loupe reindex --post-types=post,page --batch-size=1000`
+
 = How do I use advanced search operators? =
 
 * `Hello World` will search for posts containing `Hello` **or** `World`.
@@ -145,6 +152,13 @@ Yes, you can select which post types to include in the Settings page or via filt
 
 
 == Changelog ==
+
+= 0.8.0 =
+* Added: Batched reindexing to avoid admin request timeouts on large sites.
+* Added: Admin-only maintenance REST endpoint: `POST /wp-json/wp-loupe/v1/reindex-batch`.
+* Added: WP-CLI command for batched reindexing: `wp wp-loupe reindex`.
+* Added: Pest test runner (dev) alongside PHPUnit.
+* Changed: Reindexing is triggered via a separate admin UI button (not tied to saving settings).
 
 = 0.7.0 =
 * Added: Search API guide with hook-based field preparation examples (facets, geo, sorting).

@@ -104,13 +104,15 @@ After an upgrade, WP Loupe *adds the new required field* to every post type, so 
 ```php
 // Schedule a reindex for all posts
 if ($total_posts <= 2000) {
-    $indexer->reindex_all(); // For small sites: rebuild now
+  $indexer->reindex_all(); // For small sites: rebuild now
 } else {
     wp_schedule_single_event( time()+30, 'wp_loupe_migration_reindex', [ $post_types ] );
 }
 ```
 **Beginner explanation:**  
 Small sites get their search index rebuilt instantly; large sites let WordPress handle it gently in the background!
+
+For manual reindexing on large sites, WP Loupe also supports **batched reindexing** from the Settings UI and via WP-CLI (`wp wp-loupe reindex`).
 
 ---
 
@@ -122,6 +124,12 @@ If you ever want to opt-out of auto-migrations or auto-reindexing, you can:
   define('WP_LOUPE_DISABLE_AUTO_REINDEX', true);
   ```
 - **Manually trigger a reindex** in the WP Loupe settings (or call code like `$indexer->reindex_all()`).
+
+For large sites, prefer **batched** reindexing via Settings → WP Loupe → Reindex, or WP-CLI:
+
+```sh
+wp wp-loupe reindex
+```
 
 ---
 

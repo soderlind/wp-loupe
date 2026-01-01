@@ -195,8 +195,14 @@ In addition to search, WP Loupe's REST API provides:
 | `/post-type-fields/{post_type}` (GET)                  | Lists all searchable fields      | Build a dynamic search UI     |
 | `/create-database` (POST)                              | Sets up a new index for a type   | Admin adds new content type   |
 | `/delete-database` (POST)                              | Deletes an index for a type      | Admin removes content type    |
+| `/reindex-batch` (POST)                                | Reindexes in small batches       | Admin rebuilds indexes safely |
 
 **All these endpoints reply in JSON, making them easy to use with JavaScript, apps, or automation!**
+
+### Note on `/reindex-batch`
+
+`/wp-json/wp-loupe/v1/reindex-batch` is an **admin-only maintenance endpoint** used by the Settings UI “Reindex” button.
+It processes **one batch per request**, allowing large sites to rebuild indexes without hitting request timeouts.
 
 ---
 
