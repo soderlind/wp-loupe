@@ -144,7 +144,7 @@ add_action( 'save_post', function ( int $post_id ) {
 } );
 ```
 
-Note: if you already have data in meta, you typically only need the schema hook + a reindex.
+Note: if you already have data in meta, you typically only need the schema hook + a reindex (Settings → WP Loupe → Reindex, or `wp wp-loupe reindex`).
 
 ## POST /search
 

@@ -120,7 +120,7 @@ When you save your settings, here’s what happens:
 2. **Fields Setup:** Builds the index using the fields and weights you chose.
 3. **Advanced Options:** Applies your typo/prefix preferences to all searches.
 
-*Every time you save and reindex, these rules control your search engine’s behavior!*
+*Every time you save settings and then reindex, these rules control your search engine’s behavior!*
 
 Let’s see the step-by-step flow.
 
@@ -134,14 +134,18 @@ Here’s a simplified sequence of what *internally* happens when you update your
 sequenceDiagram
     participant User as Admin User
     participant UI as WP Loupe Settings UI
+   participant API as WP Loupe REST API
     participant Engine as WP Loupe Search Engine
     participant DB as Loupe Index (DB)
     participant WP as WordPress Core
 
-    User->>UI: Save settings & click "Reindex"
-    UI->>Engine: Pass updated post types & field configs
-    Engine->>DB: Update (rebuild) search index
-    Engine->>WP: Register new search behavior
+   User->>UI: Save settings
+   UI->>WP: Persist updated config
+   User->>UI: Click "Reindex"
+   UI->>API: POST /wp-json/wp-loupe/v1/reindex-batch (repeated)
+   API->>Engine: Process one batch of posts
+   Engine->>DB: Update (rebuild) search index incrementally
+   Engine->>WP: Register new search behavior
 ```
 
 - **Result:** Your WordPress searches will now follow the *rules and structure* you just chose!
@@ -171,7 +175,7 @@ You want *search* to:
 | ingredients   |     ✓     | 1.0    |      -     |    -     |     -      |
 | cook_time     |     ✓     | 1.0    |     ✓      |    ✓     | Asc/Desc   |
 
-3. **Save & Reindex.**
+3. **Save Settings**, then click **Reindex**.
 
 **What happens:**  
 - Now, searching “quick pasta” finds recipes FAST—weighted by title and ingredients.

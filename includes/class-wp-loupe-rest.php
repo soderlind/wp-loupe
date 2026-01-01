@@ -51,6 +51,7 @@ class WP_Loupe_REST {
 	private $db;
 	private $schema_manager;
 	private $iso6391_lang;
+	private const REINDEX_CURSOR_VERSION = 1;
 
 	/**
 	 * Constructor
@@ -186,7 +187,158 @@ class WP_Loupe_REST {
 				],
 			],
 		] );
+
+		// Batched reindex runner (admin only).
+		register_rest_route( 'wp-loupe/v1', '/reindex-batch', [
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'handle_reindex_batch_request' ],
+			'permission_callback' => function () {
+				return current_user_can( 'manage_options' );
+			},
+			'args'                => [
+				'cursor'     => [
+					'required'          => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				],
+				'reset'      => [
+					'required'          => false,
+					'sanitize_callback' => function ( $v ) {
+						return (bool) $v;
+					},
+				],
+				'batch_size' => [
+					'required'          => false,
+					'sanitize_callback' => 'absint',
+				],
+				'post_types' => [
+					'required' => false,
+				],
+			],
+		] );
 		$this->log( 'Routes registered.' );
+	}
+
+	/**
+	 * Run a single batched reindex step.
+	 *
+	 * POST /wp-json/wp-loupe/v1/reindex-batch
+	 *
+	 * @param mixed $request Request object implementing typical WP_REST_Request methods.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function handle_reindex_batch_request( $request ) {
+		$cursor     = '';
+		$reset      = false;
+		$batch_size = 500;
+		$post_types = null;
+
+		if ( is_object( $request ) && method_exists( $request, 'get_param' ) ) {
+			$cursor     = (string) $request->get_param( 'cursor' );
+			$reset      = (bool) $request->get_param( 'reset' );
+			$batch_size = (int) $request->get_param( 'batch_size' );
+			$post_types = $request->get_param( 'post_types' );
+		}
+		if ( $batch_size < 10 || $batch_size > 2000 ) {
+			$batch_size = 500;
+		}
+
+		if ( is_array( $post_types ) ) {
+			$post_types = array_values( array_unique( array_filter( array_map( function ( $v ) {
+				return is_string( $v ) ? sanitize_key( $v ) : '';
+			}, $post_types ) ) ) );
+			if ( empty( $post_types ) ) {
+				$post_types = null;
+			}
+		} else {
+			$post_types = null;
+		}
+
+		$state = null;
+		if ( ! $reset && $cursor ) {
+			$decoded = $this->decode_reindex_cursor( $cursor );
+			if ( is_array( $decoded ) ) {
+				$state = $decoded;
+			}
+		}
+
+		$indexer = new WP_Loupe_Indexer( null, false );
+		if ( ! is_array( $state ) ) {
+			$state = $indexer->reindex_batch_init( $post_types );
+			$state = $this->add_totals_to_reindex_state( $state );
+		}
+
+		try {
+			$state = $indexer->reindex_batch_step( $state, $batch_size );
+		} catch (\Throwable $e) {
+			return new \WP_Error( 'wp_loupe_reindex_failed', $e->getMessage(), [ 'status' => 500 ] );
+		}
+
+		$done        = ! empty( $state[ 'done' ] );
+		$next_cursor = $done ? null : $this->encode_reindex_cursor( $state );
+
+		$idx              = isset( $state[ 'idx' ] ) ? (int) $state[ 'idx' ] : 0;
+		$post_types_state = isset( $state[ 'post_types' ] ) && is_array( $state[ 'post_types' ] ) ? $state[ 'post_types' ] : [];
+		$current_pt       = ( $idx < count( $post_types_state ) ) ? (string) $post_types_state[ $idx ] : null;
+
+		return rest_ensure_response( [
+			'done'              => $done,
+			'cursor'            => $next_cursor,
+			'processed'         => isset( $state[ 'processed' ] ) ? (int) $state[ 'processed' ] : 0,
+			'processedPostType' => isset( $state[ 'processed_pt' ] ) ? (int) $state[ 'processed_pt' ] : 0,
+			'currentPostType'   => $current_pt,
+			'totals'            => isset( $state[ 'totals' ] ) ? $state[ 'totals' ] : null,
+			'total'             => isset( $state[ 'total' ] ) ? (int) $state[ 'total' ] : null,
+		] );
+	}
+
+	private function add_totals_to_reindex_state( array $state ): array {
+		$post_types = isset( $state[ 'post_types' ] ) && is_array( $state[ 'post_types' ] ) ? $state[ 'post_types' ] : [];
+		$totals     = [];
+		$total      = 0;
+		foreach ( $post_types as $pt ) {
+			$pt = is_string( $pt ) ? sanitize_key( $pt ) : '';
+			if ( '' === $pt ) {
+				continue;
+			}
+			$counts  = function_exists( 'wp_count_posts' ) ? wp_count_posts( $pt ) : null;
+			$publish = 0;
+			if ( is_object( $counts ) && isset( $counts->publish ) ) {
+				$publish = (int) $counts->publish;
+			}
+			$totals[ $pt ]  = $publish;
+			$total         += $publish;
+		}
+		$state[ 'totals' ] = $totals;
+		$state[ 'total' ]  = $total;
+		return $state;
+	}
+
+	/* ------------------ Reindex Cursor Helpers ------------------ */
+
+	private function encode_reindex_cursor( array $state ): string {
+		$payload = wp_json_encode( [ 'v' => self::REINDEX_CURSOR_VERSION, 's' => $state ] );
+		$hmac    = hash_hmac( 'sha256', $payload, wp_salt( 'auth' ) );
+		return rtrim( strtr( base64_encode( $payload . '|' . $hmac ), '+/', '-_' ), '=' );
+	}
+
+	private function decode_reindex_cursor( string $cursor ) {
+		$raw = base64_decode( strtr( $cursor, '-_', '+/' ), true );
+		if ( ! $raw || ! str_contains( $raw, '|' ) ) {
+			return null;
+		}
+		list( $payload, $hmac ) = explode( '|', $raw, 2 );
+		$calc                   = hash_hmac( 'sha256', $payload, wp_salt( 'auth' ) );
+		if ( ! hash_equals( $calc, $hmac ) ) {
+			return null;
+		}
+		$data = json_decode( $payload, true );
+		if ( ! is_array( $data ) || ! isset( $data[ 'v' ], $data[ 's' ] ) ) {
+			return null;
+		}
+		if ( (int) $data[ 'v' ] !== self::REINDEX_CURSOR_VERSION ) {
+			return null;
+		}
+		return is_array( $data[ 's' ] ) ? $data[ 's' ] : null;
 	}
 
 	/**

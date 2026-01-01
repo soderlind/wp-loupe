@@ -68,7 +68,7 @@ Full details, filter references, and examples: see [docs/mcp.md](docs/mcp.md).
 3. **Post-Installation**
    - Activate the plugin
    - Go to Settings > WP Loupe
-   - Click "Reindex" to build the initial search index
+	- Click "Reindex" to build the initial search index (runs in batches; safe for large sites)
 
 * Plugin [updates are handled automatically](https://github.com/soderlind/wordpress-plugin-github-updater#readme) via GitHub. No need to manually download and install updates.
 
@@ -157,6 +157,37 @@ WP Loupe provides advanced configuration options to fine-tune your search experi
 - Configure which languages the search index should optimize for. Default is English ('en').
 
 These advanced settings can be accessed in the WordPress admin under Settings > WP Loupe > Advanced tab.
+
+## Reindexing
+
+Reindexing rebuilds the index for your configured post types.
+
+- **Admin UI:** Settings → WP Loupe → click **Reindex** (runs in batches to avoid timeouts)
+- **WP-CLI (recommended for large sites):**
+
+	```bash
+	wp wp-loupe reindex
+	```
+
+	Optional flags:
+
+	```bash
+	wp wp-loupe reindex --post-types=post,page --batch-size=1000
+	```
+
+## Testing
+
+- PHPUnit:
+
+	```bash
+	composer test
+	```
+
+- Pest (runs using the PHPUnit config):
+
+	```bash
+	composer test:pest
+	```
 
 
 
