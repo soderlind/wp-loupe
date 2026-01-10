@@ -1,0 +1,49 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "WP Loupe",
+		"description": "Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.",
+		"author": "PerS",
+		"categories": [
+			"theme"
+		]
+	},
+	"landingPage": "/?s=image",
+	"login": true,
+	"features": {
+		"networking": true
+	},
+	"plugins": [
+		"https://github.com/soderlind/wp-loupe/releases/latest/download/wp-loupe.zip"
+	],
+	"steps": [
+		{
+			"step": "resetData"
+		},
+		{
+			"step": "updateUserMeta",
+			"meta": {
+				"first_name": "Per",
+				"last_name": "Soderlind",
+				"admin_color": "modern"
+			},
+			"userId": 1
+		},
+		{
+			"step": "importWxr",
+			"file": {
+				"resource": "url",
+				"url": "https://raw.githubusercontent.com/wpaccessibility/a11y-theme-unit-test/master/a11y-theme-unit-test-data.xml"
+			}
+		},
+		{
+			"step": "setSiteOptions",
+			"options": {
+				"blogname": "WP Loupe",
+				"blogdescription": "Search engine for WordPress. It uses the Loupe search engine to create a search index for your posts and pages and to search the index.",
+				"show_on_front": "page",
+				"permalink_structure": "/%postname%/"
+			}
+		}
+	]
+}
