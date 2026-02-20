@@ -99,7 +99,8 @@ class WP_Loupe_Search_Engine {
 				$search_params = SearchParameters::create()
 					->withQuery( (string) $query )
 					->withAttributesToRetrieve( $retrievable_fields )
-					->withShowRankingScore( true );
+					->withShowRankingScore( true )
+					->withLimit( 1000 );
 
 				if ( ! empty( $valid_sort_fields ) ) {
 					try {
@@ -126,7 +127,7 @@ class WP_Loupe_Search_Engine {
 						$hit[ '_score' ] = $hit[ '_rankingScore' ];
 					}
 					$hit[ 'post_type' ] = $post_type;
-					$hits[]           = $hit;
+					$hits[]             = $hit;
 				}
 			} catch (\Throwable $e) {
 				WP_Loupe_Utils::debug_log( "Search error for {$post_type}: " . $e->getMessage(), 'WP Loupe' );
@@ -276,7 +277,7 @@ class WP_Loupe_Search_Engine {
 						$hit[ '_score' ] = $hit[ '_rankingScore' ];
 					}
 					$hit[ 'post_type' ] = $post_type;
-					$hits[]           = $hit;
+					$hits[]             = $hit;
 				}
 			} catch (\Throwable $e) {
 				WP_Loupe_Utils::debug_log( "Advanced search error for {$post_type}: " . $e->getMessage(), 'WP Loupe' );

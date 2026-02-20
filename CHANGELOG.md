@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-02-20
+
+### Fixed
+- Search hooks now activate for AJAX requests (e.g., live search), resolving missing results in AJAX-powered search forms.
+- Pagination respects the query `posts_per_page` variable before falling back to the global option.
+- `should_intercept_query()` intercepts AJAX search requests, not only main queries.
+
+### Changed
+- Search engine retrieves up to 1 000 hits per post type before client-side paging to prevent truncated result sets.
+- Updated PHP and JavaScript dependencies.
+
 ## [0.8.0] - 2026-01-01
 
 ### Added
@@ -469,7 +480,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Code style improvements for better maintainability
 
-[0.8.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.0
+[0.8.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.1\n[0.8.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.0
 [0.7.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.7.0
 [0.6.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.6.0
 [0.5.7]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.7

@@ -1,6 +1,6 @@
 {
 	"name": "wp-loupe",
-	"version": "0.8.0",
+	"version": "0.8.1",
 	"description": "Enhance the search functionality of your WordPress site with WP Loupe.",
 	"main": "index.js",
 	"scripts": {
@@ -24,13 +24,13 @@
 	},
 	"homepage": "https://github.com/soderlind/wp-loupe#readme",
 	"devDependencies": {
-		"@wordpress/scripts": "^31.1.0",
-		"terser-webpack-plugin": "^5.3.14"
+		"@wordpress/scripts": "^31.5.0",
+		"terser-webpack-plugin": "^5.3.16"
 	},
 	"dependencies": {
 		"@soderlind/wp-project-version-sync": "^2.0.2",
-		"@wordpress/api-fetch": "^7.34.0",
-		"@wordpress/i18n": "^6.7.0",
+		"@wordpress/api-fetch": "^7.40.0",
+		"@wordpress/i18n": "^6.13.0",
 		"cross-spawn": "^7.0.6"
 	}
 }
