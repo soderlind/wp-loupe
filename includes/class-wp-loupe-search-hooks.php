@@ -31,16 +31,16 @@ class WP_Loupe_Search_Hooks {
 		}
 
 		$query->set( 'post_type', $this->post_types );
-		$search_term = $this->prepare_search_term( $query->query_vars['search_terms'] ?? [] );
+		$search_term = $this->prepare_search_term( $query->query_vars[ 'search_terms' ] ?? [] );
 		$hits        = $this->engine->search( $search_term );
 		$all_posts   = $this->create_post_objects( $hits );
 
 		$this->total_found_posts = count( $all_posts );
-		$posts_per_page          = apply_filters( 'wp_loupe_posts_per_page', get_option( 'posts_per_page' ) );
-		$paged                  = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
-		$offset                 = ( $paged - 1 ) * $posts_per_page;
+		$posts_per_page          = apply_filters( 'wp_loupe_posts_per_page', $query->get( 'posts_per_page' ) ?: get_option( 'posts_per_page' ) );
+		$paged                   = $query->get( 'paged' ) ? $query->get( 'paged' ) : 1;
+		$offset                  = ( $paged - 1 ) * $posts_per_page;
 		$this->max_num_pages     = (int) ceil( $this->total_found_posts / $posts_per_page );
-		$paged_posts            = array_slice( $all_posts, $offset, $posts_per_page );
+		$paged_posts             = array_slice( $all_posts, $offset, $posts_per_page );
 
 		$query->found_posts   = $this->total_found_posts;
 		$query->max_num_pages = $this->max_num_pages;
@@ -49,7 +49,10 @@ class WP_Loupe_Search_Hooks {
 	}
 
 	private function should_intercept_query( $query ): bool {
-		return ! is_admin() && $query->is_main_query() && $query->is_search() && ! $query->is_admin;
+		if ( is_admin() && ! wp_doing_ajax() ) {
+			return false;
+		}
+		return $query->is_search() && ( $query->is_main_query() || wp_doing_ajax() );
 	}
 
 	private function prepare_search_term( $search_terms ): string {
@@ -65,13 +68,13 @@ class WP_Loupe_Search_Hooks {
 			return [];
 		}
 
-		$saved_fields  = get_option( 'wp_loupe_fields', [] );
-		$hits_by_type  = [];
+		$saved_fields = get_option( 'wp_loupe_fields', [] );
+		$hits_by_type = [];
 		foreach ( $hits as $hit ) {
-			if ( ! is_array( $hit ) || empty( $hit['post_type'] ) ) {
+			if ( ! is_array( $hit ) || empty( $hit[ 'post_type' ] ) ) {
 				continue;
 			}
-			$hits_by_type[ $hit['post_type'] ][] = $hit;
+			$hits_by_type[ $hit[ 'post_type' ] ][] = $hit;
 		}
 
 		$all_posts = [];
@@ -87,7 +90,7 @@ class WP_Loupe_Search_Hooks {
 			$post_type_fields = is_array( $saved_fields ) ? ( $saved_fields[ $post_type ] ?? [] ) : [];
 			$fields_to_load   = [];
 			foreach ( (array) $post_type_fields as $field_name => $settings ) {
-				if ( ! empty( $settings['filterable'] ) || ! empty( $settings['sortable'] ) ) {
+				if ( ! empty( $settings[ 'filterable' ] ) || ! empty( $settings[ 'sortable' ] ) ) {
 					$fields_to_load[] = $field_name;
 				}
 			}
@@ -111,7 +114,7 @@ class WP_Loupe_Search_Hooks {
 
 		$posts_lookup = array_column( $all_posts, null, 'ID' );
 		return array_values( array_filter( array_map( function ( $hit ) use ( $posts_lookup ) {
-			return isset( $hit['id'] ) && isset( $posts_lookup[ $hit['id'] ] ) ? $posts_lookup[ $hit['id'] ] : null;
+			return isset( $hit[ 'id' ] ) && isset( $posts_lookup[ $hit[ 'id' ] ] ) ? $posts_lookup[ $hit[ 'id' ] ] : null;
 		}, $hits ) ) );
 	}
 

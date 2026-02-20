@@ -88,7 +88,7 @@ class WP_Loupe_Loader {
 
 		$this->search_engine = new WP_Loupe_Search_Engine( $this->post_types );
 		// Front-end only: register query interception + footer timing.
-		if ( ! is_admin() && ! ( defined( 'REST_REQUEST' ) && REST_REQUEST ) && ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+		if ( ( ! is_admin() || wp_doing_ajax() ) && ! ( defined( 'REST_REQUEST' ) && REST_REQUEST ) && ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 			$this->search_hooks = new WP_Loupe_Search_Hooks( $this->search_engine );
 			$this->search_hooks->register();
 		}
