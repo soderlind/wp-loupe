@@ -49,10 +49,10 @@ jobs:
         working-directory: /tmp
         run: zip -r ${{ github.workspace }}/wp-loupe.zip wp-loupe/
 
-      - name: Release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b #v2
+      - name: Upload zip to release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          files: wp-loupe.zip
-          tag_name: ${{ github.event.release.tag_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            wp-loupe.zip \
+            --clobber
