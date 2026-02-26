@@ -2,7 +2,7 @@
 
 # WP Loupe - Enhanced WordPress Search
 
-A search enhancement plugin for WordPress that builds a fast, typo-tolerant index and exposes a developer-friendly API so you can build your own search UI.
+A search enhancement plugin for WordPress that builds a fast, typo-tolerant index and exposes a developer-friendly API so you can build your own search UI. **WP Loupe works out of the box with WordPress’s standard search.**
 
 ## Quick Links
 
