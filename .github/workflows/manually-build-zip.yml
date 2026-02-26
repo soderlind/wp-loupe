@@ -19,16 +19,40 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Build plugin # Remove or modify this step as needed
+      - name: Build plugin
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Stage release files
         run: |
-          composer install --no-dev
+          mkdir -p /tmp/wp-loupe
+          rsync -a \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.gitattributes' \
+            --exclude='.gitignore' \
+            --exclude='.phpunit.cache/' \
+            --exclude='node_modules/' \
+            --exclude='tests/' \
+            --exclude='docs/' \
+            --exclude='composer.json' \
+            --exclude='composer.lock' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            --exclude='phpunit.xml.dist' \
+            --exclude='debug.php' \
+            --exclude='test-mcp-search.sh' \
+            --exclude='mcp-design.md' \
+            --exclude='TODO.md' \
+            --exclude='CHANGELOG.md' \
+            --exclude='README.md' \
+            --exclude='.editorconfig' \
+            --exclude='.wp-env.json' \
+            --exclude='vendor/bin/' \
+            . /tmp/wp-loupe/
 
       - name: Archive Release
-        uses: thedoctor0/zip-release@b57d897cb5d60cb78b51a507f63fa184cfe35554 #0.7.6
-        with:
-          type: 'zip'
-          filename: 'wp-loupe.zip'
-          exclusions: '*.git* .editorconfig composer* *.md package.json package-lock.json'
+        working-directory: /tmp
+        run: zip -r ${{ github.workspace }}/wp-loupe.zip wp-loupe/
 
       - name: Release
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b #v2
