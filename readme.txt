@@ -4,7 +4,7 @@ Tags: search, full-text search, relevance, typo-tolerant, fast search, search en
 Requires at least: 6.7
 Tested up to: 6.9
 Requires PHP: 8.3
-Stable tag: 0.8.1
+Stable tag: 0.8.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
@@ -152,6 +152,10 @@ Use Settings > WP Loupe > Reindex (batched), or run via WP-CLI:
 
 
 == Changelog ==
+
+= 0.8.2 =
+* Changed: Enhanced README with WP Loupe compatibility note.
+* Changed: Updated dev dependencies (`basic-ftp` 5.0.5 → 5.2.0).
 
 = 0.8.1 =
 * Fixed: Search hooks now activate for AJAX requests (e.g., live search), resolving missing results in AJAX-powered search forms.
