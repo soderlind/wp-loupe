@@ -54,11 +54,13 @@ jobs:
         working-directory: /tmp
         run: zip -r ${{ github.workspace }}/wp-loupe.zip wp-loupe/
 
-      - name: Create release and upload zip
+      - name: Upload zip to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ github.event.inputs.tag }}" \
-            wp-loupe.zip \
-            --title "${{ github.event.inputs.tag }}" \
-            --generate-notes
+          TAG="${{ github.event.inputs.tag }}"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" wp-loupe.zip --clobber
+          else
+            gh release create "$TAG" wp-loupe.zip --title "$TAG" --generate-notes
+          fi
