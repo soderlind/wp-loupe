@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2026-02-26
+
+### Changed
+- Enhanced README with WP Loupe compatibility note.
+- Updated dev dependencies (`basic-ftp` 5.0.5 → 5.2.0).
+
 ## [0.8.1] - 2026-02-20
 
 ### Fixed
@@ -488,8 +494,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.5.5]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.5
 [0.5.4]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.4
 [0.5.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.3
-[0.5.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.2
-[0.5.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.1
+[0.5.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.2[0.8.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.2[0.5.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.1
 [0.5.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.0
 [0.4.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.4.3
 [0.4.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.4.2
