@@ -27,6 +27,12 @@ class WP_Loupe_Indexer {
 		'no such column: _id',
 	];
 
+	/**
+	 * Constructor.
+	 *
+	 * @param array|null $post_types     Post types to index, or null to use settings.
+	 * @param bool       $register_hooks Whether to register WordPress hooks.
+	 */
 	public function __construct( $post_types = null, bool $register_hooks = true ) {
 		$this->db             = WP_Loupe_DB::get_instance();
 		$this->schema_manager = new WP_Loupe_Schema_Manager();

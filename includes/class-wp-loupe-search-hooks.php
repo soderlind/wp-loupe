@@ -7,11 +7,23 @@ namespace Soderlind\Plugin\WPLoupe;
  * Owns WordPress query interception + footer timing output.
  */
 class WP_Loupe_Search_Hooks {
+	/** @var WP_Loupe_Search_Engine */
 	private $engine;
+
+	/** @var array */
 	private $post_types;
+
+	/** @var int */
 	private $total_found_posts = 0;
+
+	/** @var int */
 	private $max_num_pages = 0;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param WP_Loupe_Search_Engine $engine Search engine instance.
+	 */
 	public function __construct( WP_Loupe_Search_Engine $engine ) {
 		$this->engine     = $engine;
 		$this->post_types = $engine->get_post_types();
@@ -25,6 +37,15 @@ class WP_Loupe_Search_Hooks {
 		add_action( 'wp_footer', [ $this, 'action_wp_footer' ], 999 );
 	}
 
+	/**
+	 * Filter posts before the main query runs.
+	 *
+	 * Intercepts search queries and returns WP Loupe results instead.
+	 *
+	 * @param array|null $posts Null to allow WP to run its query, or array of posts to short-circuit.
+	 * @param \WP_Query  $query The WP_Query instance.
+	 * @return array|null Array of WP_Post objects on success, null to fall back to default query.
+	 */
 	public function posts_pre_query( $posts, \WP_Query $query ) {
 		if ( ! $this->should_intercept_query( $query ) ) {
 			return null;
@@ -48,13 +69,48 @@ class WP_Loupe_Search_Hooks {
 		return $paged_posts;
 	}
 
-	private function should_intercept_query( $query ): bool {
+	/**
+	 * Determine if WP Loupe should intercept the given query.
+	 *
+	 * Checks for front-end search queries with indexed post types.
+	 *
+	 * @param \WP_Query $query The WP_Query instance.
+	 * @return bool True if WP Loupe should handle this query.
+	 */
+	private function should_intercept_query( \WP_Query $query ): bool {
 		if ( is_admin() && ! wp_doing_ajax() ) {
 			return false;
 		}
-		return $query->is_search() && ( $query->is_main_query() || wp_doing_ajax() );
+		if ( ! $query->is_search() || ( ! $query->is_main_query() && ! wp_doing_ajax() ) ) {
+			return false;
+		}
+
+		// Only intercept if all queried post types are indexed by WP Loupe.
+		$queried_type = $query->get( 'post_type' );
+		if ( empty( $queried_type ) || 'any' === $queried_type ) {
+			// When no post_type specified, only intercept if we index all public searchable types.
+			$searchable_types = get_post_types( [ 'public' => true, 'exclude_from_search' => false ] );
+			if ( array_diff( $searchable_types, $this->post_types ) ) {
+				return false;
+			}
+		} else {
+			$queried_types = (array) $queried_type;
+			if ( array_diff( $queried_types, $this->post_types ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
+	/**
+	 * Prepare search terms for Loupe query.
+	 *
+	 * Wraps multi-word terms in quotes for phrase matching.
+	 *
+	 * @param array|mixed $search_terms Array of search terms from WP_Query.
+	 * @return string Prepared search string.
+	 */
 	private function prepare_search_term( $search_terms ): string {
 		$search_terms = is_array( $search_terms ) ? $search_terms : [];
 		return implode( ' ', array_map( function ( $term ) {
@@ -63,6 +119,14 @@ class WP_Loupe_Search_Hooks {
 		}, $search_terms ) );
 	}
 
+	/**
+	 * Convert Loupe search hits to WP_Post objects.
+	 *
+	 * Fetches full post data and attaches filterable/sortable meta fields.
+	 *
+	 * @param array $hits Array of Loupe search result hits.
+	 * @return array Array of WP_Post objects ordered by relevance.
+	 */
 	private function create_post_objects( $hits ): array {
 		if ( empty( $hits ) || ! is_array( $hits ) ) {
 			return [];
@@ -118,6 +182,11 @@ class WP_Loupe_Search_Hooks {
 		}, $hits ) ) );
 	}
 
+	/**
+	 * Output search timing info as HTML comment in footer.
+	 *
+	 * @return void
+	 */
 	public function action_wp_footer(): void {
 		if ( is_admin() ) {
 			return;

@@ -2,9 +2,9 @@
 Contributors: PerS
 Tags: search, full-text search, relevance, typo-tolerant, fast search, search engine
 Requires at least: 6.7
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 8.3
-Stable tag: 0.8.2
+Stable tag: 0.8.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
@@ -152,6 +152,10 @@ Use Settings > WP Loupe > Reindex (batched), or run via WP-CLI:
 
 
 == Changelog ==
+
+= 0.8.3 =
+* Fixed: `should_intercept_query()` validates all public searchable post types are indexed before intercepting generic searches.
+* Changed: Added DocBlocks for methods in search hooks, token service, and indexer classes.
 
 = 0.8.2 =
 * Changed: Enhanced README with WP Loupe compatibility note.
