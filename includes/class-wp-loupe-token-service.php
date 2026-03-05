@@ -86,8 +86,8 @@ class WP_Loupe_Token_Service {
 	 * @return array Sanitized rate limit settings.
 	 */
 	public function save_rate_limits( array $incoming ) {
-		$existing                     = get_option( 'wp_loupe_mcp_rate_limits', [] );
-		$sanitized                    = [];
+		$existing                       = get_option( 'wp_loupe_mcp_rate_limits', [] );
+		$sanitized                      = [];
 		$sanitized[ 'anon_window' ]     = max( 10, min( 3600, intval( $incoming[ 'anon_window' ] ?? ( $existing[ 'anon_window' ] ?? 60 ) ) ) );
 		$sanitized[ 'anon_limit' ]      = max( 1, min( 1000, intval( $incoming[ 'anon_limit' ] ?? ( $existing[ 'anon_limit' ] ?? 15 ) ) ) );
 		$sanitized[ 'auth_window' ]     = max( 10, min( 3600, intval( $incoming[ 'auth_window' ] ?? ( $existing[ 'auth_window' ] ?? 60 ) ) ) );
