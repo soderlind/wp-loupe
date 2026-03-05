@@ -47,7 +47,12 @@ class WP_Loupe_Token_Service {
 		return [ 'access_token' => $raw_token, 'hash' => $hash, 'record' => $registry[ $hash ] ];
 	}
 
-	/** Revoke a single token by hash */
+	/**
+	 * Revoke a single token by its hash.
+	 *
+	 * @param string $hash The token hash to revoke.
+	 * @return bool True if token was revoked, false if not found.
+	 */
 	public function revoke_token( $hash ) {
 		$registry = get_option( 'wp_loupe_mcp_tokens', [] );
 		if ( isset( $registry[ $hash ] ) ) {
@@ -59,7 +64,11 @@ class WP_Loupe_Token_Service {
 		return false;
 	}
 
-	/** Revoke all tokens */
+	/**
+	 * Revoke all tokens and clear the registry.
+	 *
+	 * @return void
+	 */
 	public function revoke_all_tokens() {
 		$registry = get_option( 'wp_loupe_mcp_tokens', [] );
 		if ( is_array( $registry ) ) {
@@ -70,10 +79,15 @@ class WP_Loupe_Token_Service {
 		update_option( 'wp_loupe_mcp_tokens', [] );
 	}
 
-	/** Save rate limits with bounds */
+	/**
+	 * Save rate limits with validation bounds.
+	 *
+	 * @param array $incoming Associative array of rate limit settings.
+	 * @return array Sanitized rate limit settings.
+	 */
 	public function save_rate_limits( array $incoming ) {
-		$existing                     = get_option( 'wp_loupe_mcp_rate_limits', [] );
-		$sanitized                    = [];
+		$existing                       = get_option( 'wp_loupe_mcp_rate_limits', [] );
+		$sanitized                      = [];
 		$sanitized[ 'anon_window' ]     = max( 10, min( 3600, intval( $incoming[ 'anon_window' ] ?? ( $existing[ 'anon_window' ] ?? 60 ) ) ) );
 		$sanitized[ 'anon_limit' ]      = max( 1, min( 1000, intval( $incoming[ 'anon_limit' ] ?? ( $existing[ 'anon_limit' ] ?? 15 ) ) ) );
 		$sanitized[ 'auth_window' ]     = max( 10, min( 3600, intval( $incoming[ 'auth_window' ] ?? ( $existing[ 'auth_window' ] ?? 60 ) ) ) );
@@ -84,13 +98,21 @@ class WP_Loupe_Token_Service {
 		return $sanitized;
 	}
 
-	/** Get registry */
+	/**
+	 * Get the token registry.
+	 *
+	 * @return array Associative array of token hashes to token records.
+	 */
 	public function get_registry() {
 		$registry = get_option( 'wp_loupe_mcp_tokens', [] );
 		return is_array( $registry ) ? $registry : [];
 	}
 
-	/** Get last created token (and optionally clear) */
+	/**
+	 * Get and clear the last created token.
+	 *
+	 * @return string The raw token string, or empty string if none.
+	 */
 	public function pop_last_created_token() {
 		$token = get_option( 'wp_loupe_mcp_last_created_token', '' );
 		if ( $token ) {
