@@ -23,7 +23,7 @@
 		"ext-pdo_sqlite": "*",
 		"ext-intl": "*",
 		"ext-mbstring": "*",
-		"loupe/loupe": "0.13.4",
+		"loupe/loupe": "~0.13.7",
 		"yahnis-elsts/plugin-update-checker": "~5.6"
 	},
 	"require-dev": {
