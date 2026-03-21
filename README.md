@@ -2,6 +2,8 @@
 
 # WP Loupe - Enhanced WordPress Search
 
+> New! WP Loupe - Admin Search is here! Search your admin content with the same powerful Loupe engine. Available at [wp-loupe-admin-search](https://github.com/soderlind/wp-loupe-admin-search)
+
 A search enhancement plugin for WordPress that builds a fast, typo-tolerant index and exposes a developer-friendly API so you can build your own search UI. **WP Loupe works out of the box with WordPress’s standard search.**
 
 ## Quick Links
