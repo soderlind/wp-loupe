@@ -10,22 +10,19 @@ require_once __DIR__ . '/bootstrap.php';
 
 class WP_Loupe_SettingsTest extends TestCase {
 
-	/** @test */
-	public function auto_update_option_defaults_true() {
+	public function test_auto_update_option_defaults_true() {
 		// Simulate absence of option.
 		delete_option( 'wp_loupe_auto_update_enabled' );
 		$value = get_option( 'wp_loupe_auto_update_enabled', true );
 		$this->assertTrue( (bool) $value, 'Auto update should default to true when option missing.' );
 	}
 
-	/** @test */
-	public function can_disable_auto_update_option() {
+	public function test_can_disable_auto_update_option() {
 		update_option( 'wp_loupe_auto_update_enabled', false );
 		$this->assertFalse( (bool) get_option( 'wp_loupe_auto_update_enabled', true ), 'Auto update should be false after disabling.' );
 	}
 
-	/** @test */
-	public function sanitize_advanced_settings_numeric_and_boolean() {
+	public function test_sanitize_advanced_settings_numeric_and_boolean() {
 		$settings_page = $this->make_settings_page();
 		$input         = [
 			'max_query_tokens'       => '25',
@@ -46,8 +43,7 @@ class WP_Loupe_SettingsTest extends TestCase {
 		$this->assertTrue( $sanitized[ 'first_char_typo_double' ] );
 	}
 
-	/** @test */
-	public function sanitize_fields_settings_filters_non_indexable() {
+	public function test_sanitize_fields_settings_filters_non_indexable() {
 		$settings_page = $this->make_settings_page();
 		$input         = [
 			'post' => [

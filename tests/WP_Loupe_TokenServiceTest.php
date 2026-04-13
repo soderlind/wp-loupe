@@ -5,8 +5,7 @@ use Soderlind\Plugin\WPLoupe\WP_Loupe_Token_Service;
 require_once __DIR__ . '/bootstrap.php';
 
 class WP_Loupe_TokenServiceTest extends TestCase {
-	/** @test */
-	public function rate_limits_are_bounded() {
+	public function test_rate_limits_are_bounded() {
 		$svc      = new WP_Loupe_Token_Service();
 		$incoming = [
 			'anon_window'     => 99999, // should cap to 3600
@@ -25,8 +24,7 @@ class WP_Loupe_TokenServiceTest extends TestCase {
 		$this->assertSame( 100, $clean[ 'max_search_anon' ] );
 	}
 
-	/** @test */
-	public function revoke_all_tokens_clears_registry() {
+	public function test_revoke_all_tokens_clears_registry() {
 		update_option( 'wp_loupe_mcp_tokens', [ 'abc' => [ 'label' => 'x' ] ] );
 		$svc = new WP_Loupe_Token_Service();
 		$svc->revoke_all_tokens();

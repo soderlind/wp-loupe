@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.4] - 2026-04-13
+
+### Changed
+- Bumped `loupe/loupe` to 0.13.12.
+- Bumped the PHPUnit test stack to `phpunit/phpunit` 12.5 and `pestphp/pest` 4.5.
+- Updated JavaScript tooling dependencies and lockfile to address open dependency advisories.
+- Updated PHPUnit configuration and legacy test method names for PHPUnit 12 compatibility.
+
 ## [0.8.3] - 2026-03-05
 
 ### Fixed
