@@ -23,13 +23,13 @@
 		"ext-pdo_sqlite": "*",
 		"ext-intl": "*",
 		"ext-mbstring": "*",
-		"loupe/loupe": "~0.13.7",
+		"loupe/loupe": "~0.13.12",
 		"yahnis-elsts/plugin-update-checker": "~5.6"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "^11.5",
+		"phpunit/phpunit": "^12.5",
 		"brain/monkey": "^2.6",
-		"pestphp/pest": "^3.8"
+		"pestphp/pest": "^4.5"
 	},
 	"autoload": {
 		"psr-4": {

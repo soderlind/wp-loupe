@@ -4,7 +4,7 @@ Tags: search, full-text search, relevance, typo-tolerant, fast search, search en
 Requires at least: 6.7
 Tested up to: 7.0
 Requires PHP: 8.3
-Stable tag: 0.8.3
+Stable tag: 0.8.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
@@ -152,6 +152,11 @@ Use Settings > WP Loupe > Reindex (batched), or run via WP-CLI:
 
 
 == Changelog ==
+
+= 0.8.4 =
+* Changed: Updated PHP dependencies to `loupe/loupe` 0.13.12, `phpunit/phpunit` 12.5, and `pestphp/pest` 4.5.
+* Changed: Updated JavaScript tooling dependencies and lockfile to address open dependency advisories.
+* Changed: PHPUnit configuration and legacy test method names were updated for PHPUnit 12 compatibility.
 
 = 0.8.3 =
 * Fixed: `should_intercept_query()` validates all public searchable post types are indexed before intercepting generic searches.

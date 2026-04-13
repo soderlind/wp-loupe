@@ -1,6 +1,6 @@
 {
 	"name": "wp-loupe",
-	"version": "0.8.2",
+	"version": "0.8.4",
 	"description": "Enhance the search functionality of your WordPress site with WP Loupe.",
 	"main": "index.js",
 	"scripts": {
@@ -24,13 +24,72 @@
 	},
 	"homepage": "https://github.com/soderlind/wp-loupe#readme",
 	"devDependencies": {
-		"@wordpress/scripts": "^31.5.0",
-		"terser-webpack-plugin": "^5.3.16"
+		"@wordpress/scripts": "^31.8.0",
+		"terser-webpack-plugin": "^5.4.0"
 	},
 	"dependencies": {
 		"@soderlind/wp-project-version-sync": "^2.0.2",
 		"@wordpress/api-fetch": "^7.40.0",
 		"@wordpress/i18n": "^6.13.0",
 		"cross-spawn": "^7.0.6"
+	},
+	"overrides": {
+		"axios": "1.15.0",
+		"basic-ftp": "5.2.2",
+		"lodash": "4.18.1",
+		"lodash-es": "4.18.1",
+		"serialize-javascript": "7.0.5",
+		"node-forge": "1.4.0",
+		"flatted": "3.4.2",
+		"svgo": "3.3.3",
+		"immutable": "5.1.5",
+		"test-exclude": {
+			"minimatch": "3.1.3"
+		},
+		"eslint": {
+			"minimatch": "3.1.3",
+			"@eslint/eslintrc": {
+				"minimatch": "3.1.3"
+			},
+			"@humanwhocodes/config-array": {
+				"minimatch": "3.1.3"
+			}
+		},
+		"eslint-plugin-import": {
+			"minimatch": "3.1.3"
+		},
+		"eslint-plugin-jsx-a11y": {
+			"minimatch": "3.1.3"
+		},
+		"eslint-plugin-react": {
+			"minimatch": "3.1.3"
+		},
+		"markdownlint-cli": {
+			"minimatch": "3.1.3",
+			"glob": {
+				"minimatch": "3.1.3"
+			}
+		},
+		"ignore-walk": {
+			"minimatch": "3.1.3"
+		},
+		"@sentry/node": {
+			"minimatch": "9.0.7"
+		},
+		"@typescript-eslint/typescript-estree": {
+			"minimatch": "9.0.7"
+		},
+		"jest-util": {
+			"picomatch": "4.0.4"
+		},
+		"anymatch": {
+			"picomatch": "2.3.2"
+		},
+		"readdirp": {
+			"picomatch": "2.3.2"
+		},
+		"micromatch": {
+			"picomatch": "2.3.2"
+		}
 	}
 }
