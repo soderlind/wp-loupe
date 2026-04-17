@@ -24,7 +24,7 @@
 	},
 	"homepage": "https://github.com/soderlind/wp-loupe#readme",
 	"devDependencies": {
-		"@wordpress/scripts": "^31.8.0",
+		"@wordpress/scripts": "^32.0.0",
 		"terser-webpack-plugin": "^5.4.0"
 	},
 	"dependencies": {
