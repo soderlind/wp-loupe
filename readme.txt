@@ -153,6 +153,9 @@ Use Settings > WP Loupe > Reindex (batched), or run via WP-CLI:
 
 == Changelog ==
 
+= 0.8.5 =
+* Security: Updated PHP and JavaScript dependencies to resolve reported security advisories.
+
 = 0.8.4 =
 * Changed: Updated PHP dependencies to `loupe/loupe` 0.13.12, `phpunit/phpunit` 12.5, and `pestphp/pest` 4.5.
 * Changed: Updated JavaScript tooling dependencies and lockfile to address open dependency advisories.
