@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.6] - 2026-07-28
+
+Final release. WP Loupe has been renamed to [Loupe Search](https://github.com/soderlind/loupe-search); all further development continues there.
+
+### Added
+- Dismissible admin notice announcing the rename and linking to the migration guide.
+
+### Deprecated
+- WP Loupe is no longer maintained. Install Loupe Search, deactivate WP Loupe, then activate Loupe Search. Both plugins hook WordPress search and index content, so they must not run at the same time. The existing index at `wp-content/wp-loupe-db` is reused.
+
 ## [0.8.5] - 2026-04-17
 
 ### Security
@@ -507,7 +517,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Code style improvements for better maintainability
 
-[0.8.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.1\n[0.8.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.0
+[0.8.6]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.6
+[0.8.5]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.5
+[0.8.4]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.4
+[0.8.3]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.3
+[0.8.2]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.2
+[0.8.1]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.1
+[0.8.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.8.0
 [0.7.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.7.0
 [0.6.0]: https://github.com/soderlind/wp-loupe/releases/tag/0.6.0
 [0.5.7]: https://github.com/soderlind/wp-loupe/releases/tag/0.5.7

@@ -49,6 +49,7 @@ class WP_Loupe_Loader {
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-utils.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-settings.php';
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-rest.php';
+		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-deprecation-notice.php';
 		// MCP server class
 		require_once WP_LOUPE_PATH . 'includes/class-wp-loupe-mcp-server.php';
 	}
@@ -96,6 +97,11 @@ class WP_Loupe_Loader {
 
 		// Initialize REST API handler
 		new WP_Loupe_REST();
+
+		// Announce the rename to Loupe Search.
+		if ( is_admin() ) {
+			( new WP_Loupe_Deprecation_Notice() )->register();
+		}
 
 		// Initialize MCP Server (lazy hooks)
 		WP_Loupe_MCP_Server::get_instance();
