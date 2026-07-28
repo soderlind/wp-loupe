@@ -12,6 +12,7 @@
 	],
 	"homepage": "https://github.com/soderlind/wp-loupe",
 	"license": "GPL-2.0-or-later",
+	"abandoned": "soderlind/loupe-search",
 	"authors": [
 		{
 			"name": "Per Soderlind",
