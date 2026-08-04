@@ -4,14 +4,24 @@ Tags: search, full-text search, relevance, typo-tolerant, fast search, search en
 Requires at least: 6.7
 Tested up to: 7.0
 Requires PHP: 8.3
-Stable tag: 0.8.5
+Stable tag: 0.8.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Donate link: https://paypal.me/PerSoderlind
 
-A search enhancement plugin for WordPress that delivers fast, accurate, and typo-tolerant results.
+A search enhancement plugin for WordPress that delivers fast, accurate, and typo-tolerant results. Renamed to Loupe Search.
 
 == Description ==
+
+**WP Loupe is now Loupe Search.** This is the final WP Loupe release. Development continues as [Loupe Search](https://wordpress.org/plugins/loupe-search/), which is where all future features, fixes, and security updates land.
+
+To migrate:
+
+1. Install Loupe Search.
+2. Deactivate WP Loupe.
+3. Activate Loupe Search.
+
+Deactivate WP Loupe *before* activating Loupe Search — both plugins hook WordPress search and index content, so running them together causes conflicts. Your existing index at `wp-content/wp-loupe-db` is reused, so no reindexing is needed. See the [migration guide](https://github.com/soderlind/loupe-search/blob/main/docs/renamed-from-wp-loupe.md).
 
 WP Loupe improves WordPress core search by maintaining its own index for fast lookups, supporting typo tolerance, phrase matching, basic exclusion operators, and per–post-type customization.
 
@@ -152,6 +162,11 @@ Use Settings > WP Loupe > Reindex (batched), or run via WP-CLI:
 
 
 == Changelog ==
+
+= 0.8.6 =
+* Final release. WP Loupe has been renamed to Loupe Search; all further development continues there.
+* Added: Dismissible admin notice announcing the rename and linking to the migration guide.
+* Deprecated: WP Loupe is no longer maintained. Install Loupe Search, deactivate WP Loupe, then activate Loupe Search. The existing index is reused.
 
 = 0.8.5 =
 * Security: Updated PHP and JavaScript dependencies to resolve reported security advisories.
